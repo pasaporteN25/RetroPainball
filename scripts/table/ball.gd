@@ -2,7 +2,14 @@ extends RigidBody2D
 ## La bola. Avisa a lo que toca (bumpers, slingshots) llamando a
 ## on_ball_contact() en el objeto chocado, y limita su velocidad máxima.
 
+## Avisa cuando la bola lleva STUCK_SECONDS sin desplazarse; quien la use decide si es
+## normal (esperando el saque) o si hay que destrabarla.
+signal stuck
+
 const RADIUS := 16.0
+## Si en STUCK_SECONDS no se alejó más de esto, está trabada (aunque vibre).
+const STUCK_RADIUS := 8.0
+const STUCK_SECONDS := 4.0
 const TRAIL_LIFETIME := 0.065
 const TRAIL_SAMPLE_INTERVAL := 0.011
 const TRAIL_SAMPLE_LIMIT := 7
@@ -17,6 +24,10 @@ var _trail_positions := PackedVector2Array()
 var _trail_times := PackedFloat32Array()
 var _trail_clock := 0.0
 var _last_sample_at := -TRAIL_SAMPLE_INTERVAL
+var _still_time := 0.0
+var _still_anchor := Vector2.ZERO
+## Avisos seguidos sin que la bola se haya movido: sirve para no ser indulgentes siempre.
+var stuck_alerts := 0
 
 
 func _init() -> void:
@@ -35,6 +46,19 @@ func _init() -> void:
 	circle.radius = RADIUS
 	shape.shape = circle
 	add_child(shape)
+
+
+func _physics_process(delta: float) -> void:
+	if freeze or global_position.distance_to(_still_anchor) > STUCK_RADIUS:
+		_still_anchor = global_position
+		_still_time = 0.0
+		stuck_alerts = 0
+		return
+	_still_time += delta
+	if _still_time >= STUCK_SECONDS:
+		_still_time = 0.0
+		stuck_alerts += 1
+		stuck.emit()
 
 
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:

@@ -18,6 +18,13 @@ const CORAL := Color("#ff675f")
 const BALL_SAVE_TIME := 8.0
 const SERVE_DELAY := 0.7
 const CHECKPOINT_INTERVAL := 4.0
+## Empujón con el que se destraba una bola quieta (px/s).
+const UNSTICK_SPEED := 520.0
+## Desde esta altura (coordenadas de la mesa) la bola está en la zona de flippers.
+const FLIPPER_ZONE_Y := 1000.0
+## Desde esta x y y la bola está en el carril de saque, donde esperar es normal.
+const LANE_X := 664.0
+const LANE_Y := 430.0
 
 @export var table_id := GameState.KERNEL_PANIC
 
@@ -266,7 +273,24 @@ func _spawn_ball(at: Vector2, velocity: Vector2, spin := 0.0, angle := 0.0) -> v
 	ball.rotation = angle
 	ball.linear_velocity = velocity
 	ball.angular_velocity = spin
+	ball.stuck.connect(_on_ball_stuck.bind(ball))
 	_balls.add_child(ball)
+
+
+## Una bola quieta es normal en el carril de saque, o apoyada un rato en un flipper
+## que el jugador mantiene arriba (solo el primer aviso). Si no, está trabada.
+func _on_ball_stuck(ball: Ball) -> void:
+	if not GameState.playing or not is_instance_valid(ball) or ball.is_queued_for_deletion():
+		return
+	var at := _table.to_local(ball.global_position)
+	if at.x > LANE_X and at.y > LANE_Y:
+		return
+	if ball.stuck_alerts <= 1 and at.y > FLIPPER_ZONE_Y and (Input.is_action_pressed("flipper_left") or Input.is_action_pressed("flipper_right")):
+		return
+	var side := -1.0 if at.x > 336.0 else 1.0
+	ball.linear_velocity = Vector2(side * 0.35, -1.0).normalized() * UNSTICK_SPEED
+	_burst(at, AMBER, 14.0, 6)
+	GameState.say("BOLA DESTRABADA")
 
 
 func _burst(at: Vector2, tint: Color, radius: float, count: int, direction := Vector2.ZERO) -> void:
