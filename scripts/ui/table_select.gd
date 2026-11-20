@@ -104,7 +104,7 @@ func _draw_card(card: Button, nautical: bool, has_save: bool) -> void:
 	card.draw_line(Vector2(17, text_start), Vector2(bounds.end.x - 17, text_start), Color(accent, 0.64), 2, true)
 	var headline := card.text
 	var subtitle := "Bajo el mar" if nautical else "Pinball clásico"
-	var summary := "Sonares  ·  Kraken  ·  Multibola" if nautical else "Bumpers y flippers en un circuito retro"
+	var summary := "Órbita  ·  Sonares  ·  Kraken" if nautical else "Carriles y blancos en un circuito retro"
 	var left := 29.0
 	var font := ThemeDB.fallback_font
 	card.draw_string(_serif if nautical else _heading, Vector2(left, text_start + 64),

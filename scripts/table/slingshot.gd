@@ -4,6 +4,9 @@ extends StaticBody2D
 ## Necesita un hijo CollisionPolygon2D llamado "Shape". La cara que patea es
 ## la que va del punto 0 al punto 1 del polígono; los otros lados son pared.
 
+const RECHARGE_SECONDS := 0.55
+const NEXT_KICK_FRAME := &"_next_slingshot_kick_frame"
+
 @export var kick_speed := 1000.0
 @export var points := 10
 @export var color := Color("#314b52")
@@ -30,7 +33,10 @@ func _polygon() -> PackedVector2Array:
 	return poly
 
 
-func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, point: Vector2) -> void:
+func on_ball_contact(ball: RigidBody2D, state: PhysicsDirectBodyState2D, point: Vector2) -> void:
+	var frame := Engine.get_physics_frames()
+	if frame < int(ball.get_meta(NEXT_KICK_FRAME, 0)):
+		return
 	var poly := _polygon()
 	if poly.size() < 3:
 		return
@@ -49,6 +55,9 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, point:
 	var v := state.linear_velocity
 	v -= n * v.dot(n)
 	state.linear_velocity = v * 0.8 + n * kick_speed
+	# Durante el cruce hacia la goma opuesta, ambas caras rebotan sin motorizar
+	# esta bola. Cada bola tiene su propia recarga y conserva el rebote pasivo.
+	ball.set_meta(NEXT_KICK_FRAME, frame + ceili(RECHARGE_SECONDS * Engine.physics_ticks_per_second))
 	_flash = 1.0
 	GameState.add_score.call_deferred(points, (a + b) * 0.5)
 	Input.vibrate_handheld(8)

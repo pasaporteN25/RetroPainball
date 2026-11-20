@@ -130,6 +130,15 @@ func _draw_hardware() -> void:
 	for y in range(487, 1268, 44):
 		draw_polyline(PackedVector2Array([Vector2(678, y + 5), Vector2(686, y - 2), Vector2(694, y + 5)]),
 			Color("#66968d") if y < 1150 else GOLD, 1.7, true)
+	var pressure_path := PackedVector2Array([Vector2(563, 735), Vector2(575, 701),
+		Vector2(585, 668), Vector2(592, 635), Vector2(596, 609)])
+	draw_polyline(pressure_path, Color(0.027, 0.12, 0.15, 0.74), 11.0, true)
+	for i in range(pressure_path.size() - 1):
+		var from := pressure_path[i]
+		var to := pressure_path[i + 1]
+		var cross := (to - from).normalized().orthogonal() * 5.0
+		draw_line(from.lerp(to, 0.24), from.lerp(to, 0.88), Color(AQUA, 0.43), 2.0, true)
+		draw_line(from - cross, from + cross, Color(GOLD, 0.69), 1.5, true)
 
 	# Escala grabada a los lados del campo abierto.
 	for x in [116.0, 556.0]:

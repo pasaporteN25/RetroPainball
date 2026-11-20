@@ -1,17 +1,29 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/main.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://scenes/table_base.tscn" id="1_base"]
 [ext_resource type="Script" path="res://scripts/table/nautilus_art.gd" id="2_art"]
 [ext_resource type="Texture2D" path="res://assets/nautilus_playfield.webp" id="3_print"]
 [ext_resource type="Script" path="res://scripts/table/depth_mission.gd" id="4_mission"]
 [ext_resource type="Script" path="res://scripts/table/sonar_target.gd" id="5_sonar"]
 [ext_resource type="Script" path="res://scripts/table/kraken_spinner.gd" id="6_kraken"]
+[ext_resource type="Script" path="res://scripts/table/wall.gd" id="7_wall"]
+[ext_resource type="Script" path="res://scripts/table/nautilus_current.gd" id="8_current"]
+[ext_resource type="Script" path="res://scripts/table/nautilus_pressure_chamber.gd" id="9_chamber"]
 
 [sub_resource type="CircleShape2D" id="Circle_sonar"]
 radius = 41.0
 
 [sub_resource type="CircleShape2D" id="Circle_kraken"]
 radius = 60.0
+
+[sub_resource type="RectangleShape2D" id="Rectangle_entrance"]
+size = Vector2(76, 10)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_exit"]
+size = Vector2(58, 10)
+
+[sub_resource type="CircleShape2D" id="Circle_chamber"]
+radius = 21.0
 
 [node name="Nautilus" instance=ExtResource("1_base")]
 table_id = "nautilus"
@@ -127,3 +139,49 @@ script = ExtResource("6_kraken")
 
 [node name="Shape" type="CollisionShape2D" parent="Table/Kraken"]
 shape = SubResource("Circle_kraken")
+
+[node name="CurrentRoute" type="Node2D" parent="Table" index="21"]
+z_index = -1
+script = ExtResource("8_current")
+
+[node name="GuideRail" type="StaticBody2D" parent="Table/CurrentRoute"]
+script = ExtResource("7_wall")
+fill_color = Color(0.25, 0.19, 0.13, 1)
+line_color = Color(0.88, 0.68, 0.41, 1)
+line_width = 5.0
+bounce = 0.12
+
+[node name="Shape" type="CollisionPolygon2D" parent="Table/CurrentRoute/GuideRail"]
+polygon = PackedVector2Array(184, 368, 162, 384, 143, 404, 128, 427, 115, 454, 106, 484, 100, 514, 97, 544, 98, 575, 107, 609, 115, 607, 107, 574, 106, 544, 109, 516, 115, 487, 124, 458, 136, 431, 150, 410, 168, 391, 188, 375)
+
+[node name="UpperGate" type="Area2D" parent="Table/CurrentRoute"]
+position = Vector2(82, 423)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Table/CurrentRoute/UpperGate"]
+shape = SubResource("Rectangle_entrance")
+
+[node name="LowerGate" type="Area2D" parent="Table/CurrentRoute"]
+position = Vector2(54, 565)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Table/CurrentRoute/LowerGate"]
+shape = SubResource("Rectangle_exit")
+
+[node name="PressureChamber" type="Area2D" parent="Table" index="22"]
+z_index = -1
+position = Vector2(552, 781)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("9_chamber")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/PressureChamber"]
+shape = SubResource("Circle_chamber")
+
+[node name="ReleaseTimer" type="Timer" parent="Table/PressureChamber"]
+one_shot = true

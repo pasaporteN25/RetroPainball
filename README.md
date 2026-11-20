@@ -5,11 +5,17 @@ Motor: **Godot 4.7.2** (GDScript), renderer *Compatibility* para cubrir la mayor
 
 Hay dos mesas, cada una con tres bolas, salvavidas y su propio récord local.
 
-- **Kernel Panic** es el pinball clásico, con bumpers y flippers sobre un circuito impreso.
-- **20.000 Leguas bajo el mar** suma el Nautilus, tres sonares y un kraken giratorio. Pasá la bola
+- **Kernel Panic** es el pinball clásico. Tiene tres carriles de puntaje (BOOT, BUS A y BUS B),
+  dos blancos IRQ y bumpers sobre un circuito impreso.
+- **20.000 Leguas bajo el mar** suma una órbita de babor, una cámara que atrapa y devuelve la bola
+  hacia estribor, tres sonares y un kraken giratorio. Pasá la bola
   sobre los tres sonares y golpeá al kraken para ganar 5.000 puntos y descender 1.500 m. Si hay
   una sola bola, el golpe también activa la multibola. Los sonares y la profundidad se mantienen
   al perder una bola.
+
+En ambas mesas, los retornos interiores llevan a los flippers y suman 50 puntos. Las salidas
+exteriores llevan al drenaje. La compuerta superior desvía hacia el tablero las bolas que vuelven
+al carril de lanzamiento.
 
 ## Correrlo
 
@@ -66,6 +72,7 @@ O desde el editor, con el teléfono conectado por USB y la depuración activada:
 ```
 scenes/table_select.tscn    Selector de mesas
 scenes/main.tscn            Mesa base y Kernel Panic
+scenes/table_base.tscn      Geometría y controles compartidos
 scenes/nautilus.tscn        20.000 Leguas, con geometría y misión propias
 scripts/
   autoload/game_state.gd    Puntaje, bolas, récord, acciones de input por defecto

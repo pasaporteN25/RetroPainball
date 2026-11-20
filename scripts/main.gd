@@ -115,12 +115,38 @@ func _restore_run(saved: Dictionary) -> void:
 	_art.set_ball_save_fraction(_ball_save_left / BALL_SAVE_TIME)
 	if _mission:
 		_mission.restore(saved.sonar_mask, saved.depth)
+	var probe := PhysicsShapeQueryParameters2D.new()
+	var circle := CircleShape2D.new()
+	# Ignora el pequeño solapamiento del contacto normal con una goma o un rail.
+	circle.radius = Ball.RADIUS - 2.0
+	probe.shape = circle
+	probe.collision_mask = 1
+	var field: PackedVector2Array = $Table/OuterWall/Shape.polygon
 	for snapshot: Dictionary in saved.balls:
-		_spawn_ball(snapshot.position, snapshot.velocity, snapshot.spin, snapshot.rotation)
+		var at := _open_resume_position(snapshot.position, probe, field)
+		_spawn_ball(at, snapshot.velocity, snapshot.spin, snapshot.rotation)
 	if saved.balls.is_empty():
 		_serve_timer.start(maxf(0.001, saved.serve_remaining))
 	GameState.resume_game(saved.score, saved.balls_left)
 	GameState.say("PARTIDA REANUDADA")
+
+
+func _open_resume_position(at: Vector2, probe: PhysicsShapeQueryParameters2D,
+		field: PackedVector2Array) -> Vector2:
+	var space := _table.get_world_2d().direct_space_state
+	probe.transform = Transform2D(0, _table.to_global(at))
+	if space.intersect_shape(probe, 1).is_empty():
+		return at
+	# Si una actualización puso una pieza donde estaba la bola, busca espacio cerca.
+	for radius in [24.0, 48.0, 72.0, 108.0, 154.0]:
+		for step in 8:
+			var candidate := at + Vector2.DOWN.rotated(TAU * step / 8.0) * float(radius)
+			if candidate.y > 1375.0 or not Geometry2D.is_point_in_polygon(candidate, field):
+				continue
+			probe.transform = Transform2D(0, _table.to_global(candidate))
+			if space.intersect_shape(probe, 1).is_empty():
+				return candidate
+	return at
 
 
 func ball_count() -> int:
