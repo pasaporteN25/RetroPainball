@@ -1,6 +1,8 @@
 extends CanvasLayer
 ## Marcador, avisos de partida y paneles del gabinete.
 
+signal checkpoint_requested
+
 const SevenSegment := preload("res://scripts/ui/seven_segment.gd")
 const BallLamps := preload("res://scripts/ui/ball_lamps.gd")
 const Screen := preload("res://scripts/util/screen.gd")
@@ -43,6 +45,7 @@ func _ready() -> void:
 	GameState.balls_changed.connect(func(n: int) -> void: _lamps.lit = n)
 	GameState.message.connect(show_message)
 	GameState.game_started.connect(_on_game_started)
+	GameState.game_resumed.connect(_on_game_resumed)
 	GameState.game_ended.connect(_on_game_ended)
 	get_viewport().size_changed.connect(_layout)
 	_update_record()
@@ -78,6 +81,8 @@ func _notification(what: int) -> void:
 
 func toggle_pause() -> void:
 	var tree := get_tree()
+	if not tree.paused:
+		checkpoint_requested.emit()
 	tree.paused = not tree.paused
 	_paused_score.text = _format(GameState.score)
 	_pause.visible = tree.paused
@@ -99,7 +104,12 @@ func show_message(text: String) -> void:
 
 
 func _on_game_started() -> void:
-	_shown_score = 0.0
+	_on_game_resumed()
+
+
+func _on_game_resumed() -> void:
+	_shown_score = float(GameState.score)
+	_display.value = GameState.score
 	_update_record()
 	_game_over.hide()
 	_pause.hide()
@@ -241,6 +251,7 @@ func _build_overlays() -> void:
 
 
 func _open_tables() -> void:
+	checkpoint_requested.emit()
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/table_select.tscn")
 

@@ -7,6 +7,7 @@ signal scored(points: int, world_position: Vector2)
 signal balls_changed(balls_left: int)
 signal message(text: String)
 signal game_started
+signal game_resumed
 signal game_ended(final_score: int, is_record: bool)
 
 const BALLS_PER_GAME := 3
@@ -14,6 +15,8 @@ const KERNEL_PANIC := "kernel_panic"
 const NAUTILUS := "nautilus"
 ## Variable (no const) para que los tests usen un archivo propio.
 var record_path := "user://records.cfg"
+## Vacío desactiva los guardados, por ejemplo al probar la física.
+var save_directory := "user://saved_games"
 
 ## Teclas y botones por defecto. El touch también pasa por estas acciones,
 ## así que los flippers leen siempre lo mismo venga de donde venga.
@@ -48,14 +51,23 @@ func _ready() -> void:
 
 
 func start_game() -> void:
-	score = 0
-	balls_left = BALLS_PER_GAME
+	_set_active_run(0, BALLS_PER_GAME)
+	game_started.emit()
+
+
+func resume_game(saved_score: int, saved_balls_left: int) -> void:
+	_set_active_run(saved_score, saved_balls_left)
+	game_resumed.emit()
+
+
+func _set_active_run(new_score: int, new_balls_left: int) -> void:
+	score = new_score
+	balls_left = new_balls_left
 	ball_in_lane = false
 	plunger_charge = 0.0
 	playing = true
 	score_changed.emit(score)
 	balls_changed.emit(balls_left)
-	game_started.emit()
 
 
 func select_table(id: String) -> void:

@@ -28,6 +28,7 @@ func _run() -> void:
 	var game_state: Node = root.get_node("GameState")
 	var old_path: String = game_state.record_path
 	game_state.record_path = TMP_RECORD
+	game_state.save_directory = ""
 	game_state.high_score = 0
 
 	main = (load("res://scenes/main.tscn") as PackedScene).instantiate()

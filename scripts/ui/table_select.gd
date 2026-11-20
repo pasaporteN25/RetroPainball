@@ -2,6 +2,7 @@ extends Control
 ## Entrada a las mesas. Las teclas y el mando navegan los mismos botones que el touch.
 
 const Screen := preload("res://scripts/util/screen.gd")
+const GameSave := preload("res://scripts/util/game_save.gd")
 const NAUTILUS_PRINT := preload("res://assets/nautilus_playfield.webp")
 const INK := Color("#071119")
 const MINT := Color("#8cead2")
@@ -23,8 +24,8 @@ func _ready() -> void:
 	_serif = SystemFont.new()
 	_serif.font_names = PackedStringArray(["Noto Serif", "DejaVu Serif", "serif"])
 	_serif.font_weight = 700
-	_kernel = _make_card("Kernel Panic", 432.0, false, "res://scenes/main.tscn")
-	_nautilus = _make_card("20.000 Leguas", 646.0, true, "res://scenes/nautilus.tscn")
+	_kernel = _make_card("Kernel Panic", GameState.KERNEL_PANIC, 432.0, "res://scenes/main.tscn")
+	_nautilus = _make_card("20.000 Leguas", GameState.NAUTILUS, 646.0, "res://scenes/nautilus.tscn")
 	_kernel.focus_neighbor_bottom = _kernel.get_path_to(_nautilus)
 	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
 	get_viewport().size_changed.connect(_layout)
@@ -32,10 +33,15 @@ func _ready() -> void:
 	_kernel.grab_focus()
 
 
-func _make_card(title: String, height: float, nautical: bool, scene_path: String) -> Button:
+func _make_card(title: String, table_id: String, height: float, scene_path: String) -> Button:
+	var nautical := table_id == GameState.NAUTILUS
+	var has_save := false
+	if not GameState.save_directory.is_empty():
+		has_save = not GameSave.load_run(table_id, GameState.save_directory).is_empty()
 	var card := Button.new()
 	card.name = "Nautilus" if nautical else "KernelPanic"
 	card.text = title
+	card.tooltip_text = "Continuar " + title if has_save else title
 	card.size = Vector2(624, height)
 	card.clip_contents = true
 	card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -44,7 +50,7 @@ func _make_card(title: String, height: float, nautical: bool, scene_path: String
 		card.add_theme_stylebox_override(state, blank)
 	for state in ["font_color", "font_pressed_color", "font_hover_color", "font_focus_color", "font_hover_pressed_color", "font_outline_color"]:
 		card.add_theme_color_override(state, Color.TRANSPARENT)
-	card.draw.connect(_draw_card.bind(card, nautical))
+	card.draw.connect(_draw_card.bind(card, nautical, has_save))
 	card.pressed.connect(func() -> void: get_tree().change_scene_to_file(scene_path))
 	add_child(card)
 	return card
@@ -77,7 +83,7 @@ func _draw() -> void:
 	draw_line(at + Vector2(274, 38), at + Vector2(274, 38) - dash, Color(MINT, 0.45), 1, true)
 
 
-func _draw_card(card: Button, nautical: bool) -> void:
+func _draw_card(card: Button, nautical: bool, has_save: bool) -> void:
 	var bounds := Rect2(Vector2.ZERO, card.size)
 	var accent := GOLD if nautical else MINT
 	var active := card.has_focus() or card.is_hovered()
@@ -89,6 +95,11 @@ func _draw_card(card: Button, nautical: bool) -> void:
 		card.draw_texture_rect_region(NAUTILUS_PRINT, illustration, crop, Color("#f0eee4"))
 	else:
 		_draw_kernel(card, illustration)
+	if has_save:
+		var tag := Rect2(illustration.end.x - 176, illustration.position.y + 15, 158, 41)
+		card.draw_rect(tag, Color("#101b21"))
+		card.draw_rect(tag, Color(accent, 0.8), false, 2, true)
+		_center_text(card, _heading, "Continuar", tag.get_center() + Vector2(0, 7), 22, IVORY)
 	var text_start := illustration.end.y
 	card.draw_line(Vector2(17, text_start), Vector2(bounds.end.x - 17, text_start), Color(accent, 0.64), 2, true)
 	var headline := card.text

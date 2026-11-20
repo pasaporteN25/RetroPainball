@@ -15,6 +15,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var state: Node = root.get_node("GameState")
 	state.record_path = TEST_RECORD
+	state.save_directory = ""
 	var records := ConfigFile.new()
 	records.set_value("records", "high_score", 888)
 	records.save(TEST_RECORD)

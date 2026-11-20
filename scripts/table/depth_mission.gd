@@ -19,8 +19,12 @@ var depth := 0
 
 
 func reset() -> void:
-	sonar_mask = 0
-	depth = 0
+	restore(0, 0)
+
+
+func restore(mask: int, current_depth: int) -> void:
+	sonar_mask = mask
+	depth = current_depth
 	changed.emit()
 
 

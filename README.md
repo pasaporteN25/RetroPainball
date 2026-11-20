@@ -19,6 +19,10 @@ Hay dos mesas, cada una con tres bolas, salvavidas y su propio récord local.
 
 En Linux también podés jugar desde la raíz del proyecto con `godot --path .`.
 
+Cada mesa guarda automáticamente su partida en curso. Si volvés al selector o Android cierra el
+juego, elegí la mesa marcada **Continuar**. Se recuperan el puntaje, las bolas en juego, el tiempo
+del salvavidas y el progreso de 20.000 Leguas. La opción **Reiniciar** de la pausa empieza otra partida.
+
 | Acción | Touch | Teclado | Mando |
 |---|---|---|---|
 | Flipper izquierdo | mitad izquierda de la parte baja | `Z` `A` `←` | L1 |

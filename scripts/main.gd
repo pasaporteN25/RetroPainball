@@ -8,6 +8,7 @@ const DepthMission := preload("res://scripts/table/depth_mission.gd")
 const ScorePopup := preload("res://scripts/fx/score_popup.gd")
 const TableBurst := preload("res://scripts/fx/table_burst.gd")
 const Screen := preload("res://scripts/util/screen.gd")
+const GameSave := preload("res://scripts/util/game_save.gd")
 
 const MINT := Color("#63e0c1")
 const AMBER := Color("#ffb75b")
@@ -16,6 +17,7 @@ const CORAL := Color("#ff675f")
 ## Segundos de "bola salvada" después de lanzar cada bola nueva.
 const BALL_SAVE_TIME := 8.0
 const SERVE_DELAY := 0.7
+const CHECKPOINT_INTERVAL := 4.0
 
 @export var table_id := GameState.KERNEL_PANIC
 
@@ -26,10 +28,13 @@ const SERVE_DELAY := 0.7
 @onready var _plunger: Node2D = $Table/Plunger
 @onready var _drain: Area2D = $Table/Drain
 @onready var _mission := get_node_or_null("Table/DepthMission") as DepthMission
+@onready var _hud: CanvasLayer = $HUD
 
 var _ball_save_left := 0.0
 var _save_armed := false
 var _serve_timer: Timer
+var _checkpoint_left := CHECKPOINT_INTERVAL
+var _last_saved_run := {}
 
 
 func _ready() -> void:
@@ -43,16 +48,79 @@ func _ready() -> void:
 	_plunger.launched.connect(_on_launched)
 	GameState.scored.connect(_on_scored)
 	GameState.game_started.connect(_on_game_started)
+	GameState.game_ended.connect(_on_game_ended)
+	_hud.checkpoint_requested.connect(save_run)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
 	GameState.select_table(table_id)
-	GameState.start_game()
+	var saved := GameSave.load_run(table_id, GameState.save_directory) if not GameState.save_directory.is_empty() else {}
+	if saved.is_empty():
+		GameState.start_game()
+	else:
+		_restore_run(saved)
 
 
 func _process(delta: float) -> void:
 	if _ball_save_left > 0.0:
 		_ball_save_left = maxf(0.0, _ball_save_left - delta)
 		_art.set_ball_save_fraction(_ball_save_left / BALL_SAVE_TIME)
+	if GameState.playing and not GameState.save_directory.is_empty():
+		_checkpoint_left -= delta
+		if _checkpoint_left <= 0.0:
+			save_run()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and is_node_ready():
+		save_run()
+
+
+func save_run() -> void:
+	_checkpoint_left = CHECKPOINT_INTERVAL
+	if GameState.save_directory.is_empty() or not GameState.playing or GameState.table_id != table_id:
+		return
+	var live_balls: Array[Dictionary] = []
+	for ball: RigidBody2D in _balls.get_children():
+		if not ball.is_queued_for_deletion():
+			live_balls.append({
+				"position": ball.position,
+				"velocity": ball.linear_velocity,
+				"spin": ball.angular_velocity,
+				"rotation": ball.rotation,
+			})
+	var saved := {
+		"table_id": table_id,
+		"score": GameState.score,
+		"balls_left": GameState.balls_left,
+		"balls": live_balls,
+		"serve_remaining": _serve_timer.time_left,
+		"save_remaining": _ball_save_left,
+		"save_armed": _save_armed,
+		"sonar_mask": _mission.sonar_mask if _mission else 0,
+		"depth": _mission.depth if _mission else 0,
+	}
+	if saved == _last_saved_run:
+		return
+	var result := GameSave.save_run(saved, GameState.save_directory)
+	if result == OK:
+		_last_saved_run = saved
+	else:
+		push_warning("No se pudo guardar la partida: %s" % error_string(result))
+
+
+func _restore_run(saved: Dictionary) -> void:
+	_last_saved_run = saved
+	_ball_save_left = saved.save_remaining
+	_save_armed = saved.save_armed
+	_art.set_ball_save_fraction(_ball_save_left / BALL_SAVE_TIME)
+	if _mission:
+		_mission.restore(saved.sonar_mask, saved.depth)
+	for snapshot: Dictionary in saved.balls:
+		_spawn_ball(snapshot.position, snapshot.velocity, snapshot.spin, snapshot.rotation)
+	if saved.balls.is_empty():
+		_serve_timer.start(maxf(0.001, saved.serve_remaining))
+	GameState.resume_game(saved.score, saved.balls_left)
+	GameState.say("PARTIDA REANUDADA")
 
 
 func ball_count() -> int:
@@ -69,6 +137,7 @@ func serve_ball() -> void:
 		return
 	_spawn_ball(_plunger.position + Vector2(0.0, -Ball.RADIUS - 1.0), Vector2.ZERO)
 	_save_armed = true
+	save_run()
 
 
 func _on_game_started() -> void:
@@ -84,6 +153,15 @@ func _on_game_started() -> void:
 		_mission.reset()
 	GameState.say("BOLA 1")
 	_schedule_serve()
+	save_run()
+
+
+func _on_game_ended(_score: int, _is_record: bool) -> void:
+	_last_saved_run.clear()
+	if not GameState.save_directory.is_empty():
+		var result := GameSave.clear_run(table_id, GameState.save_directory)
+		if result != OK:
+			push_warning("No se pudo borrar la partida terminada: %s" % error_string(result))
 
 
 func _schedule_serve() -> void:
@@ -101,7 +179,7 @@ func _on_launched(power: float) -> void:
 
 
 func _on_drain(body: Node2D) -> void:
-	if not body is Ball:
+	if not body is Ball or body.is_queued_for_deletion():
 		return
 	body.queue_free()
 	if ball_count() > 0 or not GameState.playing:
@@ -112,11 +190,13 @@ func _on_drain(body: Node2D) -> void:
 		_burst(Vector2(336.0, 1368.0), MINT, 25.0, 12)
 		GameState.say("¡BOLA SALVADA!")
 		_schedule_serve()
+		save_run.call_deferred()
 		return
 	_burst(Vector2(body.position.x, 1388.0), CORAL, 8.0, 7, Vector2.DOWN * 90.0)
 	if GameState.lose_ball():
 		GameState.say("BOLA %d" % (GameState.BALLS_PER_GAME - GameState.balls_left + 1))
 		_schedule_serve()
+		save_run.call_deferred()
 
 
 func _on_scored(points: int, world_position: Vector2) -> void:
@@ -147,17 +227,19 @@ func _refresh_mission() -> void:
 
 func _on_jackpot() -> void:
 	_art.flash_jackpot()
-	if ball_count() != 1:
-		return
-	var origin: Vector2 = $Table/Kraken.position
-	_spawn_ball(origin + Vector2(-110, 0), Vector2(-300, -860))
-	_spawn_ball(origin + Vector2(110, 0), Vector2(300, -860))
+	if ball_count() == 1:
+		var origin: Vector2 = $Table/Kraken.position
+		_spawn_ball(origin + Vector2(-110, 0), Vector2(-300, -860))
+		_spawn_ball(origin + Vector2(110, 0), Vector2(300, -860))
+	save_run()
 
 
-func _spawn_ball(at: Vector2, velocity: Vector2) -> void:
+func _spawn_ball(at: Vector2, velocity: Vector2, spin := 0.0, angle := 0.0) -> void:
 	var ball := Ball.new()
 	ball.position = at
+	ball.rotation = angle
 	ball.linear_velocity = velocity
+	ball.angular_velocity = spin
 	_balls.add_child(ball)
 
 
