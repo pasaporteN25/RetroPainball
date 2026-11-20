@@ -1,0 +1,13 @@
+# Godot
+.godot/
+/android/
+*.tmp
+
+# Builds
+/build/
+*.apk
+*.aab
+
+# Claves de firma: nunca al repo
+*.keystore
+*.jks
