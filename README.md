@@ -74,6 +74,9 @@ tools/test.ps1              Corre la suite
 
 ## Hoja de ruta
 
+El detalle de cada tarea, por categoría (gameplay, mesas y skins, arte, audio, menú, Android,
+calidad), está en [docs/BACKLOG.md](docs/BACKLOG.md).
+
 0. ~~Godot + exportar APK~~
 1. ~~Prototipo de física~~ ← *acá*. Falta: probar la sensación en un teléfono real y ajustar números.
 2. HUD final, zonas seguras finas, vibración, menú de pausa completo.
