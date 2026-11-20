@@ -53,9 +53,6 @@ func _run() -> void:
 	_check(GameSave.save_run(state, _scratch) == OK and GameSave.load_run("nautilus", _scratch) == state, "el guardado conserva bonus y multiplicador")
 	state["bonus_multiplier"] = 9
 	_check(GameSave.save_run(state, _scratch) == ERR_INVALID_DATA, "un multiplicador fuera de rango se rechaza")
-	state["bonus_multiplier"] = 2
-	state["serve_remaining"] = 1.5
-	_check(GameSave.save_run(state, _scratch) == OK, "se puede guardar durante la espera larga posterior a un bonus")
 	_finish()
 
 

@@ -11,8 +11,6 @@ const STATE_KEYS := [
 ## Claves opcionales: las partidas guardadas antes del bonus siguen siendo válidas.
 const BONUS_KEYS := ["bonus", "bonus_multiplier"]
 const MAX_BONUS := 10000000
-## Espera máxima antes de sacar una bola (la larga es la que sigue a un bonus).
-const MAX_SERVE_DELAY := 1.8
 const BALL_KEYS := ["position", "velocity", "spin", "rotation"]
 
 
@@ -104,7 +102,7 @@ static func _valid_state(state: Dictionary, table_id: String) -> bool:
 		return false
 	if not state.balls_left is int or state.balls_left < 1 or state.balls_left > MAX_BALLS:
 		return false
-	if not _valid_timer(state.serve_remaining, MAX_SERVE_DELAY) or not _valid_timer(state.save_remaining, 8.0):
+	if not _valid_timer(state.serve_remaining, 0.7) or not _valid_timer(state.save_remaining, 8.0):
 		return false
 	if not state.save_armed is bool or not state.sonar_mask is int or not state.depth is int:
 		return false

@@ -18,12 +18,14 @@ const CORAL := Color("#ff675f")
 const BALL_SAVE_TIME := 8.0
 const SERVE_DELAY := 0.7
 const CHECKPOINT_INTERVAL := 4.0
-## Si se cobró bonus, se deja ver el aviso antes de sacar la bola siguiente.
-const BONUS_SERVE_DELAY := 1.8
 ## Empujón con el que se destraba una bola quieta (px/s).
 const UNSTICK_SPEED := 520.0
 ## Desde esta altura (coordenadas de la mesa) la bola está en la zona de flippers.
 const FLIPPER_ZONE_Y := 1000.0
+## Franja de x donde un flipper puede sostener una bola; fuera de ella (el rincón junto
+## al buje) una bola quieta está trabada aunque el jugador tenga el botón apretado.
+const CRADLE_MIN_X := 225.0
+const CRADLE_MAX_X := 447.0
 ## Desde esta x y y la bola está en el carril de saque, donde esperar es normal.
 const LANE_X := 664.0
 const LANE_Y := 430.0
@@ -231,14 +233,10 @@ func _on_drain(body: Node2D) -> void:
 		return
 	_burst(Vector2(body.position.x, 1388.0), CORAL, 8.0, 7, Vector2.DOWN * 90.0)
 	if GameState.lose_ball():
-		var next_ball := GameState.BALLS_PER_GAME - GameState.balls_left + 1
-		if GameState.last_bonus_award > 0:
-			_serve_timer.start(BONUS_SERVE_DELAY)
-			get_tree().create_timer(BONUS_SERVE_DELAY - 0.2).timeout.connect(
-				func(): if GameState.playing: GameState.say("BOLA %d" % next_ball))
-		else:
-			GameState.say("BOLA %d" % next_ball)
-			_schedule_serve()
+		# Si se cobró bonus, su aviso queda en pantalla en vez de "BOLA n".
+		if GameState.last_bonus_award == 0:
+			GameState.say("BOLA %d" % (GameState.BALLS_PER_GAME - GameState.balls_left + 1))
+		_schedule_serve()
 		save_run.call_deferred()
 
 
@@ -295,7 +293,7 @@ func _on_ball_stuck(ball: Ball) -> void:
 	var at := _table.to_local(ball.global_position)
 	if at.x > LANE_X and at.y > LANE_Y:
 		return
-	if ball.stuck_alerts <= 1 and at.y > FLIPPER_ZONE_Y and (Input.is_action_pressed("flipper_left") or Input.is_action_pressed("flipper_right")):
+	if ball.stuck_alerts <= 1 and at.y > FLIPPER_ZONE_Y and at.x > CRADLE_MIN_X and at.x < CRADLE_MAX_X and (Input.is_action_pressed("flipper_left") or Input.is_action_pressed("flipper_right")):
 		return
 	var side := -1.0 if at.x > 336.0 else 1.0
 	ball.linear_velocity = Vector2(side * 0.35, -1.0).normalized() * UNSTICK_SPEED
