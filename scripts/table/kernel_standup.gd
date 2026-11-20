@@ -2,6 +2,8 @@
 extends StaticBody2D
 ## Blanco fijo de contacto con frente luminoso.
 
+const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
+
 @export var points := 225
 @export var tint := Color("#ffb874")
 
@@ -41,7 +43,7 @@ func _draw() -> void:
 	draw_rect(Rect2(-21, -4, 42, 10), light.darkened(0.35 - 0.29 * _flash))
 	draw_line(Vector2(-22, 4), Vector2(22, 4), light, 2, true)
 	for x in [-17, -9, 0, 9, 17]:
-		draw_line(Vector2(x, -3), Vector2(x, 1), Color("#213748"), 1, true)
+		InsertLamp.draw(self, Vector2(x, -1), 2.5, tint, _flash)
 	if _flash > 0.0:
 		draw_line(Vector2(-21, 7), Vector2(21, 7), Color(light, _flash * 0.35), 12, true)
 	var font := ThemeDB.fallback_font

@@ -5,6 +5,7 @@ extends Area2D
 signal crossed(index: int, at: Vector2)
 
 const Ball := preload("res://scripts/table/ball.gd")
+const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 const BRASS := Color("#c39257")
 const AQUA := Color("#75ffe2")
 
@@ -33,7 +34,7 @@ func _draw() -> void:
 	draw_circle(Vector2.ZERO, 31, Color("#102c38"), true, -1, true)
 	draw_circle(Vector2.ZERO, 30, BRASS.darkened(0.4), false, 2.5, true)
 	draw_arc(Vector2.ZERO, 26, PI + 0.2, TAU - 0.2, 24, accent, 2, true)
-	draw_circle(Vector2.ZERO, 21, Color("#073d46") if _lit else Color("#152931"), true, -1, true)
+	InsertLamp.draw(self, Vector2.ZERO, 20, AQUA, 1.0 if _lit else 0.0)
 	if _lit:
 		draw_circle(Vector2.ZERO, 35, Color(AQUA, 0.14), false, 6, true)
 	for side in [-1, 1]:
@@ -43,4 +44,5 @@ func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	var caption := str(index + 1)
 	var width := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 23).x
-	draw_string(font, Vector2(-width * 0.5, 8), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 23, accent.lightened(0.22))
+	var text_color := Color("#073039") if _lit else accent.lightened(0.22)
+	draw_string(font, Vector2(-width * 0.5, 8), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 23, text_color)

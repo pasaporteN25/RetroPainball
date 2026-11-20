@@ -2,6 +2,10 @@
 extends StaticBody2D
 ## Pop bumper: cuando la bola lo toca la despide hacia afuera y suma puntos.
 
+signal impact(strength: float, direction: Vector2)
+
+const ScreenShake := preload("res://scripts/fx/screen_shake.gd")
+
 @export var radius := 32.0:
 	set(value):
 		radius = value
@@ -49,6 +53,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 	state.linear_velocity = tangent * 0.5 + dir * kick_speed
 	_flash = 1.0
 	GameState.add_score.call_deferred(points, global_position)
+	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, dir), dir)
 	Input.vibrate_handheld(8)
 
 

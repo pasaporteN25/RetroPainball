@@ -3,6 +3,7 @@ extends Area2D
 ## Circuito impreso que suma al pasar por encima.
 
 const Ball := preload("res://scripts/table/ball.gd")
+const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 const MIN_CROSS_SPEED := 90.0
 
 @export var caption := "BOOT"
@@ -66,7 +67,7 @@ func _draw() -> void:
 	shell.append(shell[0])
 	draw_polyline(shell, Color(light, 0.63 + 0.35 * _flash), 1.7, true)
 	for x in [-12, 0, 12]:
-		draw_circle(Vector2(x, 0), 2.4, light, true, -1, true)
+		InsertLamp.draw(self, Vector2(x, 0), 3.5, tint, _flash)
 	if _flash > 0.0:
 		draw_circle(Vector2.ZERO, 30.0 + 10.0 * (1.0 - _flash),
 			Color(tint, _flash * 0.30), false, 3.0, true)

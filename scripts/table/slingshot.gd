@@ -4,6 +4,9 @@ extends StaticBody2D
 ## Necesita un hijo CollisionPolygon2D llamado "Shape". La cara que patea es
 ## la que va del punto 0 al punto 1 del polígono; los otros lados son pared.
 
+signal impact(strength: float, direction: Vector2)
+
+const ScreenShake := preload("res://scripts/fx/screen_shake.gd")
 const RECHARGE_SECONDS := 0.55
 const NEXT_KICK_FRAME := &"_next_slingshot_kick_frame"
 
@@ -60,6 +63,7 @@ func on_ball_contact(ball: RigidBody2D, state: PhysicsDirectBodyState2D, point: 
 	ball.set_meta(NEXT_KICK_FRAME, frame + ceili(RECHARGE_SECONDS * Engine.physics_ticks_per_second))
 	_flash = 1.0
 	GameState.add_score.call_deferred(points, (a + b) * 0.5)
+	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, n), n)
 	Input.vibrate_handheld(8)
 
 

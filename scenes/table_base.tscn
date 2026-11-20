@@ -12,6 +12,7 @@
 
 [ext_resource type="Script" path="res://scripts/table/lower_lane.gd" id="10_lane"]
 [ext_resource type="Script" path="res://scripts/table/shooter_gate.gd" id="11_gate"]
+[ext_resource type="Script" path="res://scripts/fx/screen_shake.gd" id="12_shake"]
 
 [sub_resource type="RectangleShape2D" id="Rectangle_lane"]
 size = Vector2(25, 12)
@@ -179,3 +180,12 @@ script = ExtResource("8_touch")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 script = ExtResource("7_hud")
+
+[node name="ScreenShake" type="Node" parent="."]
+script = ExtResource("12_shake")
+
+[connection signal="impact" from="Table/BumperLeft" to="ScreenShake" method="on_impact"]
+[connection signal="impact" from="Table/BumperRight" to="ScreenShake" method="on_impact"]
+[connection signal="impact" from="Table/BumperBottom" to="ScreenShake" method="on_impact"]
+[connection signal="impact" from="Table/LeftSlingshot" to="ScreenShake" method="on_impact"]
+[connection signal="impact" from="Table/RightSlingshot" to="ScreenShake" method="on_impact"]

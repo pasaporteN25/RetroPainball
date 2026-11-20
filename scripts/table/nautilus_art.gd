@@ -3,6 +3,9 @@ extends Node2D
 ## Ilustración, metal grabado y luces de misión del Nautilus.
 
 const GOLD := Color("#ffd39a")
+const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
+const DepthMission := preload("res://scripts/table/depth_mission.gd")
+const DEPTH_LAMP_COUNT := 8
 const BRASS := Color("#9e6c3c")
 const AQUA := Color("#7cf9df")
 const INK := Color("#071720")
@@ -185,12 +188,13 @@ func _draw_instruments() -> void:
 		var light := nodes + Vector2((i - 1) * 37, 0)
 		_instruments.draw_circle(light, 13, INK, true, -1, true)
 		_instruments.draw_circle(light, 11, BRASS, false, 1.6, true)
-		_instruments.draw_circle(light, 7, tint if active else Color("#314752"), true, -1, true)
-		if active:
-			_instruments.draw_circle(light, 14, Color(tint, 0.11 + 0.05 * sin(_clock * 4)), false, 5, true)
+		InsertLamp.draw(_instruments, light, 7.0, tint, 1.0 if active else 0.0)
 	_center_label("PROFUNDIDAD", Vector2(336, 1023), 15, GOLD)
 	var reading := "%d m" % _depth
 	_center_label(reading, Vector2(336, 1070), 37, tint.lerp(Color.WHITE, 0.28 + _flash * 0.36))
+	for i in DEPTH_LAMP_COUNT:
+		var active := _depth >= (i + 1) * DepthMission.DEPTH_STEP
+		InsertLamp.draw(_instruments, Vector2(273 + i * 18, 1081), 4.0, AQUA, 1.0 if active else 0.0)
 	var hint := "GOLPEÁ AL KRAKEN" if _kraken_armed else "ACTIVÁ LOS 3 SONARES"
 	_center_label(hint, Vector2(336, 1105), 14, tint.lerp(Color.WHITE, 0.18))
 	_center_label("SALVABOLAS", Vector2(336, 1361), 15, AQUA if _save_fraction > 0 else Color("#88a39f"))
