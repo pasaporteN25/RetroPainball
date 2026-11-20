@@ -18,6 +18,8 @@ const CORAL := Color("#ff675f")
 const BALL_SAVE_TIME := 8.0
 const SERVE_DELAY := 0.7
 const CHECKPOINT_INTERVAL := 4.0
+## Si se cobró bonus, se deja ver el aviso antes de sacar la bola siguiente.
+const BONUS_SERVE_DELAY := 1.8
 ## Empujón con el que se destraba una bola quieta (px/s).
 const UNSTICK_SPEED := 520.0
 ## Desde esta altura (coordenadas de la mesa) la bola está en la zona de flippers.
@@ -105,6 +107,8 @@ func save_run() -> void:
 		"save_armed": _save_armed,
 		"sonar_mask": _mission.sonar_mask if _mission else 0,
 		"depth": _mission.depth if _mission else 0,
+		"bonus": GameState.bonus,
+		"bonus_multiplier": GameState.bonus_multiplier,
 	}
 	if saved == _last_saved_run:
 		return
@@ -134,7 +138,7 @@ func _restore_run(saved: Dictionary) -> void:
 		_spawn_ball(at, snapshot.velocity, snapshot.spin, snapshot.rotation)
 	if saved.balls.is_empty():
 		_serve_timer.start(maxf(0.001, saved.serve_remaining))
-	GameState.resume_game(saved.score, saved.balls_left)
+	GameState.resume_game(saved.score, saved.balls_left, saved.get("bonus", 0), saved.get("bonus_multiplier", 1))
 	GameState.say("PARTIDA REANUDADA")
 
 
@@ -227,8 +231,14 @@ func _on_drain(body: Node2D) -> void:
 		return
 	_burst(Vector2(body.position.x, 1388.0), CORAL, 8.0, 7, Vector2.DOWN * 90.0)
 	if GameState.lose_ball():
-		GameState.say("BOLA %d" % (GameState.BALLS_PER_GAME - GameState.balls_left + 1))
-		_schedule_serve()
+		var next_ball := GameState.BALLS_PER_GAME - GameState.balls_left + 1
+		if GameState.last_bonus_award > 0:
+			_serve_timer.start(BONUS_SERVE_DELAY)
+			get_tree().create_timer(BONUS_SERVE_DELAY - 0.2).timeout.connect(
+				func(): if GameState.playing: GameState.say("BOLA %d" % next_ball))
+		else:
+			GameState.say("BOLA %d" % next_ball)
+			_schedule_serve()
 		save_run.call_deferred()
 
 

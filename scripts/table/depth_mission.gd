@@ -54,6 +54,7 @@ func on_kraken(at: Vector2) -> void:
 	GameState.add_score(JACKPOT_POINTS, at)
 	sonar_mask = 0
 	depth += DEPTH_STEP
-	GameState.say("¡JACKPOT!  %d m" % depth)
+	GameState.raise_multiplier(false)
+	GameState.say("¡JACKPOT!  %d m  BONUS X%d" % [depth, GameState.bonus_multiplier])
 	changed.emit()
 	jackpot.emit()

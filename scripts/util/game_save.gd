@@ -8,6 +8,11 @@ const STATE_KEYS := [
 	"table_id", "score", "balls_left", "balls", "serve_remaining",
 	"save_remaining", "save_armed", "sonar_mask", "depth",
 ]
+## Claves opcionales: las partidas guardadas antes del bonus siguen siendo válidas.
+const BONUS_KEYS := ["bonus", "bonus_multiplier"]
+const MAX_BONUS := 10000000
+## Espera máxima antes de sacar una bola (la larga es la que sigue a un bonus).
+const MAX_SERVE_DELAY := 1.8
 const BALL_KEYS := ["position", "velocity", "spin", "rotation"]
 
 
@@ -82,15 +87,24 @@ static func _valid_table(table_id: String) -> bool:
 
 
 static func _valid_state(state: Dictionary, table_id: String) -> bool:
-	if state.size() != STATE_KEYS.size() or not state.has_all(STATE_KEYS):
+	if not state.has_all(STATE_KEYS):
 		return false
+	var has_bonus: bool = state.size() == STATE_KEYS.size() + BONUS_KEYS.size() and state.has_all(BONUS_KEYS)
+	if state.size() != STATE_KEYS.size() and not has_bonus:
+		return false
+	if has_bonus:
+		var multiplier: Variant = state.bonus_multiplier
+		if not state.bonus is int or state.bonus < 0 or state.bonus > MAX_BONUS:
+			return false
+		if not multiplier is int or multiplier < 1 or multiplier > 5:
+			return false
 	if not state.table_id is String or state.table_id != table_id:
 		return false
 	if not state.score is int or state.score < 0:
 		return false
 	if not state.balls_left is int or state.balls_left < 1 or state.balls_left > MAX_BALLS:
 		return false
-	if not _valid_timer(state.serve_remaining, 0.7) or not _valid_timer(state.save_remaining, 8.0):
+	if not _valid_timer(state.serve_remaining, MAX_SERVE_DELAY) or not _valid_timer(state.save_remaining, 8.0):
 		return false
 	if not state.save_armed is bool or not state.sonar_mask is int or not state.depth is int:
 		return false

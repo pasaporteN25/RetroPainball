@@ -9,8 +9,13 @@ signal message(text: String)
 signal game_started
 signal game_resumed
 signal game_ended(final_score: int, is_record: bool)
+## Al perder una bola: bonus acumulado, multiplicador y puntos otorgados.
+signal bonus_awarded(base: int, multiplier: int, total: int)
 
 const BALLS_PER_GAME := 3
+## Fracción de cada puntaje que se acumula en el bonus de la bola.
+const BONUS_RATE := 0.1
+const MAX_MULTIPLIER := 5
 const KERNEL_PANIC := "kernel_panic"
 const NAUTILUS := "nautilus"
 ## Variable (no const) para que los tests usen un archivo propio.
@@ -42,6 +47,11 @@ var table_id := KERNEL_PANIC
 var ball_in_lane := false
 ## Carga del lanzador (0..1), para mostrarla en el botón de lanzar.
 var plunger_charge := 0.0
+## Bonus de la bola en juego y su multiplicador; se cobran al perder la bola.
+var bonus := 0
+var bonus_multiplier := 1
+## Puntos del último bonus cobrado (0 si no hubo), para que la mesa espere el aviso.
+var last_bonus_award := 0
 
 
 func _ready() -> void:
@@ -55,14 +65,19 @@ func start_game() -> void:
 	game_started.emit()
 
 
-func resume_game(saved_score: int, saved_balls_left: int) -> void:
+func resume_game(saved_score: int, saved_balls_left: int, saved_bonus := 0, saved_multiplier := 1) -> void:
 	_set_active_run(saved_score, saved_balls_left)
+	bonus = maxi(saved_bonus, 0)
+	bonus_multiplier = clampi(saved_multiplier, 1, MAX_MULTIPLIER)
 	game_resumed.emit()
 
 
 func _set_active_run(new_score: int, new_balls_left: int) -> void:
 	score = new_score
 	balls_left = new_balls_left
+	bonus = 0
+	bonus_multiplier = 1
+	last_bonus_award = 0
 	ball_in_lane = false
 	plunger_charge = 0.0
 	playing = true
@@ -86,12 +101,38 @@ func add_score(points: int, world_position: Vector2) -> void:
 	if not playing:
 		return
 	score += points
+	bonus += int(points * BONUS_RATE)
 	scored.emit(points, world_position)
 	score_changed.emit(score)
 
 
+## Sube un escalón el multiplicador del bonus (lo llaman las misiones de cada mesa).
+func raise_multiplier(announce := true) -> void:
+	if not playing or bonus_multiplier >= MAX_MULTIPLIER:
+		return
+	bonus_multiplier += 1
+	if announce:
+		say("BONUS X%d" % bonus_multiplier)
+
+
+## Cobra el bonus acumulado y lo reinicia para la bola siguiente.
+func award_bonus() -> int:
+	var base := bonus
+	var multiplier := bonus_multiplier
+	bonus = 0
+	bonus_multiplier = 1
+	last_bonus_award = base * multiplier
+	if last_bonus_award > 0:
+		score += last_bonus_award
+		score_changed.emit(score)
+		bonus_awarded.emit(base, multiplier, last_bonus_award)
+		say("BONUS %d X%d" % [base, multiplier])
+	return last_bonus_award
+
+
 ## Resta una bola. Devuelve true si la partida sigue.
 func lose_ball() -> bool:
+	award_bonus()
 	balls_left -= 1
 	balls_changed.emit(balls_left)
 	if balls_left <= 0:
