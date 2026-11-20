@@ -26,8 +26,14 @@ enum FlipperSide { LEFT, RIGHT }
 ## Velocidad de subida y bajada, en radianes por segundo.
 @export var up_speed := 26.0
 @export var down_speed := 16.0
-@export var color := Color(0.92, 0.92, 0.95)
-@export var rubber_color := Color(0.85, 0.2, 0.25)
+@export var color := Color("#a6bdc0"):
+	set(value):
+		color = value
+		queue_redraw()
+@export var rubber_color := Color("#f58064"):
+	set(value):
+		rubber_color = value
+		queue_redraw()
 
 var _action := &"flipper_left"
 var _rest := 0.0
@@ -35,6 +41,7 @@ var _up := 0.0
 var _points := PackedVector2Array()
 var _shape_node: CollisionShape2D
 var _was_pressed := false
+var _light := 0.0
 
 
 func _ready() -> void:
@@ -94,11 +101,40 @@ func _physics_process(delta: float) -> void:
 	rotation = move_toward(rotation, target, speed * delta)
 
 
+func _process(delta: float) -> void:
+	var next := move_toward(_light, float(_was_pressed), delta * 10.0)
+	if not is_equal_approx(next, _light):
+		_light = next
+		queue_redraw()
+
+
 func _draw() -> void:
 	if _points.size() < 3:
 		return
-	draw_colored_polygon(_points, color)
+	var dir := 1.0 if side == FlipperSide.LEFT else -1.0
+	var light := rubber_color.lerp(Color("#fff1c4"), _light * 0.8)
+	var shadow := PackedVector2Array()
+	var bevel := PackedVector2Array()
+	var face := PackedVector2Array()
+	var center := Vector2(length * dir * 0.5, 0.0)
+	for p in _points:
+		shadow.append(p + Vector2(2.0, 6.0).rotated(-rotation))
+		bevel.append(center + (p - center) * Vector2(0.945, 0.75))
+		face.append(center + (p - center) * Vector2(0.905, 0.53) - Vector2(0.0, 1.2))
+	draw_colored_polygon(shadow, Color(0.015, 0.022, 0.028, 0.66))
+	draw_colored_polygon(_points, Color("#162028"))
 	var outline := _points.duplicate()
 	outline.append(_points[0])
-	draw_polyline(outline, rubber_color, 4.0, true)
-	draw_circle(Vector2.ZERO, base_radius * 0.35, rubber_color.darkened(0.3))
+	draw_polyline(outline, Color("#080f15"), 4.0, true)
+	draw_polyline(outline, Color(light, 0.72 + 0.28 * _light), 1.8, true)
+	draw_colored_polygon(bevel, color.darkened(0.60))
+	draw_colored_polygon(face, color.darkened(0.27))
+
+	var end := Vector2(length * dir * 0.98, -tip_radius * 0.34)
+	draw_line(Vector2(0.0, -base_radius * 0.48), end, color.lightened(0.48), 1.4, true)
+	draw_line(Vector2(length * dir * 0.20, 0.7), Vector2(length * dir * 0.9, -0.4), Color("#1c373d"), 3.7, true)
+	draw_line(Vector2(length * dir * 0.30, 0.3), Vector2(length * dir * 0.86, -0.4), light, 1.5 + _light * 1.2, true)
+	draw_circle(Vector2.ZERO, base_radius * 0.67, Color("#0c1c25"), true, -1.0, true)
+	draw_arc(Vector2.ZERO, base_radius * 0.55, PI, TAU, 16, color.lightened(0.38), 1.2, true)
+	draw_circle(Vector2.ZERO, base_radius * 0.29, color, true, -1.0, true)
+	draw_line(Vector2(-2.4, -0.7), Vector2(2.4, 0.7), Color("#293a40"), 1.1, true)

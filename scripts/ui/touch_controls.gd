@@ -9,14 +9,18 @@ extends CanvasLayer
 
 ## Desde qué altura (proporción de la pantalla) empiezan las zonas.
 @export_range(0.0, 1.0) var zone_top_ratio := 0.5
-@export var pad_height := 116.0
+@export var pad_height := 78.0
 
 const Screen := preload("res://scripts/util/screen.gd")
+const MINT := Color("#63e0c1")
+const AMBER := Color("#ffb75b")
 
 ## índice de dedo -> acción que mantiene apretada
 var _touches := {}
 var _canvas: Control
 var _font: Font
+var _bottom_inset := 0.0
+var _last_state := Vector4(-1, -1, -1, -1)
 
 
 func _ready() -> void:
@@ -27,15 +31,35 @@ func _ready() -> void:
 	_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_canvas.draw.connect(_draw_pads)
 	add_child(_canvas)
+	get_viewport().size_changed.connect(_layout)
+	_layout()
 
 
 func _process(_delta: float) -> void:
+	var action := &"launch" if GameState.ball_in_lane else &"flipper_right"
+	var state := Vector4(
+		float(GameState.playing),
+		float(Input.is_action_pressed(&"flipper_left")),
+		float(Input.is_action_pressed(action)),
+		GameState.plunger_charge if GameState.ball_in_lane else -1.0
+	)
+	if state != _last_state:
+		_last_state = state
+		_canvas.queue_redraw()
+
+
+func _layout() -> void:
+	_bottom_inset = Screen.safe_insets(get_viewport()).bottom
 	_canvas.queue_redraw()
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PAUSED:
 		release_all()
+
+
+func _exit_tree() -> void:
+	release_all()
 
 
 func _input(event: InputEvent) -> void:
@@ -93,31 +117,49 @@ func _draw_pads() -> void:
 	if not GameState.playing:
 		return
 	var visible := _canvas.get_viewport_rect().size
-	var bottom: float = visible.y - Screen.safe_insets(get_viewport()).bottom - 14.0
-	var w := visible.x * 0.5 - 24.0
-	var left := Rect2(16.0, bottom - pad_height, w, pad_height)
-	var right := Rect2(visible.x * 0.5 + 8.0, bottom - pad_height, w, pad_height)
-	var right_label := "LANZAR" if GameState.ball_in_lane else "▶"
-	var right_action := &"launch" if GameState.ball_in_lane else &"flipper_right"
-	_draw_pad(left, "◀", Input.is_action_pressed(&"flipper_left"))
-	var charge := GameState.plunger_charge if GameState.ball_in_lane else 0.0
-	_draw_pad(right, right_label, Input.is_action_pressed(right_action), charge)
+	var top := visible.y - _bottom_inset - pad_height - 19.0
+	var deck_top := top - 14.0
+	_canvas.draw_rect(Rect2(0, deck_top, visible.x, visible.y - deck_top), Color("#0a1018"))
+	_canvas.draw_line(Vector2(0, deck_top), Vector2(visible.x, deck_top), Color("#354855"), 2.0)
+	_canvas.draw_line(Vector2(0, deck_top + 4), Vector2(visible.x, deck_top + 4), Color("#171f29"), 3.0)
+	var width := visible.x * 0.5 - 28.0
+	var left := Rect2(18.0, top, width, pad_height)
+	var right := Rect2(visible.x * 0.5 + 10.0, top, width, pad_height)
+	_draw_pad(left, "FLIPPER IZQ.", Vector2.LEFT, MINT, Input.is_action_pressed(&"flipper_left"))
+	if GameState.ball_in_lane:
+		var charging := Input.is_action_pressed(&"launch")
+		var hint := "SOLTÁ PARA LANZAR" if charging else "MANTENÉ PARA CARGAR"
+		_draw_pad(right, "LANZAR", Vector2.UP, AMBER, charging, hint, GameState.plunger_charge)
+	else:
+		_draw_pad(right, "FLIPPER DER.", Vector2.RIGHT, MINT, Input.is_action_pressed(&"flipper_right"))
 
 
-## fill: 0..1, el botón se llena de izquierda a derecha (carga del lanzador).
-func _draw_pad(rect: Rect2, label: String, pressed: bool, fill := 0.0) -> void:
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(1, 1, 1, 0.16 if pressed else 0.05)
-	box.border_color = Color(1, 1, 1, 0.35 if pressed else 0.14)
-	box.set_border_width_all(2)
-	box.set_corner_radius_all(28)
-	_canvas.draw_style_box(box, rect)
-	if fill > 0.0:
-		var bar := StyleBoxFlat.new()
-		bar.bg_color = Color(1.0, 0.45, 0.1, 0.45)
-		bar.set_corner_radius_all(28)
-		_canvas.draw_style_box(bar, Rect2(rect.position, Vector2(maxf(56.0, rect.size.x * fill), rect.size.y)))
-	var size := 34
-	var w := _font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	var at := rect.get_center() + Vector2(-w * 0.5, size * 0.35)
-	_canvas.draw_string(_font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1, 0.55 if pressed else 0.3))
+func _draw_pad(rect: Rect2, label: String, direction: Vector2, accent: Color, pressed: bool,
+		hint := "", charge := 0.0) -> void:
+	var corner := 13.0
+	var outline := PackedVector2Array([
+		rect.position + Vector2(corner, 0), Vector2(rect.end.x - corner, rect.position.y),
+		Vector2(rect.end.x, rect.position.y + corner), Vector2(rect.end.x, rect.end.y - corner),
+		Vector2(rect.end.x - corner, rect.end.y), Vector2(rect.position.x + corner, rect.end.y),
+		Vector2(rect.position.x, rect.end.y - corner), Vector2(rect.position.x, rect.position.y + corner),
+	])
+	_canvas.draw_colored_polygon(outline, Color("#151f2a").lerp(accent, 0.15 if pressed else 0.04))
+	outline.append(outline[0])
+	_canvas.draw_polyline(outline, Color(accent, 0.84 if pressed else 0.32), 2.0, true)
+	var icon := rect.position + Vector2(37.0, rect.size.y * 0.5)
+	var cross := direction.orthogonal() * 9.0
+	_canvas.draw_circle(icon, 19.0, Color(accent, 0.25 if pressed else 0.12), true, -1.0, true)
+	_canvas.draw_polyline(PackedVector2Array([
+		icon - direction * 3.0 + cross, icon + direction * 7.0, icon - direction * 3.0 - cross,
+	]), accent, 3.0, true)
+	var title_y := 47.0 if hint.is_empty() else 34.0
+	_canvas.draw_string(_font, rect.position + Vector2(67, title_y), label,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color("#e1edea"))
+	if hint.is_empty():
+		return
+	_canvas.draw_string(_font, rect.position + Vector2(67, 54), hint,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(accent, 0.87))
+	var bar := Rect2(rect.position + Vector2(68, 62), Vector2(rect.size.x - 88, 4))
+	_canvas.draw_rect(bar, Color(accent, 0.15))
+	if charge > 0.0:
+		_canvas.draw_rect(Rect2(bar.position, Vector2(bar.size.x * charge, bar.size.y)), accent)

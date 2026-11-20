@@ -8,8 +8,14 @@ extends StaticBody2D
 		_rebuild()
 @export var kick_speed := 1300.0
 @export var points := 100
-@export var color := Color(0.95, 0.35, 0.3)
-@export var cap_color := Color(0.98, 0.9, 0.75)
+@export var color := Color("#ff6e5f"):
+	set(value):
+		color = value
+		queue_redraw()
+@export var cap_color := Color("#182830"):
+	set(value):
+		cap_color = value
+		queue_redraw()
 
 var _shape_node: CollisionShape2D
 var _flash := 0.0
@@ -48,15 +54,40 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 
 func _process(delta: float) -> void:
 	if _flash > 0.0:
-		_flash = maxf(0.0, _flash - delta * 5.0)
+		_flash = maxf(0.0, _flash - delta * 3.5)
 		queue_redraw()
 
 
 func _draw() -> void:
-	var glow := color.lightened(0.5 * _flash)
+	var light := color.lightened(0.14 + 0.64 * _flash)
+	var bright_radius := radius * 0.85
+	draw_circle(Vector2(4, 7), radius + 6.0, Color(0.01, 0.02, 0.03, 0.43), true, -1.0, true)
+	draw_circle(Vector2(2, 3), radius + 3.0, Color("#101820"), true, -1.0, true)
 	if _flash > 0.0:
-		draw_circle(Vector2.ZERO, radius + 14.0 * _flash, Color(glow, 0.35 * _flash))
-	draw_circle(Vector2.ZERO, radius, glow)
-	draw_circle(Vector2.ZERO, radius * 0.72, color.darkened(0.35))
-	draw_circle(Vector2.ZERO, radius * 0.55, cap_color.lerp(Color.WHITE, _flash))
-	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 40, Color(1, 1, 1, 0.5), 2.0, true)
+		var wave_radius := radius + lerpf(4.0, 40.0, 1.0 - _flash)
+		draw_arc(Vector2.ZERO, wave_radius, 0.0, TAU, 52, Color(light, 0.14 * _flash), 8.0, true)
+		draw_arc(Vector2.ZERO, wave_radius, 0.0, TAU, 52, Color(light, 0.85 * _flash), 2.0, true)
+	draw_circle(Vector2.ZERO, radius, Color("#081116"), true, -1.0, true)
+	draw_circle(Vector2.ZERO, radius * 0.95, Color("#556b73"), true, -1.0, true)
+	draw_circle(Vector2.ZERO, radius * 0.91, Color("#1b2c34"), true, -1.0, true)
+	draw_circle(Vector2.ZERO, bright_radius, color.darkened(0.63), true, -1.0, true)
+	draw_circle(Vector2.ZERO, radius * 0.68, Color("#0a171c"), true, -1.0, true)
+	draw_circle(Vector2.ZERO, radius * 0.59, cap_color.lerp(color, _flash * 0.31), true, -1.0, true)
+	draw_arc(Vector2.ZERO, radius * 0.94, 3.65, 5.68, 24, Color("#b2c6cc"), 1.7, true)
+	for i in 6:
+		var a := i * TAU / 6.0
+		draw_arc(Vector2.ZERO, radius * 0.77, a - 0.35, a + 0.35, 9, Color(color, 0.25 + _flash * 0.55), radius * 0.18, true)
+		draw_arc(Vector2.ZERO, radius * 0.78, a - 0.32, a + 0.32, 9, light, radius * 0.065, true)
+	for i in 3:
+		var angle := PI * 0.5 + i * TAU / 3.0
+		var screw := Vector2.from_angle(angle) * (radius * 1.015)
+		draw_circle(screw, 2.7, Color("#0d161c"), true, -1.0, true)
+		draw_line(screw + Vector2(-1.2, -0.5), screw + Vector2(1.2, 0.5), Color("#adbdc1"), 1.0, true)
+
+	var font := ThemeDB.fallback_font
+	var font_size := maxi(8, roundi(radius * 0.47))
+	var label := str(points)
+	var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var baseline := Vector2(-width * 0.5, (font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5 - 1.0)
+	draw_string(font, baseline, label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, light)
+	draw_line(Vector2(-5.0, radius * 0.32), Vector2(5.0, radius * 0.32), Color(light, 0.7), 1.0, true)

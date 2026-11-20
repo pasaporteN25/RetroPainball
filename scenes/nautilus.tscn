@@ -1,0 +1,129 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/main.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/table/nautilus_art.gd" id="2_art"]
+[ext_resource type="Texture2D" path="res://assets/nautilus_playfield.webp" id="3_print"]
+[ext_resource type="Script" path="res://scripts/table/depth_mission.gd" id="4_mission"]
+[ext_resource type="Script" path="res://scripts/table/sonar_target.gd" id="5_sonar"]
+[ext_resource type="Script" path="res://scripts/table/kraken_spinner.gd" id="6_kraken"]
+
+[sub_resource type="CircleShape2D" id="Circle_sonar"]
+radius = 41.0
+
+[sub_resource type="CircleShape2D" id="Circle_kraken"]
+radius = 60.0
+
+[node name="Nautilus" instance=ExtResource("1_base")]
+table_id = "nautilus"
+
+[node name="PlayfieldArt" parent="Table" index="0"]
+script = ExtResource("2_art")
+illustration = ExtResource("3_print")
+
+[node name="OuterWall" parent="Table" index="1"]
+fill_color = Color(0.24, 0.17, 0.115, 1)
+line_color = Color(0.93, 0.73, 0.47, 1)
+line_width = 7.0
+
+[node name="ShooterWall" parent="Table" index="2"]
+fill_color = Color(0.27, 0.20, 0.14, 1)
+line_color = Color(0.80, 0.65, 0.40, 1)
+
+[node name="LeftDeflector" parent="Table" index="3"]
+position = Vector2(0, -42)
+fill_color = Color(0.19, 0.19, 0.16, 1)
+line_color = Color(0.82, 0.67, 0.43, 1)
+
+[node name="RightDeflector" parent="Table" index="4"]
+position = Vector2(0, 18)
+fill_color = Color(0.19, 0.19, 0.16, 1)
+line_color = Color(0.82, 0.67, 0.43, 1)
+
+[node name="LeftInlane" parent="Table" index="5"]
+fill_color = Color(0.11, 0.19, 0.21, 1)
+line_color = Color(0.79, 0.64, 0.41, 1)
+
+[node name="RightInlane" parent="Table" index="6"]
+fill_color = Color(0.11, 0.19, 0.21, 1)
+line_color = Color(0.79, 0.64, 0.41, 1)
+
+[node name="LeftSlingshot" parent="Table" index="7"]
+color = Color(0.19, 0.29, 0.31, 1)
+rubber_color = Color(0.91, 0.63, 0.35, 1)
+
+[node name="RightSlingshot" parent="Table" index="8"]
+color = Color(0.19, 0.29, 0.31, 1)
+rubber_color = Color(0.91, 0.63, 0.35, 1)
+
+[node name="BumperLeft" parent="Table" index="9"]
+position = Vector2(180, 665)
+radius = 36.0
+color = Color(0.36, 0.95, 0.81, 1)
+cap_color = Color(0.09, 0.21, 0.25, 1)
+
+[node name="BumperRight" parent="Table" index="10"]
+position = Vector2(507, 665)
+radius = 36.0
+color = Color(0.36, 0.95, 0.81, 1)
+cap_color = Color(0.09, 0.21, 0.25, 1)
+
+[node name="BumperBottom" parent="Table" index="11"]
+position = Vector2(484, 920)
+radius = 29.0
+color = Color(1, 0.63, 0.34, 1)
+cap_color = Color(0.23, 0.15, 0.12, 1)
+
+[node name="LeftFlipper" parent="Table" index="12"]
+color = Color(0.73, 0.62, 0.45, 1)
+rubber_color = Color(0.36, 0.91, 0.77, 1)
+
+[node name="RightFlipper" parent="Table" index="13"]
+color = Color(0.73, 0.62, 0.45, 1)
+rubber_color = Color(0.36, 0.91, 0.77, 1)
+
+[node name="Plunger" parent="Table" index="14"]
+color = Color(0.65, 0.55, 0.4, 1)
+
+[node name="DepthMission" type="Node" parent="Table" index="18"]
+script = ExtResource("4_mission")
+
+[node name="Sonars" type="Node2D" parent="Table" index="19"]
+
+[node name="Port" type="Area2D" parent="Table/Sonars"]
+position = Vector2(150, 560)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("5_sonar")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Sonars/Port"]
+shape = SubResource("Circle_sonar")
+
+[node name="Bow" type="Area2D" parent="Table/Sonars"]
+position = Vector2(336, 493)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("5_sonar")
+index = 1
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Sonars/Bow"]
+shape = SubResource("Circle_sonar")
+
+[node name="Starboard" type="Area2D" parent="Table/Sonars"]
+position = Vector2(594, 574)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("5_sonar")
+index = 2
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Sonars/Starboard"]
+shape = SubResource("Circle_sonar")
+
+[node name="Kraken" type="StaticBody2D" parent="Table" index="20"]
+position = Vector2(336, 795)
+script = ExtResource("6_kraken")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Kraken"]
+shape = SubResource("Circle_kraken")

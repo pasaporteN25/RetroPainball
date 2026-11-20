@@ -6,8 +6,8 @@ extends StaticBody2D
 
 @export var kick_speed := 1000.0
 @export var points := 10
-@export var color := Color(0.25, 0.28, 0.36)
-@export var rubber_color := Color(0.95, 0.85, 0.3)
+@export var color := Color("#314b52")
+@export var rubber_color := Color("#ffc06b")
 
 var _flash := 0.0
 
@@ -58,7 +58,7 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		queue_redraw()
 	elif _flash > 0.0:
-		_flash = maxf(0.0, _flash - delta * 6.0)
+		_flash = maxf(0.0, _flash - delta * 4.5)
 		queue_redraw()
 
 
@@ -66,8 +66,39 @@ func _draw() -> void:
 	var poly := _polygon()
 	if poly.size() < 3:
 		return
-	draw_colored_polygon(poly, color.lerp(Color.WHITE, 0.25 * _flash))
+	var center := Vector2.ZERO
+	for p in poly:
+		center += p
+	center /= poly.size()
+
+	var shadow := PackedVector2Array()
+	var bevel := PackedVector2Array()
+	var surface := PackedVector2Array()
+	for p in poly:
+		shadow.append(p + Vector2(4.0, 7.0))
+		bevel.append(center.lerp(p, 0.90))
+		surface.append(center.lerp(p, 0.72))
+	draw_colored_polygon(shadow, Color(0.02, 0.04, 0.06, 0.63))
+	draw_colored_polygon(poly, Color("#121c22"))
+	draw_colored_polygon(bevel, color.lightened(0.19))
+	draw_colored_polygon(surface, color.darkened(0.19))
 	var closed := poly.duplicate()
 	closed.append(poly[0])
-	draw_polyline(closed, color.lightened(0.3), 3.0, true)
-	draw_line(poly[0], poly[1], rubber_color.lerp(Color.WHITE, _flash), 7.0 + 3.0 * _flash, true)
+	draw_polyline(closed, Color("#080e13"), 2.4, true)
+
+	var a := poly[0]
+	var b := poly[1]
+	var light := rubber_color.lightened(_flash * 0.78)
+	draw_line(a, b, Color("#141117"), 8.0, true)
+	draw_line(a, b, rubber_color.darkened(0.54), 5.5, true)
+	draw_line(a.lerp(b, 0.03), a.lerp(b, 0.97), light, 2.5 + 1.4 * _flash, true)
+	if _flash > 0.0:
+		draw_line(a, b, Color(light, _flash * 0.30), 9.0 + 10.0 * (1.0 - _flash), true)
+	for i in 4:
+		var outer := a.lerp(b, 0.43 + i * 0.10)
+		var inner := outer.lerp(center, 0.77)
+		draw_line(outer.lerp(inner, 0.27), inner, Color(light, 0.43 + _flash * 0.5), 2.1, true)
+	for p in poly:
+		var inset := p.move_toward(center, 14.0)
+		draw_circle(inset, 3.5, Color("#0f2027"), true, -1.0, true)
+		draw_circle(inset, 1.7, color.lightened(0.54), true, -1.0, true)

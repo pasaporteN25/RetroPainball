@@ -13,12 +13,14 @@ const MASKS := [0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F]
 		queue_redraw()
 @export var value := 0:
 	set(v):
-		value = maxi(0, v)
-		queue_redraw()
-@export var on_color := Color(1.0, 0.42, 0.08)
-@export var off_alpha := 0.08
+		var next := maxi(0, v)
+		if value != next:
+			value = next
+			queue_redraw()
+@export var on_color := Color("#ffb465")
+@export var off_alpha := 0.09
 ## Inclinación tipo itálica de los dígitos.
-@export var skew := 0.1
+@export var skew := 0.09
 
 
 func _draw() -> void:
@@ -39,7 +41,9 @@ func _draw() -> void:
 			var lit := i >= first
 			var dot := Vector2(i * cell + cell * 0.5 + dw * 0.5 + (cell - dw) * 0.25, h - t * 0.5)
 			dot.x += (h - dot.y) * skew
-			draw_circle(dot, t * 0.45, _color(lit))
+			if lit:
+				draw_circle(dot, t * 0.67, Color(on_color, 0.15), true, -1.0, true)
+			draw_circle(dot, t * 0.42, _color(lit), true, -1.0, true)
 
 
 func _color(lit: bool) -> Color:
@@ -64,8 +68,11 @@ func _draw_digit(origin: Vector2, w: float, h: float, t: float, mask: int) -> vo
 		var lit := ((mask >> s) & 1) == 1
 		var poly := _segment(origin + segs[s][0], origin + segs[s][1], half, gap, h)
 		if lit:
-			draw_colored_polygon(_grow(poly, 1.35), Color(on_color, 0.18))
+			draw_colored_polygon(_grow(poly, 1.6), Color(on_color, 0.08))
+			draw_colored_polygon(_grow(poly, 1.3), Color(on_color, 0.16))
 		draw_colored_polygon(poly, _color(lit))
+		if lit:
+			draw_colored_polygon(_grow(poly, 0.56), on_color.lightened(0.42))
 
 
 func _segment(a: Vector2, b: Vector2, half: float, gap: float, h: float) -> PackedVector2Array:

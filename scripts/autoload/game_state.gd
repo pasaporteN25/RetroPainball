@@ -10,6 +10,8 @@ signal game_started
 signal game_ended(final_score: int, is_record: bool)
 
 const BALLS_PER_GAME := 3
+const KERNEL_PANIC := "kernel_panic"
+const NAUTILUS := "nautilus"
 ## Variable (no const) para que los tests usen un archivo propio.
 var record_path := "user://records.cfg"
 
@@ -32,6 +34,7 @@ var score := 0
 var balls_left := BALLS_PER_GAME
 var high_score := 0
 var playing := false
+var table_id := KERNEL_PANIC
 ## Lo actualiza el lanzador: true si hay una bola esperando en el carril.
 var ball_in_lane := false
 ## Carga del lanzador (0..1), para mostrarla en el botón de lanzar.
@@ -47,10 +50,24 @@ func _ready() -> void:
 func start_game() -> void:
 	score = 0
 	balls_left = BALLS_PER_GAME
+	ball_in_lane = false
+	plunger_charge = 0.0
 	playing = true
 	score_changed.emit(score)
 	balls_changed.emit(balls_left)
 	game_started.emit()
+
+
+func select_table(id: String) -> void:
+	if table_id != id:
+		table_id = id
+		_load_record()
+
+
+func leave_game() -> void:
+	playing = false
+	ball_in_lane = false
+	plunger_charge = 0.0
 
 
 func add_score(points: int, world_position: Vector2) -> void:
@@ -102,11 +119,17 @@ func _register_default_inputs() -> void:
 
 func _load_record() -> void:
 	var cfg := ConfigFile.new()
+	high_score = 0
 	if cfg.load(record_path) == OK:
-		high_score = int(cfg.get_value("records", "high_score", 0))
+		high_score = int(cfg.get_value(_record_section(), "high_score", 0))
 
 
 func _save_record() -> void:
 	var cfg := ConfigFile.new()
-	cfg.set_value("records", "high_score", high_score)
+	cfg.load(record_path)
+	cfg.set_value(_record_section(), "high_score", high_score)
 	cfg.save(record_path)
+
+
+func _record_section() -> String:
+	return "records" if table_id == KERNEL_PANIC else "records/" + table_id

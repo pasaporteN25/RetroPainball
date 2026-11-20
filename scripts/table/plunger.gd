@@ -11,11 +11,14 @@ signal launched(power: float)
 @export var charge_time := 0.9
 ## Recorrido visual del resorte con carga completa.
 @export var travel := 46.0
-@export var color := Color(0.75, 0.75, 0.8)
+@export var color := Color("#829aa0")
 
 var charge := 0.0
 var _charging := false
 var _sensor: Area2D
+var _displayed_charge := -1.0
+var _displayed_ready := false
+var _launch_flash := 0.0
 
 
 func _ready() -> void:
@@ -56,7 +59,15 @@ func _physics_process(delta: float) -> void:
 		_fire()
 	elif not pressed:
 		charge = move_toward(charge, 0.0, delta * 6.0)
-	queue_redraw()
+
+
+func _process(delta: float) -> void:
+	var ready_ball := GameState.ball_in_lane
+	if _launch_flash > 0.0 or charge != _displayed_charge or ready_ball != _displayed_ready:
+		_launch_flash = maxf(0.0, _launch_flash - delta * 4.0)
+		_displayed_charge = charge
+		_displayed_ready = ready_ball
+		queue_redraw()
 
 
 func _fire() -> void:
@@ -68,22 +79,41 @@ func _fire() -> void:
 		if ball:
 			ball.linear_velocity = Vector2(0.0, -speed)
 	charge = 0.0
+	_launch_flash = 1.0
 	Input.vibrate_handheld(20)
 	launched.emit(power)
 
 
 func _draw() -> void:
 	var offset := charge * travel
-	var half := lane_width * 0.5 - 4.0
-	# Resorte: se comprime y se pone naranja con la carga.
-	var spring_color := Color(0.5, 0.5, 0.55).lerp(Color(1.0, 0.45, 0.1), charge)
-	var coils := 6
-	var top := offset + 10.0
-	var bottom := 120.0
-	for i in coils:
-		var y0 := lerpf(top, bottom, float(i) / coils)
-		var y1 := lerpf(top, bottom, float(i + 1) / coils)
-		draw_line(Vector2(-half, y0), Vector2(half, (y0 + y1) * 0.5), spring_color, 3.0, true)
-		draw_line(Vector2(half, (y0 + y1) * 0.5), Vector2(-half, y1), spring_color, 3.0, true)
-	# Cabeza
-	draw_rect(Rect2(-half, offset, half * 2.0, 10.0), color)
+	var half := lane_width * 0.5 - 3.0
+	var bottom := 116.0
+	var light := Color("#5dcabc").lerp(Color("#ffad58"), charge)
+	draw_rect(Rect2(-half, 0.0, half * 2.0, bottom + 12.0), Color("#0b1219"))
+	draw_rect(Rect2(-half + 1.0, 5.0, 1.0, bottom - 2.0), Color("#244452"))
+	draw_rect(Rect2(half - 2.0, 5.0, 1.0, bottom - 2.0), Color("#41616a"))
+	draw_rect(Rect2(-4.0, 8.0, 8.0, bottom - 7.0), color.darkened(0.72))
+	draw_rect(Rect2(-2.0, 8.0, 2.0, bottom - 7.0), color.darkened(0.2))
+	_draw_spring(offset + 13.0, bottom, half * 0.46, light)
+	draw_rect(Rect2(-half + 2.0, offset, half * 2.0 - 4.0, 12.0), color.darkened(0.65))
+	draw_rect(Rect2(-half + 3.0, offset + 1.0, half * 2.0 - 6.0, 4.0), color)
+	draw_rect(Rect2(-half + 5.0, offset + 1.0, half * 2.0 - 10.0, 1.0), color.lightened(0.5))
+	for i in 8:
+		var y := bottom - 5.0 - i * 10.0
+		var level := clampf(charge * 8.0 - i, 0.0, 1.0)
+		var lamp := Color("#193337").lerp(light, level)
+		draw_rect(Rect2(half - 7.0, y, 3.0, 6.0), lamp)
+	draw_rect(Rect2(-half + 1.0, bottom, half * 2.0 - 2.0, 10.0), color.darkened(0.50))
+	draw_rect(Rect2(-half + 3.0, bottom, half * 2.0 - 6.0, 2.0), color)
+	draw_rect(Rect2(-half + 4.0, bottom + 4.0, 5.0, 3.0), light if _displayed_ready else Color("#243e42"))
+	if _launch_flash > 0.0:
+		draw_rect(Rect2(-half + 2.0, -32.0 * _launch_flash, half * 2.0 - 4.0, 35.0), Color(light, _launch_flash * 0.30))
+
+
+func _draw_spring(top: float, bottom: float, half: float, light: Color) -> void:
+	var coils := PackedVector2Array()
+	for i in 15:
+		var x := -half if i % 2 == 0 else half
+		coils.append(Vector2(x, lerpf(top, bottom, i / 14.0)))
+	draw_polyline(coils, Color("#0a1116"), 4.2, true)
+	draw_polyline(coils, color.lerp(light, charge), 2.3, true)

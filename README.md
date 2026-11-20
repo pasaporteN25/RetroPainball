@@ -3,14 +3,21 @@
 Pinball para Android (vertical, a pantalla casi completa) con mesas temáticas.
 Motor: **Godot 4.7.2** (GDScript), renderer *Compatibility* para cubrir la mayor cantidad de teléfonos.
 
-Estado: **Fase 1, prototipo de física** con formas simples. Ya funcionan los flippers, el lanzador,
-los bumpers, los slingshots, el drenaje, las 3 bolas, el salvavidas, el display de 7 segmentos,
-la pausa y el récord local.
+Hay dos mesas, cada una con tres bolas, salvavidas y su propio récord local.
+
+- **Kernel Panic** es el pinball clásico, con bumpers y flippers sobre un circuito impreso.
+- **20.000 Leguas bajo el mar** suma el Nautilus, tres sonares y un kraken giratorio. Pasá la bola
+  sobre los tres sonares y golpeá al kraken para ganar 5.000 puntos y descender 1.500 m. Si hay
+  una sola bola, el golpe también activa la multibola. Los sonares y la profundidad se mantienen
+  al perder una bola.
 
 ## Correrlo
 
 1. Abrí Godot 4.7.2 → *Importar* → elegí `project.godot`.
-2. **F5** para jugar. En la PC, el mouse simula el touch.
+2. **F5** para abrir el selector de mesas. En la PC, el mouse simula el touch.
+   Para cambiar de mesa, elegí **Mesas** en la pausa o al terminar la partida.
+
+En Linux también podés jugar desde la raíz del proyecto con `godot --path .`.
 
 | Acción | Touch | Teclado | Mando |
 |---|---|---|---|
@@ -31,6 +38,9 @@ Para correr solo algunos: `.\tools\test.ps1 -Solo physics`. Un test falla si sal
 **o** si aparece un `SCRIPT ERROR`. `physics.gd` juega la mesa de verdad, con física real (unos 8 segundos):
 sacar bola, flippers, lanzamiento, que la bola no atraviese paredes a velocidad máxima, bumpers, salvavidas,
 drenaje y fin de partida. Los tests escriben en `user://test_*` y nunca tocan el récord real.
+`nautilus.gd` verifica los sensores, el jackpot, la multibola, el progreso y los récords por mesa.
+
+En Linux, corré la misma suite con `godot --headless --path . -s tests/headless/all.gd`.
 
 ## Exportar a Android
 
@@ -50,13 +60,15 @@ O desde el editor, con el teléfono conectado por USB y la depuración activada:
 ## Estructura
 
 ```
-scenes/main.tscn            La mesa: paredes, flippers, bumpers... se editan en el editor
+scenes/table_select.tscn    Selector de mesas
+scenes/main.tscn            Mesa base y Kernel Panic
+scenes/nautilus.tscn        20.000 Leguas, con geometría y misión propias
 scripts/
   autoload/game_state.gd    Puntaje, bolas, récord, acciones de input por defecto
   main.gd                   Ciclo de la bola: sacar, drenar, salvavidas, popups
-  table/                    Piezas reutilizables: ball, flipper, bumper, slingshot, wall, plunger
+  table/                    Piezas reutilizables y arte del tablero (playfield_art.gd)
   ui/                       HUD (display 7 segmentos, vidas, pausa) y zonas táctiles
-  fx/                       Efectos (números de puntaje)
+  fx/                       Indicadores de puntaje, ondas y chispas
 tests/headless/             Tests automáticos (all.gd los encuentra y corre)
 tools/test.ps1              Corre la suite
 ```

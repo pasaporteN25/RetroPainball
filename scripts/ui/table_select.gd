@@ -1,0 +1,142 @@
+extends Control
+## Entrada a las mesas. Las teclas y el mando navegan los mismos botones que el touch.
+
+const Screen := preload("res://scripts/util/screen.gd")
+const NAUTILUS_PRINT := preload("res://assets/nautilus_playfield.webp")
+const INK := Color("#071119")
+const MINT := Color("#8cead2")
+const GOLD := Color("#ffd397")
+const IVORY := Color("#edf2df")
+
+var _kernel: Button
+var _nautilus: Button
+var _heading: FontVariation
+var _serif: SystemFont
+var _safe_top := 0.0
+
+
+func _ready() -> void:
+	GameState.leave_game()
+	_heading = FontVariation.new()
+	_heading.base_font = ThemeDB.fallback_font
+	_heading.variation_embolden = 0.9
+	_serif = SystemFont.new()
+	_serif.font_names = PackedStringArray(["Noto Serif", "DejaVu Serif", "serif"])
+	_serif.font_weight = 700
+	_kernel = _make_card("Kernel Panic", 432.0, false, "res://scenes/main.tscn")
+	_nautilus = _make_card("20.000 Leguas", 646.0, true, "res://scenes/nautilus.tscn")
+	_kernel.focus_neighbor_bottom = _kernel.get_path_to(_nautilus)
+	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
+	get_viewport().size_changed.connect(_layout)
+	_layout()
+	_kernel.grab_focus()
+
+
+func _make_card(title: String, height: float, nautical: bool, scene_path: String) -> Button:
+	var card := Button.new()
+	card.name = "Nautilus" if nautical else "KernelPanic"
+	card.text = title
+	card.size = Vector2(624, height)
+	card.clip_contents = true
+	card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var blank := StyleBoxEmpty.new()
+	for state in ["normal", "hover", "pressed", "focus", "disabled", "hover_pressed"]:
+		card.add_theme_stylebox_override(state, blank)
+	for state in ["font_color", "font_pressed_color", "font_hover_color", "font_focus_color", "font_hover_pressed_color", "font_outline_color"]:
+		card.add_theme_color_override(state, Color.TRANSPARENT)
+	card.draw.connect(_draw_card.bind(card, nautical))
+	card.pressed.connect(func() -> void: get_tree().change_scene_to_file(scene_path))
+	add_child(card)
+	return card
+
+
+func _layout() -> void:
+	var safe := Screen.safe_insets(get_viewport())
+	_safe_top = safe.top
+	var remaining: float = size.y - _safe_top - safe.bottom
+	var zoom := clampf(remaining / 1400.0, 0.65, 1.0)
+	_kernel.scale = Vector2.ONE * zoom
+	_nautilus.scale = _kernel.scale
+	var left := (size.x - _kernel.size.x * zoom) * 0.5
+	_kernel.position = Vector2(left, _safe_top + 202.0 * zoom)
+	_nautilus.position = _kernel.position + Vector2(0, (_kernel.size.y + 26.0) * zoom)
+	queue_redraw()
+
+
+func _draw() -> void:
+	if _heading == null:
+		return
+	draw_rect(Rect2(Vector2.ZERO, size), INK)
+	for y in range(0, int(size.y), 6):
+		draw_line(Vector2(0, y), Vector2(size.x, y), Color(0.41, 0.61, 0.62, 0.05))
+	var at := Vector2(size.x * 0.5, _safe_top + 94)
+	_center_text(self, _heading, "PINBALL TEMÁTICO", at, 49, IVORY)
+	_center_text(self, ThemeDB.fallback_font, "Elegí una mesa", at + Vector2(0, 49), 27, MINT)
+	var dash := Vector2(91, 0)
+	draw_line(at + Vector2(-274, 38), at + Vector2(-274, 38) + dash, Color(MINT, 0.45), 1, true)
+	draw_line(at + Vector2(274, 38), at + Vector2(274, 38) - dash, Color(MINT, 0.45), 1, true)
+
+
+func _draw_card(card: Button, nautical: bool) -> void:
+	var bounds := Rect2(Vector2.ZERO, card.size)
+	var accent := GOLD if nautical else MINT
+	var active := card.has_focus() or card.is_hovered()
+	card.draw_rect(bounds, Color("#12232a") if active else Color("#101d24"))
+	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else 242)
+	if nautical:
+		var texture_size := NAUTILUS_PRINT.get_size()
+		var crop := Rect2(0, 42, texture_size.x, texture_size.x * illustration.size.y / illustration.size.x)
+		card.draw_texture_rect_region(NAUTILUS_PRINT, illustration, crop, Color("#f0eee4"))
+	else:
+		_draw_kernel(card, illustration)
+	var text_start := illustration.end.y
+	card.draw_line(Vector2(17, text_start), Vector2(bounds.end.x - 17, text_start), Color(accent, 0.64), 2, true)
+	var headline := card.text
+	var subtitle := "Bajo el mar" if nautical else "Pinball clásico"
+	var summary := "Sonares  ·  Kraken  ·  Multibola" if nautical else "Bumpers y flippers en un circuito retro"
+	var left := 29.0
+	var font := ThemeDB.fallback_font
+	card.draw_string(_serif if nautical else _heading, Vector2(left, text_start + 64),
+		headline, HORIZONTAL_ALIGNMENT_LEFT, -1, 50 if nautical else 46, accent)
+	card.draw_string(_heading, Vector2(left, text_start + 103),
+		subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, 27, IVORY)
+	card.draw_string(font, Vector2(left, text_start + 143),
+		summary, HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("#a9c0c1"))
+	if nautical:
+		card.draw_string(font, Vector2(left, text_start + 181), "Completá la misión para seguir descendiendo",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#a9c0c1"))
+	var arrow := Vector2(bounds.end.x - 49, text_start + 79)
+	card.draw_circle(arrow, 23, Color(accent, 0.18 if active else 0.08), true, -1, true)
+	card.draw_polyline(PackedVector2Array([arrow + Vector2(-4, -8), arrow + Vector2(4, 0), arrow + Vector2(-4, 8)]),
+		accent, 3, true)
+	card.draw_rect(bounds.grow(-2), Color(accent, 0.92 if active else 0.43), false, 2, true)
+
+
+func _draw_kernel(card: Button, rect: Rect2) -> void:
+	card.draw_rect(rect, Color("#0a2229"))
+	var center := rect.get_center()
+	for y in range(int(rect.position.y) + 2, int(rect.end.y), 5):
+		card.draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), Color(MINT, 0.065))
+	for side in [-1, 1]:
+		for row in range(-2, 3):
+			var a := center + Vector2(side * 77, row * 16)
+			var b := a + Vector2(side * (53 + 10 * absi(row)), 0)
+			var c := b + Vector2(side * 43, row * 17)
+			var d := c + Vector2(side * (57 - absi(row) * 18), 0)
+			card.draw_polyline(PackedVector2Array([a, b, c, d]), Color(MINT, 0.43), 2, true)
+			card.draw_circle(d, 4, Color(MINT, 0.6), false, 1.4, true)
+	var core := Rect2(center - Vector2(75, 64), Vector2(150, 128))
+	card.draw_rect(core.grow(7), Color("#081619"))
+	card.draw_rect(core, Color("#173d41"))
+	card.draw_rect(core, Color(MINT, 0.62), false, 2, true)
+	card.draw_rect(core.grow(-10), Color("#0a2028"))
+	_center_text(card, _heading, ">_", center + Vector2(0, 23), 56, MINT)
+	for i in 8:
+		var x := core.position.x + 12.0 + i * 18
+		card.draw_line(Vector2(x, core.position.y - 11), Vector2(x, core.position.y), GOLD.darkened(0.32), 2, true)
+		card.draw_line(Vector2(x, core.end.y), Vector2(x, core.end.y + 11), GOLD.darkened(0.32), 2, true)
+
+
+func _center_text(canvas: CanvasItem, font: Font, title: String, at: Vector2, font_size: int, tint: Color) -> void:
+	var width := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	canvas.draw_string(font, at - Vector2(width * 0.5, 0), title, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, tint)
