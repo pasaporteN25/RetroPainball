@@ -4,19 +4,27 @@ extends Area2D
 
 const Ball := preload("res://scripts/table/ball.gd")
 const ACCENT := Color("#e9bc7d")
+## Una bola que baja más lento que esto sigue siendo devuelta a la mesa.
+const MIN_FALL_SPEED := 20.0
 
 var _flash := 0.0
 
 
 func _ready() -> void:
-	if not Engine.is_editor_hint():
-		body_entered.connect(_on_crossed)
 	set_process(false)
+	set_physics_process(not Engine.is_editor_hint())
 
 
-func _on_crossed(body: Node2D) -> void:
+## Se revisa cada cuadro mientras la bola esté sobre la boca del carril: así no
+## importa que entre despacio, por el borde o tan rápido que salte la zona.
+func _physics_process(_delta: float) -> void:
+	for body in get_overlapping_bodies():
+		_deflect(body)
+
+
+func _deflect(body: Node2D) -> void:
 	var ball := body as Ball
-	if not ball or ball.global_position.x < global_position.x - 14.0 or ball.linear_velocity.y < 90.0:
+	if not ball or ball.freeze or ball.linear_velocity.y < MIN_FALL_SPEED:
 		return
 	var speed := ball.linear_velocity.y
 	ball.linear_velocity = Vector2(-clampf(speed * 0.95, 640.0, 1550.0), clampf(speed * 0.36, 150.0, 455.0))

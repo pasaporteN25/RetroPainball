@@ -7,6 +7,9 @@ const HOLD_TIME := 0.58
 const EXIT_DIRECTION := Vector2(0.204, -0.979)
 const EXIT_OFFSET := 43.0
 const EXIT_SPEED := 995.0
+## Una bola expulsada no se vuelve a capturar hasta que baja de esta altura
+## (zona de los flippers). Sin esto cae de nuevo en la cámara y no termina nunca.
+const REARM_Y := 1000.0
 const POINTS := 480
 const BRASS := Color("#bf8c55")
 const GOLD := Color("#ffe0ac")
@@ -15,6 +18,7 @@ const AQUA := Color("#82ffe5")
 @onready var _release_timer: Timer = $ReleaseTimer
 
 var _held_ball: Ball
+var _spent: Array[Ball] = []
 var _flash := 0.0
 
 
@@ -24,6 +28,14 @@ func _ready() -> void:
 		return
 	body_entered.connect(_on_body_entered)
 	_release_timer.timeout.connect(_launch)
+	set_physics_process(false)
+
+
+func _physics_process(_delta: float) -> void:
+	for ball in _spent.duplicate():
+		if not is_instance_valid(ball) or ball.is_queued_for_deletion() or get_parent().to_local(ball.global_position).y > REARM_Y:
+			_spent.erase(ball)
+	set_physics_process(not _spent.is_empty())
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -33,6 +45,8 @@ func _on_body_entered(body: Node2D) -> void:
 
 func _catch(ball: Ball) -> void:
 	if not GameState.playing or not is_instance_valid(ball) or ball.is_queued_for_deletion():
+		return
+	if ball in _spent:
 		return
 	if is_instance_valid(_held_ball) and not _held_ball.is_queued_for_deletion():
 		return
@@ -53,6 +67,8 @@ func _launch() -> void:
 	_held_ball = null
 	if not is_instance_valid(ball) or ball.is_queued_for_deletion():
 		return
+	_spent.append(ball)
+	set_physics_process(true)
 	ball.global_position = global_position + EXIT_DIRECTION * EXIT_OFFSET
 	ball.freeze = false
 	ball.linear_velocity = EXIT_DIRECTION * EXIT_SPEED

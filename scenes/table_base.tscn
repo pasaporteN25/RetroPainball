@@ -17,7 +17,7 @@
 size = Vector2(25, 12)
 
 [sub_resource type="RectangleShape2D" id="Rectangle_gate"]
-size = Vector2(32, 20)
+size = Vector2(64, 84)
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
