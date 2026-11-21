@@ -5,11 +5,17 @@ extends Area2D
 const Ball := preload("res://scripts/table/ball.gd")
 const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 const MIN_CROSS_SPEED := 90.0
+## Brillo de los insertos mientras el carril está encendido.
+const LIT_LEVEL := 0.75
+
+## Se emite al cruzar el carril con puntaje (el manager de rollovers lo escucha).
+signal crossed
 
 @export var caption := "BOOT"
 @export var points := 125
 @export var tint := Color("#74eed0")
 
+var lit := false
 var _flash := 0.0
 var _entry_sides := {}
 
@@ -43,11 +49,19 @@ func _physics_process(_delta: float) -> void:
 		_entry_sides.erase(ball)
 		if GameState.playing and absf(ball.linear_velocity.y) >= MIN_CROSS_SPEED:
 			GameState.add_score(points, global_position)
+			lit = true
 			_flash = 1.0
 			set_process(true)
 			queue_redraw()
+			crossed.emit()
 	if _entry_sides.is_empty():
 		set_physics_process(false)
+
+
+## Enciende o apaga el carril (lo usan el manager al rotar y al reiniciar).
+func set_lit(value: bool) -> void:
+	lit = value
+	queue_redraw()
 
 
 func _process(delta: float) -> void:
@@ -67,7 +81,7 @@ func _draw() -> void:
 	shell.append(shell[0])
 	draw_polyline(shell, Color(light, 0.63 + 0.35 * _flash), 1.7, true)
 	for x in [-12, 0, 12]:
-		InsertLamp.draw(self, Vector2(x, 0), 3.5, tint, _flash)
+		InsertLamp.draw(self, Vector2(x, 0), 3.5, tint, maxf(_flash, LIT_LEVEL if lit else 0.0))
 	if _flash > 0.0:
 		draw_circle(Vector2.ZERO, 30.0 + 10.0 * (1.0 - _flash),
 			Color(tint, _flash * 0.30), false, 3.0, true)

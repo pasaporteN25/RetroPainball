@@ -4,9 +4,16 @@ extends StaticBody2D
 
 const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 
+## Se emite cuando la bola golpea el blanco (el banco lo escucha).
+signal hit
+
 @export var points := 225
 @export var tint := Color("#ffb874")
 
+## Brillo de los insertos mientras el blanco está activado.
+const LIT_LEVEL := 0.75
+
+var activated := false
 var _flash := 0.0
 
 
@@ -21,10 +28,18 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 	if (state.transform.origin - global_position).dot(face) < 4.0:
 		return
 	GameState.add_score.call_deferred(points, global_position)
+	activated = true
 	_flash = 1.0
 	set_process(true)
 	queue_redraw()
 	Input.vibrate_handheld(8)
+	hit.emit()
+
+
+## Apaga o enciende el blanco (el banco lo apaga al completarse).
+func set_activated(value: bool) -> void:
+	activated = value
+	queue_redraw()
 
 
 func _process(delta: float) -> void:
@@ -43,7 +58,7 @@ func _draw() -> void:
 	draw_rect(Rect2(-21, -4, 42, 10), light.darkened(0.35 - 0.29 * _flash))
 	draw_line(Vector2(-22, 4), Vector2(22, 4), light, 2, true)
 	for x in [-17, -9, 0, 9, 17]:
-		InsertLamp.draw(self, Vector2(x, -1), 2.5, tint, _flash)
+		InsertLamp.draw(self, Vector2(x, -1), 2.5, tint, maxf(_flash, LIT_LEVEL if activated else 0.0))
 	if _flash > 0.0:
 		draw_line(Vector2(-21, 7), Vector2(21, 7), Color(light, _flash * 0.35), 12, true)
 	var font := ThemeDB.fallback_font

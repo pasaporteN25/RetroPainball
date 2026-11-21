@@ -4,6 +4,8 @@
 [ext_resource type="Script" path="res://scripts/table/wall.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/table/kernel_rollover.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/table/kernel_standup.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/table/kernel_bank.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/table/kernel_rollovers.gd" id="6"]
 
 [sub_resource type="RectangleShape2D" id="Rectangle_rollover"]
 size = Vector2(55, 20)
@@ -110,3 +112,11 @@ script = ExtResource("4")
 
 [node name="Shape" type="CollisionShape2D" parent="StandupRight"]
 shape = SubResource("Rectangle_standup")
+
+[node name="StandupBank" type="Node" parent="."]
+script = ExtResource("5")
+members = Array[NodePath]([NodePath("../StandupLeft"), NodePath("../StandupRight")])
+
+[node name="RolloverBank" type="Node" parent="."]
+script = ExtResource("6")
+members = Array[NodePath]([NodePath("../BusLeft"), NodePath("../Boot"), NodePath("../BusRight")])
