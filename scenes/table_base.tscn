@@ -63,13 +63,13 @@ polygon = PackedVector2Array(656, 714, 656, 859, 600, 839)
 script = ExtResource("2_wall")
 
 [node name="Shape" type="CollisionPolygon2D" parent="Table/LeftInlane"]
-polygon = PackedVector2Array(64, 942, 82, 917, 103, 942, 103, 1100, 198, 1236, 199, 1800, 64, 1800)
+polygon = PackedVector2Array(64, 942, 82, 917, 103, 942, 103, 1100, 214, 1236, 199, 1800, 64, 1800)
 
 [node name="RightInlane" type="StaticBody2D" parent="Table"]
 script = ExtResource("2_wall")
 
 [node name="Shape" type="CollisionPolygon2D" parent="Table/RightInlane"]
-polygon = PackedVector2Array(608, 942, 608, 1800, 473, 1800, 474, 1236, 569, 1100, 569, 942, 590, 917)
+polygon = PackedVector2Array(608, 942, 608, 1800, 473, 1800, 458, 1236, 569, 1100, 569, 942, 590, 917)
 
 [node name="LeftSlingshot" type="StaticBody2D" parent="Table"]
 script = ExtResource("5_sling")
