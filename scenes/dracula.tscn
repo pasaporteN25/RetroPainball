@@ -1,0 +1,166 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/table_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/table/dracula_art.gd" id="2_art"]
+[ext_resource type="Script" path="res://scripts/table/dracula_bat.gd" id="3_bat"]
+[ext_resource type="Script" path="res://scripts/table/dracula_carfax.gd" id="4_carfax"]
+[ext_resource type="Script" path="res://scripts/table/dracula_coffin.gd" id="5_coffin"]
+[ext_resource type="Script" path="res://scripts/table/dracula_portrait.gd" id="6_portrait"]
+[ext_resource type="Script" path="res://scripts/table/dracula_rules.gd" id="7_rules"]
+[ext_resource type="Script" path="res://scripts/table/wall.gd" id="8_wall"]
+
+[sub_resource type="RectangleShape2D" id="Rectangle_bat"]
+size = Vector2(56, 24)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_carfax_in"]
+size = Vector2(76, 10)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_carfax_out"]
+size = Vector2(58, 10)
+
+[sub_resource type="CircleShape2D" id="Circle_coffin"]
+radius = 22.0
+
+[sub_resource type="CircleShape2D" id="Circle_portrait"]
+radius = 55.0
+
+[node name="Dracula" instance=ExtResource("1_base")]
+table_id = "dracula"
+
+[node name="PlayfieldArt" parent="Table" index="0"]
+script = ExtResource("2_art")
+
+[node name="OuterWall" parent="Table" index="1"]
+fill_color = Color(0.043, 0.039, 0.078, 1)
+line_color = Color(0.788, 0.827, 0.902, 1)
+line_width = 6.0
+
+[node name="ShooterWall" parent="Table" index="2"]
+fill_color = Color(0.106, 0.129, 0.251, 1)
+line_color = Color(0.788, 0.639, 0.353, 1)
+
+[node name="LeftDeflector" parent="Table" index="3"]
+fill_color = Color(0.106, 0.129, 0.251, 1)
+line_color = Color(0.788, 0.639, 0.353, 1)
+
+[node name="RightDeflector" parent="Table" index="4"]
+fill_color = Color(0.106, 0.129, 0.251, 1)
+line_color = Color(0.788, 0.639, 0.353, 1)
+
+[node name="LeftInlane" parent="Table" index="5"]
+fill_color = Color(0.106, 0.129, 0.251, 1)
+line_color = Color(0.788, 0.827, 0.902, 1)
+
+[node name="RightInlane" parent="Table" index="6"]
+fill_color = Color(0.106, 0.129, 0.251, 1)
+line_color = Color(0.788, 0.827, 0.902, 1)
+
+[node name="LeftSlingshot" parent="Table" index="7"]
+color = Color(0.227, 0.267, 0.408, 1)
+rubber_color = Color(0.62, 0.106, 0.196, 1)
+
+[node name="RightSlingshot" parent="Table" index="8"]
+color = Color(0.227, 0.267, 0.408, 1)
+rubber_color = Color(0.62, 0.106, 0.196, 1)
+
+[node name="BumperLeft" parent="Table" index="9"]
+position = Vector2(210, 610)
+color = Color(0.62, 0.106, 0.196, 1)
+cap_color = Color(0.106, 0.129, 0.251, 1)
+
+[node name="BumperRight" parent="Table" index="10"]
+position = Vector2(462, 610)
+color = Color(0.62, 0.106, 0.196, 1)
+cap_color = Color(0.106, 0.129, 0.251, 1)
+
+[node name="BumperBottom" parent="Table" index="11"]
+position = Vector2(336, 530)
+color = Color(0.788, 0.639, 0.353, 1)
+cap_color = Color(0.106, 0.129, 0.251, 1)
+
+[node name="LeftFlipper" parent="Table" index="12"]
+color = Color(0.788, 0.827, 0.902, 1)
+rubber_color = Color(0.62, 0.106, 0.196, 1)
+
+[node name="RightFlipper" parent="Table" index="13"]
+color = Color(0.788, 0.827, 0.902, 1)
+rubber_color = Color(0.62, 0.106, 0.196, 1)
+
+[node name="DraculaRules" type="Node" parent="Table"]
+script = ExtResource("7_rules")
+
+[node name="Bats" type="Node2D" parent="Table"]
+
+[node name="BatLeft" type="StaticBody2D" parent="Table/Bats"]
+position = Vector2(205, 430)
+script = ExtResource("3_bat")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Bats/BatLeft"]
+shape = SubResource("Rectangle_bat")
+
+[node name="BatMid" type="StaticBody2D" parent="Table/Bats"]
+position = Vector2(336, 392)
+script = ExtResource("3_bat")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Bats/BatMid"]
+shape = SubResource("Rectangle_bat")
+
+[node name="BatRight" type="StaticBody2D" parent="Table/Bats"]
+position = Vector2(467, 430)
+script = ExtResource("3_bat")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Bats/BatRight"]
+shape = SubResource("Rectangle_bat")
+
+[node name="Carfax" type="Node2D" parent="Table"]
+z_index = -1
+script = ExtResource("4_carfax")
+
+[node name="GuideRail" type="StaticBody2D" parent="Table/Carfax"]
+script = ExtResource("8_wall")
+fill_color = Color(0.106, 0.129, 0.251, 1)
+line_color = Color(0.788, 0.639, 0.353, 1)
+line_width = 4.0
+bounce = 0.12
+
+[node name="Shape" type="CollisionPolygon2D" parent="Table/Carfax/GuideRail"]
+polygon = PackedVector2Array(544, 450, 550, 450, 556, 668, 550, 668)
+
+[node name="GateIn" type="Area2D" parent="Table/Carfax"]
+position = Vector2(590, 470)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Carfax/GateIn"]
+shape = SubResource("Rectangle_carfax_in")
+
+[node name="GateOut" type="Area2D" parent="Table/Carfax"]
+position = Vector2(610, 650)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Carfax/GateOut"]
+shape = SubResource("Rectangle_carfax_out")
+
+[node name="Coffin" type="Area2D" parent="Table"]
+z_index = -1
+position = Vector2(150, 790)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("5_coffin")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Coffin"]
+shape = SubResource("Circle_coffin")
+
+[node name="ReleaseTimer" type="Timer" parent="Table/Coffin"]
+one_shot = true
+
+[node name="Portrait" type="StaticBody2D" parent="Table"]
+position = Vector2(336, 830)
+script = ExtResource("6_portrait")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Portrait"]
+shape = SubResource("Circle_portrait")

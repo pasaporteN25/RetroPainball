@@ -3,14 +3,17 @@ extends Control
 
 const Screen := preload("res://scripts/util/screen.gd")
 const GameSave := preload("res://scripts/util/game_save.gd")
+const DraculaCard := preload("res://scripts/ui/dracula_card.gd")
 const NAUTILUS_PRINT := preload("res://assets/nautilus_playfield.webp")
 const INK := Color("#071119")
 const MINT := Color("#8cead2")
 const GOLD := Color("#ffd397")
 const IVORY := Color("#edf2df")
+const CRIMSON := Color("#c0314d")
 
 var _kernel: Button
 var _nautilus: Button
+var _dracula: Button
 var _heading: FontVariation
 var _serif: SystemFont
 var _safe_top := 0.0
@@ -26,20 +29,22 @@ func _ready() -> void:
 	_serif.font_weight = 700
 	_kernel = _make_card("Kernel Panic", GameState.KERNEL_PANIC, 432.0, "res://scenes/main.tscn")
 	_nautilus = _make_card("20.000 Leguas", GameState.NAUTILUS, 646.0, "res://scenes/nautilus.tscn")
+	_dracula = _make_card("Drácula", GameState.DRACULA, 432.0, "res://scenes/dracula.tscn")
 	_kernel.focus_neighbor_bottom = _kernel.get_path_to(_nautilus)
 	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
+	_nautilus.focus_neighbor_bottom = _nautilus.get_path_to(_dracula)
+	_dracula.focus_neighbor_top = _dracula.get_path_to(_nautilus)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
 	_kernel.grab_focus()
 
 
 func _make_card(title: String, table_id: String, height: float, scene_path: String) -> Button:
-	var nautical := table_id == GameState.NAUTILUS
 	var has_save := false
 	if not GameState.save_directory.is_empty():
 		has_save = not GameSave.load_run(table_id, GameState.save_directory).is_empty()
 	var card := Button.new()
-	card.name = "Nautilus" if nautical else "KernelPanic"
+	card.name = {GameState.NAUTILUS: "Nautilus", GameState.DRACULA: "Dracula"}.get(table_id, "KernelPanic")
 	card.text = title
 	card.tooltip_text = "Continuar " + title if has_save else title
 	card.size = Vector2(624, height)
@@ -50,7 +55,7 @@ func _make_card(title: String, table_id: String, height: float, scene_path: Stri
 		card.add_theme_stylebox_override(state, blank)
 	for state in ["font_color", "font_pressed_color", "font_hover_color", "font_focus_color", "font_hover_pressed_color", "font_outline_color"]:
 		card.add_theme_color_override(state, Color.TRANSPARENT)
-	card.draw.connect(_draw_card.bind(card, nautical, has_save))
+	card.draw.connect(_draw_card.bind(card, table_id, has_save))
 	card.pressed.connect(func() -> void: get_tree().change_scene_to_file(scene_path))
 	add_child(card)
 	return card
@@ -60,12 +65,15 @@ func _layout() -> void:
 	var safe := Screen.safe_insets(get_viewport())
 	_safe_top = safe.top
 	var remaining: float = size.y - _safe_top - safe.bottom
-	var zoom := clampf(remaining / 1400.0, 0.65, 1.0)
-	_kernel.scale = Vector2.ONE * zoom
-	_nautilus.scale = _kernel.scale
+	# Tres tarjetas apiladas: 202 de encabezado, las alturas y 26 de separación entre cada una.
+	var content := 202.0 + _kernel.size.y + _nautilus.size.y + _dracula.size.y + 2.0 * 26.0 + 20.0
+	var zoom := clampf(remaining / content, 0.45, 1.0)
+	for card in [_kernel, _nautilus, _dracula]:
+		card.scale = Vector2.ONE * zoom
 	var left := (size.x - _kernel.size.x * zoom) * 0.5
 	_kernel.position = Vector2(left, _safe_top + 202.0 * zoom)
 	_nautilus.position = _kernel.position + Vector2(0, (_kernel.size.y + 26.0) * zoom)
+	_dracula.position = _nautilus.position + Vector2(0, (_nautilus.size.y + 26.0) * zoom)
 	queue_redraw()
 
 
@@ -83,9 +91,11 @@ func _draw() -> void:
 	draw_line(at + Vector2(274, 38), at + Vector2(274, 38) - dash, Color(MINT, 0.45), 1, true)
 
 
-func _draw_card(card: Button, nautical: bool, has_save: bool) -> void:
+func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
+	var nautical := table_id == GameState.NAUTILUS
+	var vampiric := table_id == GameState.DRACULA
 	var bounds := Rect2(Vector2.ZERO, card.size)
-	var accent := GOLD if nautical else MINT
+	var accent := GOLD if nautical else (CRIMSON if vampiric else MINT)
 	var active := card.has_focus() or card.is_hovered()
 	card.draw_rect(bounds, Color("#12232a") if active else Color("#101d24"))
 	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else 242)
@@ -93,6 +103,8 @@ func _draw_card(card: Button, nautical: bool, has_save: bool) -> void:
 		var texture_size := NAUTILUS_PRINT.get_size()
 		var crop := Rect2(0, 42, texture_size.x, texture_size.x * illustration.size.y / illustration.size.x)
 		card.draw_texture_rect_region(NAUTILUS_PRINT, illustration, crop, Color("#f0eee4"))
+	elif vampiric:
+		DraculaCard.draw(card, illustration)
 	else:
 		_draw_kernel(card, illustration)
 	if has_save:
@@ -103,18 +115,21 @@ func _draw_card(card: Button, nautical: bool, has_save: bool) -> void:
 	var text_start := illustration.end.y
 	card.draw_line(Vector2(17, text_start), Vector2(bounds.end.x - 17, text_start), Color(accent, 0.64), 2, true)
 	var headline := card.text
-	var subtitle := "Bajo el mar" if nautical else "Pinball clásico"
-	var summary := "Órbita  ·  Sonares  ·  Kraken" if nautical else "Carriles y blancos en un circuito retro"
+	var subtitle := "Bajo el mar" if nautical else ("Noche en Transilvania" if vampiric else "Pinball clásico")
+	var summary := "Órbita  ·  Sonares  ·  Kraken" if nautical else ("Murciélagos  ·  Ataúd  ·  Medianoche" if vampiric else "Carriles y blancos en un circuito retro")
 	var left := 29.0
 	var font := ThemeDB.fallback_font
-	card.draw_string(_serif if nautical else _heading, Vector2(left, text_start + 64),
-		headline, HORIZONTAL_ALIGNMENT_LEFT, -1, 50 if nautical else 46, accent)
+	card.draw_string(_serif if (nautical or vampiric) else _heading, Vector2(left, text_start + 64),
+		headline, HORIZONTAL_ALIGNMENT_LEFT, -1, 50 if (nautical or vampiric) else 46, accent)
 	card.draw_string(_heading, Vector2(left, text_start + 103),
 		subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, 27, IVORY)
 	card.draw_string(font, Vector2(left, text_start + 143),
 		summary, HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("#a9c0c1"))
 	if nautical:
 		card.draw_string(font, Vector2(left, text_start + 181), "Completá la misión para seguir descendiendo",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#a9c0c1"))
+	elif vampiric:
+		card.draw_string(font, Vector2(left, text_start + 181), "Encerrá dos bolas y desatá la Medianoche",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#a9c0c1"))
 	var arrow := Vector2(bounds.end.x - 49, text_start + 79)
 	card.draw_circle(arrow, 23, Color(accent, 0.18 if active else 0.08), true, -1, true)

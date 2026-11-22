@@ -192,6 +192,18 @@ func ball_count() -> int:
 	return n
 
 
+## true si todas las bolas en juego están encerradas (meta que pone el ataúd de Drácula).
+func _only_locked_balls_left() -> bool:
+	var any := false
+	for b in _balls.get_children():
+		if b.is_queued_for_deletion():
+			continue
+		if not b.has_meta(&"dracula_locked"):
+			return false
+		any = true
+	return any
+
+
 func serve_ball() -> void:
 	_serve_timer.stop()
 	if not GameState.playing:
@@ -244,7 +256,13 @@ func _on_drain(body: Node2D) -> void:
 		return
 	body.queue_free()
 	if ball_count() > 0 or not GameState.playing:
-		return  # Multibola: sigue habiendo bolas en juego.
+		# Multibola: sigue habiendo bolas en juego. Si solo quedan bolas encerradas (Drácula),
+		# la mesa las libera para que la partida no quede sin bola libre.
+		if GameState.playing and _only_locked_balls_left():
+			var rules := get_node_or_null("Table/DraculaRules")
+			if rules:
+				rules.release_locked_balls.call_deferred()
+		return
 	if GameState.tilted:
 		_ball_save_left = 0.0  # En TILT no hay bola salvada.
 		_art.set_ball_save_fraction(0.0)

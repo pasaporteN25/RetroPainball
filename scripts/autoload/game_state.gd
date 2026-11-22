@@ -21,6 +21,7 @@ const BONUS_RATE := 0.1
 const MAX_MULTIPLIER := 5
 const KERNEL_PANIC := "kernel_panic"
 const NAUTILUS := "nautilus"
+const DRACULA := "dracula"
 const Tilt := preload("res://scripts/table/tilt.gd")
 ## Variable (no const) para que los tests usen un archivo propio.
 var record_path := "user://records.cfg"

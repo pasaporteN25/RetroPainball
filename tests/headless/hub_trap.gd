@@ -2,7 +2,7 @@ extends SceneTree
 ## Una bola en reposo junto al buje de un flipper (contra la esquina del pasillo de retorno)
 ## no se puede quedar quieta: sin tocar los flippers tiene que salir de ahí, en ambas mesas.
 
-const TABLES := {"Kernel Panic": "res://scenes/main.tscn", "20.000 Leguas": "res://scenes/nautilus.tscn"}
+const TABLES := {"Kernel Panic": "res://scenes/main.tscn", "20.000 Leguas": "res://scenes/nautilus.tscn", "Drácula": "res://scenes/dracula.tscn"}
 const SPOTS: Array[Vector2] = [Vector2(206, 1220), Vector2(464, 1219), Vector2(466, 1220)]
 const MIN_TRAVEL := 40.0
 const WAIT := 3.0
