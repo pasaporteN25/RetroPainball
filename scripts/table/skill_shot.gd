@@ -9,11 +9,14 @@ extends Node2D
 signal scored(award: int)
 
 const Ball := preload("res://scripts/table/ball.gd")
-const SKILL_TIME := 5.0
 const GOLD := Color("#ffd35c")
 
 @export var plunger_path := NodePath("../Plunger")
-@export var award := 5000
+## Premio del skill shot; -1 = TableRules.skill_shot_award. Leer `award` da el valor efectivo.
+@export var award_override := -1
+var award: int:
+	get:
+		return award_override if award_override >= 0 else GameState.active_rules().skill_shot_award
 ## Rectángulo del carril (coordenadas de la mesa), pegado al arco izquierdo.
 @export var lane_rect := Rect2(12.0, 290.0, 100.0, 240.0)
 
@@ -54,8 +57,8 @@ func on_launched(power: float) -> void:
 		disarm()
 		return
 	armed = true
-	_time_left = SKILL_TIME
-	GameState.say("SKILL SHOT: AL CARRIL")
+	_time_left = GameState.active_rules().skill_shot_seconds
+	GameState.say(GameState.active_rules().text("skill_shot_armed"))
 	queue_redraw()
 
 
@@ -71,7 +74,7 @@ func _on_body_entered(body: Node2D) -> void:
 	armed = false
 	_flash = 1.0
 	GameState.add_score.call_deferred(award, to_global(lane_rect.get_center()))
-	GameState.say("SKILL SHOT %d" % award)
+	GameState.say(GameState.active_rules().text("skill_shot_scored", {"award": award}))
 	scored.emit(award)
 
 

@@ -1,12 +1,11 @@
 @tool
 extends Node2D
 ## Órbita Carfax: carril de dos compuertas a la derecha. Entrar por GateIn y salir por GateOut
-## en menos de TRAVEL_SECONDS completa una vuelta (el puntaje y la cuenta los lleva DraculaRules).
+## en menos de carfax_travel_seconds (TableRules) completa una vuelta (el puntaje y la cuenta los lleva DraculaRules).
 
 const Ball := preload("res://scripts/table/ball.gd")
 const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 const ENTRY_META := &"dracula_carfax_entry"
-const TRAVEL_SECONDS := 3.0
 const BONE := Color("#e9e1cf")
 const GOLD := Color("#c9a35a")
 const CRIMSON := Color("#c0314d")
@@ -49,7 +48,7 @@ func _crossed(body: Node2D, gate: int) -> void:
 	if gate == 0:
 		body.set_meta(ENTRY_META, tick)
 		return
-	var limit := ceili(Engine.physics_ticks_per_second * TRAVEL_SECONDS)
+	var limit := ceili(Engine.physics_ticks_per_second * GameState.active_rules().carfax_travel_seconds)
 	var started: int = body.get_meta(ENTRY_META, -limit - 1)
 	body.remove_meta(ENTRY_META)
 	if tick - started > limit:

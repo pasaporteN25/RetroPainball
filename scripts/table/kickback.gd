@@ -42,7 +42,7 @@ func _pop(ball: Ball) -> void:
 	ball.linear_velocity = pop_velocity
 	ball.angular_velocity = 0.0
 	_flash = 1.0
-	GameState.say("¡KICKBACK!")
+	GameState.say(GameState.active_rules().text("kickback"))
 
 
 func _process(delta: float) -> void:

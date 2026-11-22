@@ -7,7 +7,11 @@ extends Node
 signal completed(award: int)
 
 @export var members: Array[NodePath] = []
-@export var award := 1500
+## Premio de los carriles completos; -1 = TableRules.rollover_award. Leer `award` da el valor efectivo.
+@export var award_override := -1
+var award: int:
+	get:
+		return award_override if award_override >= 0 else GameState.active_rules().rollover_award
 
 var _lanes: Array = []
 

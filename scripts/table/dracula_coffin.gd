@@ -9,13 +9,13 @@ const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 ## La bola quedó encerrada (la recibe DraculaRules).
 signal ball_locked(ball: Ball)
 
+## Respaldo para el editor (en juego manda TableRules.coffin_hold_seconds).
 const HOLD_TIME := 0.6
 const EXIT_DIRECTION := Vector2(0.42, -0.91)
 const EXIT_OFFSET := 40.0
 const EXIT_SPEED := 960.0
 ## Una bola expulsada no se vuelve a capturar hasta que baja de esta altura (zona de flippers).
 const REARM_Y := 1000.0
-const POINTS := 300
 ## Lugar de cada bola encerrada dentro del ataúd.
 const SLOTS := [Vector2(-8, -5), Vector2(8, 5)]
 ## Marca que main.gd usa para no contar las bolas encerradas como bolas libres.
@@ -114,7 +114,7 @@ func _catch(ball: Ball) -> void:
 		return
 	_held_ball = ball
 	_freeze_at(ball, global_position)
-	_release_timer.start(HOLD_TIME)
+	_release_timer.start(_hold_time())
 	Settings.vibrate(12)
 	set_process(true)
 	queue_redraw()
@@ -141,6 +141,10 @@ func _freeze_at(ball: Ball, at: Vector2) -> void:
 	ball.reset_physics_interpolation()
 
 
+func _hold_time() -> float:
+	return HOLD_TIME if Engine.is_editor_hint() else GameState.active_rules().coffin_hold_seconds
+
+
 func _launch() -> void:
 	var ball := _held_ball
 	_held_ball = null
@@ -153,7 +157,7 @@ func _launch() -> void:
 	ball.freeze = false
 	ball.linear_velocity = direction * EXIT_SPEED
 	ball.reset_physics_interpolation()
-	GameState.add_score(POINTS, global_position)
+	GameState.add_score(GameState.active_rules().coffin_points, global_position)
 	Settings.vibrate(22)
 	_flash = 1.0
 	set_process(true)
@@ -169,7 +173,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var charge := 0.0
 	if is_instance_valid(_held_ball) and not Engine.is_editor_hint():
-		charge = 1.0 - _release_timer.time_left / HOLD_TIME
+		charge = 1.0 - _release_timer.time_left / _hold_time()
 	_draw_coffin(maxf(charge, _flash), charge)
 	_draw_lamps()
 	_draw_caption(maxf(charge, _flash))

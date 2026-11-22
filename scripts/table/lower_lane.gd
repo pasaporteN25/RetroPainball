@@ -3,7 +3,6 @@ extends Area2D
 ## Insertos en los carriles inferiores. El retorno suma puntos al entrar de bajada.
 
 const Ball := preload("res://scripts/table/ball.gd")
-const RETURN_POINTS := 50
 const RETURN_TINT := Color("#82ead0")
 const DRAIN_TINT := Color("#e18c72")
 
@@ -25,7 +24,7 @@ func _on_crossed(body: Node2D) -> void:
 	set_process(true)
 	queue_redraw()
 	if not is_outlane:
-		GameState.add_score.call_deferred(RETURN_POINTS, global_position)
+		GameState.add_score.call_deferred(GameState.active_rules().lane_return_points, global_position)
 
 
 func _process(delta: float) -> void:

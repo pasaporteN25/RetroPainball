@@ -3,6 +3,7 @@ extends Area2D
 ## La cámara contiene la bola un instante y la devuelve al sonar de estribor.
 
 const Ball := preload("res://scripts/table/ball.gd")
+## Respaldo para el editor (en juego manda TableRules.chamber_hold_seconds).
 const HOLD_TIME := 0.58
 const EXIT_DIRECTION := Vector2(0.204, -0.979)
 const EXIT_OFFSET := 43.0
@@ -10,7 +11,6 @@ const EXIT_SPEED := 995.0
 ## Una bola expulsada no se vuelve a capturar hasta que baja de esta altura
 ## (zona de los flippers). Sin esto cae de nuevo en la cámara y no termina nunca.
 const REARM_Y := 1000.0
-const POINTS := 480
 const BRASS := Color("#bf8c55")
 const GOLD := Color("#ffe0ac")
 const AQUA := Color("#82ffe5")
@@ -56,10 +56,14 @@ func _catch(ball: Ball) -> void:
 	ball.linear_velocity = Vector2.ZERO
 	ball.angular_velocity = 0.0
 	ball.reset_physics_interpolation()
-	_release_timer.start(HOLD_TIME)
+	_release_timer.start(_hold_time())
 	Settings.vibrate(12)
 	set_process(true)
 	queue_redraw()
+
+
+func _hold_time() -> float:
+	return HOLD_TIME if Engine.is_editor_hint() else GameState.active_rules().chamber_hold_seconds
 
 
 func _launch() -> void:
@@ -74,7 +78,7 @@ func _launch() -> void:
 	ball.linear_velocity = EXIT_DIRECTION * EXIT_SPEED
 	ball.reset_physics_interpolation()
 	# La bola detenida puede volver a entrar desde un guardado sin duplicar puntos.
-	GameState.add_score(POINTS, global_position)
+	GameState.add_score(GameState.active_rules().chamber_points, global_position)
 	Settings.vibrate(22)
 	_flash = 1.0
 	set_process(true)
@@ -90,7 +94,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var charge := 0.0
 	if is_instance_valid(_held_ball):
-		charge = 1.0 - _release_timer.time_left / HOLD_TIME
+		charge = 1.0 - _release_timer.time_left / _hold_time()
 	var light := BRASS.lerp(AQUA, maxf(charge, _flash))
 	var arrow := EXIT_DIRECTION * 53.0
 	var wing := arrow.orthogonal().normalized() * 9.0
