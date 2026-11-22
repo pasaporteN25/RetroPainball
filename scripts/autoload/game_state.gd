@@ -11,6 +11,9 @@ signal game_resumed
 signal game_ended(final_score: int, is_record: bool)
 ## Al perder una bola: bonus acumulado, multiplicador y puntos otorgados.
 signal bonus_awarded(base: int, multiplier: int, total: int)
+## Un empujón válido: la mesa le da un impulso a las bolas en juego.
+signal nudged(direction: Vector2)
+signal tilt_changed(tilted: bool)
 
 const BALLS_PER_GAME := 3
 ## Fracción de cada puntaje que se acumula en el bonus de la bola.
@@ -18,6 +21,7 @@ const BONUS_RATE := 0.1
 const MAX_MULTIPLIER := 5
 const KERNEL_PANIC := "kernel_panic"
 const NAUTILUS := "nautilus"
+const Tilt := preload("res://scripts/table/tilt.gd")
 ## Variable (no const) para que los tests usen un archivo propio.
 var record_path := "user://records.cfg"
 ## Vacío desactiva los guardados, por ejemplo al probar la física.
@@ -30,12 +34,14 @@ const DEFAULT_KEYS := {
 	"flipper_right": [KEY_M, KEY_RIGHT, KEY_L],
 	"launch": [KEY_SPACE, KEY_DOWN, KEY_ENTER],
 	"pause": [KEY_ESCAPE, KEY_P],
+	"nudge": [KEY_N],
 }
 const DEFAULT_JOY_BUTTONS := {
 	"flipper_left": [JOY_BUTTON_LEFT_SHOULDER],
 	"flipper_right": [JOY_BUTTON_RIGHT_SHOULDER],
 	"launch": [JOY_BUTTON_A],
 	"pause": [JOY_BUTTON_START],
+	"nudge": [JOY_BUTTON_Y],
 }
 
 var score := 0
@@ -52,12 +58,27 @@ var bonus := 0
 var bonus_multiplier := 1
 ## Puntos del último bonus cobrado (0 si no hubo), para que la mesa espere el aviso.
 var last_bonus_award := 0
+## Calor de nudge/tilt (G-04). En TILT los flippers no responden y el bonus se pierde.
+var tilt := Tilt.new()
+var tilted: bool:
+	get:
+		return tilt.tilted
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_register_default_inputs()
 	_load_record()
+
+
+func _process(delta: float) -> void:
+	if not playing or get_tree().paused:
+		return
+	tilt.tick(delta)
+	if tilt.feed_accelerometer(Input.get_accelerometer()):
+		nudge(Vector2(randf_range(-0.4, 0.4), -1.0))
+	elif Input.is_action_just_pressed("nudge"):
+		nudge(Vector2(randf_range(-0.6, 0.6), -1.0))
 
 
 func start_game() -> void:
@@ -78,6 +99,7 @@ func _set_active_run(new_score: int, new_balls_left: int) -> void:
 	bonus = 0
 	bonus_multiplier = 1
 	last_bonus_award = 0
+	_reset_tilt()
 	ball_in_lane = false
 	plunger_charge = 0.0
 	playing = true
@@ -93,6 +115,7 @@ func select_table(id: String) -> void:
 
 func leave_game() -> void:
 	playing = false
+	_reset_tilt()
 	ball_in_lane = false
 	plunger_charge = 0.0
 
@@ -116,11 +139,15 @@ func raise_multiplier(announce := true) -> void:
 
 
 ## Cobra el bonus acumulado y lo reinicia para la bola siguiente.
+## En TILT el bonus se pierde sin cobrarse.
 func award_bonus() -> int:
 	var base := bonus
 	var multiplier := bonus_multiplier
 	bonus = 0
 	bonus_multiplier = 1
+	if tilted:
+		last_bonus_award = 0
+		return 0
 	last_bonus_award = base * multiplier
 	if last_bonus_award > 0:
 		score += last_bonus_award
@@ -133,12 +160,36 @@ func award_bonus() -> int:
 ## Resta una bola. Devuelve true si la partida sigue.
 func lose_ball() -> bool:
 	award_bonus()
+	_reset_tilt()
 	balls_left -= 1
 	balls_changed.emit(balls_left)
 	if balls_left <= 0:
 		end_game()
 		return false
 	return true
+
+
+## Un empujón (deslizar hacia arriba, sacudir o la tecla N). `direction` apunta hacia donde
+## sale la bola. Suma calor: avisa con poco y, con mucho, es TILT.
+func nudge(direction: Vector2) -> void:
+	if not playing or get_tree().paused:
+		return
+	match tilt.register_nudge():
+		Tilt.Result.NUDGE:
+			nudged.emit(direction)
+		Tilt.Result.WARNING:
+			nudged.emit(direction)
+			say("CUIDADO")
+		Tilt.Result.TILT:
+			say("TILT")
+			tilt_changed.emit(true)
+
+
+func _reset_tilt() -> void:
+	var was_tilted := tilt.tilted
+	tilt.reset()
+	if was_tilted:
+		tilt_changed.emit(false)
 
 
 func end_game() -> void:

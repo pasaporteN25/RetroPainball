@@ -11,12 +11,18 @@ extends CanvasLayer
 @export_range(0.0, 1.0) var zone_top_ratio := 0.5
 @export var pad_height := 78.0
 
+## Gesto de nudge: deslizar el pulgar hacia arriba al menos esto (px) en menos de NUDGE_SWIPE_TIME.
+@export var nudge_swipe_distance := 110.0
+const NUDGE_SWIPE_TIME := 0.35
+
 const Screen := preload("res://scripts/util/screen.gd")
 const MINT := Color("#63e0c1")
 const AMBER := Color("#ffb75b")
 
 ## índice de dedo -> acción que mantiene apretada
 var _touches := {}
+## índice de dedo -> {pos, time} donde empezó el gesto (se borra al disparar el nudge)
+var _swipes := {}
 var _canvas: Control
 var _font: Font
 var _bottom_inset := 0.0
@@ -72,12 +78,28 @@ func _input(event: InputEvent) -> void:
 		return
 	var drag := event as InputEventScreenDrag
 	if drag and _touches.has(drag.index):
+		_check_swipe(drag)
 		# Si el dedo cruza al otro lado, cambia de flipper.
 		var action := _action_for(drag.position)
 		var current: StringName = _touches[drag.index]
 		if action != &"" and action != current and current != &"launch":
 			_release(drag.index)
 			_press(drag.index, drag.position)
+
+
+## Un deslizamiento rápido hacia arriba con un dedo de flipper da un empujón.
+func _check_swipe(drag: InputEventScreenDrag) -> void:
+	if not _swipes.has(drag.index) or _touches[drag.index] == &"launch":
+		return
+	var start: Dictionary = _swipes[drag.index]
+	var moved: Vector2 = drag.position - start.pos
+	var elapsed: float = (Time.get_ticks_msec() - int(start.time)) / 1000.0
+	if elapsed > NUDGE_SWIPE_TIME:
+		# Gesto lento: no es un empujón; vuelve a medir desde acá.
+		_swipes[drag.index] = {"pos": drag.position, "time": Time.get_ticks_msec()}
+	elif -moved.y >= nudge_swipe_distance and absf(moved.x) < -moved.y:
+		_swipes.erase(drag.index)
+		GameState.nudge(Vector2(moved.x, moved.y))
 
 
 func release_all() -> void:
@@ -101,6 +123,7 @@ func _press(index: int, pos: Vector2) -> void:
 	if action == &"":
 		return
 	_touches[index] = action
+	_swipes[index] = {"pos": pos, "time": Time.get_ticks_msec()}
 	Input.action_press(action)
 
 
@@ -109,6 +132,7 @@ func _release(index: int) -> void:
 		return
 	var action: StringName = _touches[index]
 	_touches.erase(index)
+	_swipes.erase(index)
 	if not _touches.values().has(action):
 		Input.action_release(action)
 

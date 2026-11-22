@@ -29,6 +29,8 @@ const CRADLE_MAX_X := 447.0
 ## Desde esta x y y la bola está en el carril de saque, donde esperar es normal.
 const LANE_X := 664.0
 const LANE_Y := 430.0
+## Cambio de velocidad (px/s) que un empujón le da a cada bola en juego.
+@export var nudge_speed := 240.0
 
 @export var table_id := GameState.KERNEL_PANIC
 
@@ -60,6 +62,7 @@ func _ready() -> void:
 	GameState.scored.connect(_on_scored)
 	GameState.game_started.connect(_on_game_started)
 	GameState.game_ended.connect(_on_game_ended)
+	GameState.nudged.connect(_on_nudged)
 	_hud.checkpoint_requested.connect(save_run)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
@@ -223,6 +226,9 @@ func _on_drain(body: Node2D) -> void:
 	body.queue_free()
 	if ball_count() > 0 or not GameState.playing:
 		return  # Multibola: sigue habiendo bolas en juego.
+	if GameState.tilted:
+		_ball_save_left = 0.0  # En TILT no hay bola salvada.
+		_art.set_ball_save_fraction(0.0)
 	if _ball_save_left > 0.0:
 		_ball_save_left = 0.0
 		_art.set_ball_save_fraction(0.0)
@@ -238,6 +244,18 @@ func _on_drain(body: Node2D) -> void:
 			GameState.say("BOLA %d" % (GameState.BALLS_PER_GAME - GameState.balls_left + 1))
 		_schedule_serve()
 		save_run.call_deferred()
+
+
+## Empujón: le suma velocidad a cada bola en juego (las del carril de saque no se tocan).
+func _on_nudged(direction: Vector2) -> void:
+	var push := direction.normalized() * nudge_speed
+	for ball: RigidBody2D in _balls.get_children():
+		if ball.is_queued_for_deletion():
+			continue
+		var at := _table.to_local(ball.global_position)
+		if at.x > LANE_X and at.y > LANE_Y:
+			continue
+		ball.linear_velocity += push
 
 
 func _on_scored(points: int, world_position: Vector2) -> void:
