@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  headless-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GODOT_VERSION: 4.7.2
+    steps:
+      - uses: actions/checkout@v4
+
+      # Instala el binario de Godot (fijado a la misma versión que usa el proyecto).
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          use-dotnet: false
+          include-templates: false
+
+      - name: Importar el proyecto
+        run: godot --headless --path . --editor --import --quit
+
+      - name: Suite headless
+        run: godot --headless --path . -s tests/headless/all.gd
