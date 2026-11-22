@@ -140,6 +140,9 @@ func save_run() -> void:
 		"depth": _mission.depth if _mission else 0,
 		"bonus": GameState.bonus,
 		"bonus_multiplier": GameState.bonus_multiplier,
+		"extra_balls": GameState.extra_balls,
+		"extra_awarded": GameState.extra_awarded,
+		"kickback_ready": GameState.kickback_ready,
 	}
 	if saved == _last_saved_run:
 		return
@@ -169,7 +172,8 @@ func _restore_run(saved: Dictionary) -> void:
 		_spawn_ball(at, snapshot.velocity, snapshot.spin, snapshot.rotation)
 	if saved.balls.is_empty():
 		_serve_timer.start(maxf(0.001, saved.serve_remaining))
-	GameState.resume_game(saved.score, saved.balls_left, saved.get("bonus", 0), saved.get("bonus_multiplier", 1))
+	GameState.resume_game(saved.score, saved.balls_left, saved.get("bonus", 0), saved.get("bonus_multiplier", 1),
+			saved.get("extra_balls", 0), saved.get("extra_awarded", 0), saved.get("kickback_ready", true))
 	GameState.say("PARTIDA REANUDADA")
 
 
@@ -289,7 +293,10 @@ func _on_drain(body: Node2D) -> void:
 	if GameState.lose_ball():
 		# Si se cobró bonus, su aviso queda en pantalla en vez de "BOLA n".
 		if GameState.last_bonus_award == 0:
-			GameState.say("BOLA %d" % (GameState.BALLS_PER_GAME - GameState.balls_left + 1))
+			if GameState.last_ball_replayed:
+				GameState.say("BOLA EXTRA: JUGÁ DE NUEVO")
+			else:
+				GameState.say("BOLA %d" % (GameState.BALLS_PER_GAME - GameState.balls_left + 1))
 		_schedule_serve()
 		save_run.call_deferred()
 

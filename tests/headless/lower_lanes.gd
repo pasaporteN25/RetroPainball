@@ -54,6 +54,8 @@ func _test_left_and_right() -> void:
 			ball.queue_free()
 
 	for side: String in ["Left", "Right"]:
+		# El kickback (G-12) devuelve la primera bola del outlane izquierdo; acá se prueba el drenaje.
+		_state.kickback_ready = false
 		var lane := _table.get_node("LowerLanes/" + side + "Outlane") as Area2D
 		var left := side == "Left"
 		var at := Vector2(127, 760) if left else Vector2(545, 760)

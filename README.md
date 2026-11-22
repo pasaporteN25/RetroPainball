@@ -17,6 +17,10 @@ En ambas mesas, los retornos interiores llevan a los flippers y suman 50 puntos.
 exteriores llevan al drenaje. La compuerta superior desvía hacia el tablero las bolas que vuelven
 al carril de lanzamiento.
 
+Skill shot: soltá el lanzador con la potencia dentro del marco dorado del resorte y mandá la bola al carril
+SKILL SHOT del arco izquierdo para ganar 5.000. El kickback devuelve una vez por bola la bola que cae por el
+outlane izquierdo. Llegar al multiplicador de bonus X5 da una bola extra (una por partida).
+
 ## Correrlo
 
 1. Abrí Godot 4.7.2 → *Importar* → elegí `project.godot`.
