@@ -15,6 +15,19 @@ S-04: personajes, dibujos y marcas deben ser originales o de dominio público co
 
 Noche `#0b0a14`, azul `#1b2140`, carmesí `#9e1b32`, hueso `#e9e1cf`, plata lunar `#c9d3e6`, oro viejo `#c9a35a` y niebla `#3a4468`. Castillo y murciélagos son dibujos vectoriales originales inspirados en la novela de dominio público, sin elementos de adaptaciones cinematográficas. Dejar tenues las zonas bajo las piezas y libre la franja del multiplicador. Medianoche tiñe lentamente el cielo y el relámpago es infrecuente, suave y sin parpadeos rápidos. En móvil se reutiliza la geometría de ocho murciélagos, con pocas bandas de niebla y redibujado limitado a 20 Hz; comprobar rendimiento en dispositivo.
 
+## Alicia
+
+Paleta y layout en `docs/mesas/ALICIA.md`. Todo es dibujo vectorial original en código, en el estilo de grabado de Tenniel (dominio público): contorno de tinta `#14110f`, rayado paralelo/cruzado y brillo suave (halos de 3 círculos tenues). Nada de Disney ni de otras adaptaciones (sin vestido azul con diadema, sin su gato, conejo ni paleta); el gato es lila con rayas y la Reina/naipes usan solo la paleta del doc. Sin assets externos.
+
+Archivos: `scripts/table/alice_art.gd` (fondo, marco y efectos), `alice_visuals.gd` (`AliceVisuals`, una función estática por pieza; la lógica la llama desde su `_draw()`) y `scripts/ui/alice_card.gd` (tarjeta del selector, que reusa `AliceVisuals`).
+
+- **Dos capas:** la estática (`_draw` del arte: cielo con degradé por bandas, líneas de grabado cacheadas con `Geometry2D`, seto, título, carril, zócalo) solo se redibuja si cambia algo; la dinámica (`Ambient`, clase interna) redibuja a 20 Hz como máximo: marco/viñeta de tamaño, 8 luciérnagas, salvabolas y destellos.
+- **Tamaño legible a primera vista:** el marco pasa de filete fino sepia/oro (normal) a verde té grueso con viñeta que se cierra (chica) o rojo Reina más ancho con viñeta suave (grande), más la etiqueta "CHICA"/"GRANDE" bajo el título. El cambio se interpola en ~0,6 s (`_size_mix`), sin saltos. Los hongos se dibujan siempre del mismo tamaño: la física no cambia.
+- **Gato:** `draw_cheshire(item, radius, visibility)` usa `visibility` continuo como alfa; la lógica debe interpolarlo (no conmutar 0/1 cada frame) para que se desvanezca sin parpadeos. Con visibilidad ~0 queda solo la sonrisa (más un aro casi invisible).
+- **Zonas libres:** el pasillo central bajo la Tetera y la franja de lamparitas (336,1155) quedan sin elementos; las baldosas de ajedrez y los puntos de luciérnaga son muy tenues y evitan x=336±110 / y>1110.
+- **Contrato con las reglas:** `get_node_or_null("../AliceRules")`; conecta solo las señales que existan (`size_changed`, `lock_lit_changed`, `tea_party_started/ended`, `cards_completed`, `ball_locked`, `cheshire_hit`) y lee `size_state`, `lock_lit`, `tea_party` al iniciar. Sin reglas funciona igual.
+- Sin verificar en dispositivo ni en pantalla: comprobar el aspecto y el rendimiento en el teléfono.
+
 ## Agregar una mesa con su `TableTheme` (S-01)
 
 Los colores y textos de interfaz de cada mesa viven en un Resource `TableTheme` (`scripts/resources/table_theme.gd`), uno por mesa en `resources/themes/<table_id>.tres`. Pasos:
