@@ -1,0 +1,12 @@
+# Dirección de arte
+
+Arte vectorial original, impreso sobre un tablero oscuro; las piezas y la bola deben conservar una silueta clara. Las coordenadas son de Table (720 px de ancho).
+
+- **Kernel Panic:** fondo tinta `#070c14` / `#0e2029`, pistas `#2a6c68`, fósforo `#69e4bc`, acero `#637984`, acentos ámbar `#f6ad5d` y óxido `#954637`.
+- **20.000 Leguas:** agua oscura y herrajes de bronce; turquesas `#69f5d5` y `#8bffe5`, bronce `#c59453` / `#c39257`, luces cálidas `#ffe1a3` y sombras `#362c24`.
+
+Usar líneas de 1–2 px para pistas y detalles, 2–3 px para contornos y acentos; reservar trazos más gruesos para halos tenues. El brillo acompaña la forma, con transparencia baja y sin borrar contraste ni tapar piezas. El CRT respira lentamente y sus líneas son discretas; evitar destellos rápidos o de alto contraste.
+
+En móvil preferir primitivas y geometría reutilizada, pocas capas y animaciones cortas; apagar el procesamiento de efectos cuando terminan. No generar recursos ni arreglos por cuadro. Comprobar rendimiento real en teléfono antes de sumar partículas o capas.
+
+S-04: personajes, dibujos y marcas deben ser originales o de dominio público comprobado; registrar autoría y licencias cuando corresponda. No copiar mascotas existentes ni diseños de adaptaciones protegidas. El pingüino y los daemons de Kernel Panic son diseños propios.

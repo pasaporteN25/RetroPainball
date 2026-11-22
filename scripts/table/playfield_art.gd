@@ -21,6 +21,15 @@ var _circuit_routes: Array[Curve2D] = []
 var _circuit_time := 0.0
 var _circuit_heat := 0.0
 var _redraw_time := 0.0
+var _crt: Node2D
+var _mascot: Node2D
+var _scanlines := PackedVector2Array()
+var _visual_time := 0.0
+var _reaction := 0.0
+var _mood := 0
+var _last_multiplier := 1
+var _last_balls := 3
+const Segfault := preload("res://scripts/fx/kernel_segfault.gd")
 
 
 func _ready() -> void:
@@ -67,17 +76,40 @@ func _ready() -> void:
 			var x: float = point.x if side < 0 else 672.0 - point.x
 			route.add_point(Vector2(x, point.y))
 		_circuit_routes.append(route)
+	for y in range(128, 1444, 8):
+		_scanlines.append(Vector2(16, y))
+		_scanlines.append(Vector2(708, y))
+	_crt = Node2D.new()
+	_crt.draw.connect(_draw_crt)
+	add_child(_crt)
+	_mascot = Node2D.new()
+	_mascot.draw.connect(_draw_mascot_eyes)
+	add_child(_mascot)
+	if not Engine.is_editor_hint():
+		_last_multiplier = GameState.bonus_multiplier
+		_last_balls = GameState.balls_left
+		GameState.balls_changed.connect(_on_balls_changed)
+		GameState.bonus_awarded.connect(_on_bonus_awarded)
+		GameState.message.connect(_on_message)
 	# In the editor the traces stay lit without starting a gameplay animation.
 	set_process(not Engine.is_editor_hint())
 
 
 func _process(delta: float) -> void:
+	_visual_time += delta
+	_reaction = maxf(0.0, _reaction - delta)
+	if GameState.bonus_multiplier > _last_multiplier and GameState.playing:
+		_mood = 1
+		_reaction = 1.6
+	_last_multiplier = GameState.bonus_multiplier
 	_circuit_time += delta
 	_circuit_heat = move_toward(_circuit_heat, 0.0, delta * 1.8)
 	_redraw_time += delta
 	if _redraw_time >= 1.0 / 30.0:
 		_redraw_time = fmod(_redraw_time, 1.0 / 30.0)
 		_circuit_insert.queue_redraw()
+		_crt.queue_redraw()
+		_mascot.queue_redraw()
 
 
 func pulse_score() -> void:
@@ -213,8 +245,7 @@ func _draw_marquee() -> void:
 	_ink_engraving(center, belly, Color("#285859"), Color("#72c8b1"))
 	_ink_engraving(center, PackedVector2Array([Vector2(-9, -12), Vector2(0, -18),
 		Vector2(10, -12), Vector2(0, -6)]), AMBER, AMBER)
-	draw_rect(Rect2(center + Vector2(-13, -27), Vector2(5, 6)), MINT)
-	draw_rect(Rect2(center + Vector2(9, -27), Vector2(5, 6)), MINT)
+
 	draw_line(center + Vector2(-24, 43), center + Vector2(-7, 43), AMBER, 3.0, true)
 	draw_line(center + Vector2(7, 43), center + Vector2(24, 43), AMBER, 3.0, true)
 
@@ -402,3 +433,50 @@ func _chevron(center: Vector2, width: float, color: Color, up: bool) -> void:
 
 func _glow(center: Vector2, extent: Vector2, color: Color) -> void:
 	draw_texture_rect(_light, Rect2(center - extent * 0.5, extent), false, color)
+
+
+func _draw_crt() -> void:
+	# Single low-contrast layer stays behind all game pieces.
+	var breath := 0.012 + 0.006 * sin(_visual_time * TAU / 7.0)
+	_crt.draw_rect(Rect2(16, 126, 692, 1318), Color(0.25, 0.85, 0.55, breath))
+	_crt.draw_multiline(_scanlines, Color(0, 0, 0, 0.035), 1.0)
+	for i in range(4):
+		var alpha := 0.025 - i * 0.005
+		_crt.draw_rect(Rect2(16 + i * 14, 126 + i * 14, 692 - i * 28, 1318 - i * 28), Color(0, 0, 0, alpha), false, 14.0)
+
+
+func _draw_mascot_eyes() -> void:
+	var blink := fmod(_visual_time, 4.7) < 0.14
+	var height := 1.5 if blink else 6.0
+	var y := 205.0
+	if _reaction > 0.0 and _mood == 1:
+		height = 8.0
+		y -= 2.0
+	elif _reaction > 0.0 and _mood == -1:
+		height = 2.0
+		y += 4.0
+	_mascot.draw_rect(Rect2(349, y, 5, height), MINT)
+	_mascot.draw_rect(Rect2(371, y, 5, height), MINT)
+	if _reaction > 0.0 and _mood == 1:
+		_mascot.draw_line(Vector2(330, 215), Vector2(323, 207), Color(MINT, 0.65), 2.0)
+		_mascot.draw_line(Vector2(394, 215), Vector2(401, 207), Color(MINT, 0.65), 2.0)
+
+
+func _on_balls_changed(balls: int) -> void:
+	if balls < _last_balls and GameState.table_id == GameState.KERNEL_PANIC:
+		_mood = -1
+		_reaction = 1.4
+		var effect := Segfault.new()
+		add_child(effect)
+	_last_balls = balls
+
+
+func _on_bonus_awarded(_base: int, _multiplier: int, _total: int) -> void:
+	_mood = 1
+	_reaction = 1.6
+
+
+func _on_message(message: String) -> void:
+	if "JACKPOT" in message.to_upper():
+		_mood = 1
+		_reaction = 1.6

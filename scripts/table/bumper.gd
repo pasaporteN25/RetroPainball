@@ -23,6 +23,7 @@ const ScreenShake := preload("res://scripts/fx/screen_shake.gd")
 
 var _shape_node: CollisionShape2D
 var _flash := 0.0
+var _blink_time := 0.0
 
 
 func _ready() -> void:
@@ -58,6 +59,11 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 
 
 func _process(delta: float) -> void:
+	if not Engine.is_editor_hint() and GameState.table_id == GameState.KERNEL_PANIC:
+		var was_blinking := fmod(_blink_time, 5.1) < 0.15
+		_blink_time += delta
+		if was_blinking != (fmod(_blink_time, 5.1) < 0.15):
+			queue_redraw()
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - delta * 3.5)
 		queue_redraw()
@@ -89,6 +95,9 @@ func _draw() -> void:
 		draw_circle(screw, 2.7, Color("#0d161c"), true, -1.0, true)
 		draw_line(screw + Vector2(-1.2, -0.5), screw + Vector2(1.2, 0.5), Color("#adbdc1"), 1.0, true)
 
+	if not Engine.is_editor_hint() and GameState.table_id == GameState.KERNEL_PANIC:
+		_draw_daemon(light)
+		return
 	var font := ThemeDB.fallback_font
 	var font_size := maxi(8, roundi(radius * 0.47))
 	var label := str(points)
@@ -96,3 +105,19 @@ func _draw() -> void:
 	var baseline := Vector2(-width * 0.5, (font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5 - 1.0)
 	draw_string(font, baseline, label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, light)
 	draw_line(Vector2(-5.0, radius * 0.32), Vector2(5.0, radius * 0.32), Color(light, 0.7), 1.0, true)
+
+
+func _draw_daemon(light: Color) -> void:
+	var bounce := -sin((1.0 - _flash) * PI) * radius * 0.12 if _flash > 0.0 else 0.0
+	var c := Vector2(0, bounce)
+	var ink := Color("#102d2c")
+	var edge := Color("#69e4bc").lerp(light, _flash * 0.5)
+	# A compact terminal creature inside the original bumper hardware.
+	draw_circle(c, radius * 0.46, ink, true, -1.0, true)
+	draw_arc(c, radius * 0.46, 0, TAU, 24, edge, 1.5, true)
+	for side in [-1.0, 1.0]:
+		draw_line(c + Vector2(side * radius * 0.27, -radius * 0.30), c + Vector2(side * radius * 0.40, -radius * 0.53), edge, 2.0, true)
+		draw_circle(c + Vector2(side * radius * 0.40, -radius * 0.53), 2.0, edge)
+		var h := 1.5 if fmod(_blink_time, 5.1) < 0.15 else 4.0 + _flash * 3.0
+		draw_rect(Rect2(c + Vector2(side * radius * 0.18 - 2.0, -h * 0.5), Vector2(4.0 + _flash * 2.0, h)), edge)
+	draw_line(c + Vector2(-4, radius * 0.23), c + Vector2(4, radius * 0.23), edge, 1.5)
