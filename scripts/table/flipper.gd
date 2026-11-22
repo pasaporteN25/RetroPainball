@@ -48,8 +48,11 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		sync_to_physics = false
 		var mat := PhysicsMaterial.new()
-		mat.bounce = 0.0
-		mat.friction = 0.8
+		var phys := TablePhysics.active()
+		mat.bounce = phys.flipper_bounce
+		mat.friction = phys.flipper_friction
+		up_speed = phys.flipper_up_speed
+		down_speed = phys.flipper_down_speed
 		physics_material_override = mat
 	_rebuild()
 	rotation = _rest

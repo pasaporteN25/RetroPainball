@@ -25,6 +25,9 @@ var _launch_flash := 0.0
 
 
 func _ready() -> void:
+	var phys := TablePhysics.active()
+	min_speed = phys.plunger_min_speed
+	max_speed = phys.plunger_max_speed
 	var body := StaticBody2D.new()
 	var body_shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()

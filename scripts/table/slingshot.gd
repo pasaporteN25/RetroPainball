@@ -22,7 +22,9 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	var mat := PhysicsMaterial.new()
-	mat.bounce = 0.25
+	var phys := TablePhysics.active()
+	mat.bounce = phys.slingshot_bounce
+	kick_speed = phys.slingshot_kick_speed
 	physics_material_override = mat
 
 

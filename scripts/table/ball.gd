@@ -38,12 +38,14 @@ func _init() -> void:
 	collision_layer = 2
 	collision_mask = 1 | 2
 	var mat := PhysicsMaterial.new()
-	mat.bounce = 0.2
-	mat.friction = 0.25
+	var phys := TablePhysics.active()
+	max_speed = phys.ball_max_speed
+	mat.bounce = phys.ball_bounce
+	mat.friction = phys.ball_friction
 	physics_material_override = mat
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
-	circle.radius = RADIUS
+	circle.radius = phys.ball_radius
 	shape.shape = circle
 	add_child(shape)
 
