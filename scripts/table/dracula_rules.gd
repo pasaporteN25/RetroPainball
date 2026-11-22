@@ -152,6 +152,12 @@ func _on_ball_locked(_ball: Node) -> void:
 		GameState.say("BOLA ENCERRADA")
 
 
+## Empieza la Medianoche sin tener que encerrar bolas (lo usa el modo de pruebas, Q-02).
+func start_midnight() -> void:
+	if not midnight:
+		_start_midnight()
+
+
 func _start_midnight() -> void:
 	midnight = true
 	_coffin.release_locked()
