@@ -7,8 +7,11 @@ const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 ## Se emite cuando la bola golpea el blanco (el banco lo escucha).
 signal hit
 
-## Puntos del blanco; -1 = los de TableRules.standup_points.
-@export var points := -1
+## Puntos del blanco; -1 = los de TableRules.standup_points. Leer `points` da el valor efectivo.
+@export var points_override := -1
+var points: int:
+	get:
+		return points_override if points_override >= 0 else GameState.active_rules().standup_points
 @export var tint := Color("#ffb874")
 
 ## Brillo de los insertos mientras el blanco está activado.
@@ -28,7 +31,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 	var face := Vector2.DOWN.rotated(global_rotation)
 	if (state.transform.origin - global_position).dot(face) < 4.0:
 		return
-	GameState.add_score.call_deferred(points if points >= 0 else GameState.active_rules().standup_points, global_position)
+	GameState.add_score.call_deferred(points, global_position)
 	activated = true
 	_flash = 1.0
 	set_process(true)

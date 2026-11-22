@@ -9,6 +9,8 @@ extends Node2D
 signal scored(award: int)
 
 const Ball := preload("res://scripts/table/ball.gd")
+## Valor por defecto (en juego manda TableRules.skill_shot_seconds, que por defecto es el mismo).
+const SKILL_TIME := 5.0
 const GOLD := Color("#ffd35c")
 
 @export var plunger_path := NodePath("../Plunger")
