@@ -11,15 +11,28 @@ const AQUA := Color("#75ffe2")
 
 @export_range(0, 2) var index := 0
 var _lit := false
+var _ping := 0.0
+var _visual_time := 0.0
 
 
 func _ready() -> void:
+	set_process(false)
 	if not Engine.is_editor_hint():
 		body_entered.connect(_on_body_entered)
 
 
 func set_lit(lit: bool) -> void:
+	if lit and not _lit:
+		_ping = 1.0
 	_lit = lit
+	set_process(not Engine.is_editor_hint() and (_lit or _ping > 0.0))
+	queue_redraw()
+
+
+func _process(delta: float) -> void:
+	_visual_time = fposmod(_visual_time + delta, TAU * 10.0)
+	_ping = move_toward(_ping, 0.0, delta * 0.9)
+	set_process(_lit or _ping > 0.0)
 	queue_redraw()
 
 
@@ -36,7 +49,9 @@ func _draw() -> void:
 	draw_arc(Vector2.ZERO, 26, PI + 0.2, TAU - 0.2, 24, accent, 2, true)
 	InsertLamp.draw(self, Vector2.ZERO, 20, AQUA, 1.0 if _lit else 0.0)
 	if _lit:
-		draw_circle(Vector2.ZERO, 35, Color(AQUA, 0.14), false, 6, true)
+		draw_circle(Vector2.ZERO, 35, Color(AQUA, 0.12 + 0.04 * sin(_visual_time * 1.2)), false, 6, true)
+	if _ping > 0.0:
+		draw_circle(Vector2.ZERO, 34.0 + 38.0 * (1.0 - _ping), Color(AQUA, 0.35 * _ping), false, 2.0, true)
 	for side in [-1, 1]:
 		var screw := Vector2(side * 25, 7)
 		draw_circle(screw, 2.3, BRASS.lightened(0.25), true, -1, true)

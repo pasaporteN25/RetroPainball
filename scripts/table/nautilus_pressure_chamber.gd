@@ -110,6 +110,11 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, 25.0, -PI * 0.5, -PI * 0.5 + TAU * charge, 24, AQUA, 3.5, true)
 	if _flash > 0.0:
 		draw_circle(Vector2.ZERO, 34.0 + 22.0 * (1.0 - _flash), Color(AQUA, 0.68 * _flash), false, 2.5, true)
+	if _flash > 0.0:
+		var age := 1.0 - _flash
+		for i in 7:
+			var offset := EXIT_DIRECTION * (25.0 + age * (45.0 + i * 5.0)) + EXIT_DIRECTION.orthogonal() * sin(i * 2.4) * (5.0 + age * 16.0)
+			draw_circle(offset, 2.5 + (i % 3) + age * 2.0, Color(AQUA, _flash * 0.4), false, 1.3, true)
 	var font := ThemeDB.fallback_font
 	var caption := "CÁMARA"
 	var width := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x

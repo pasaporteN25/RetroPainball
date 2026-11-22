@@ -3,6 +3,7 @@ extends Node2D
 ## Ilustración, metal grabado y luces de misión del Nautilus.
 
 const GOLD := Color("#ffd39a")
+const Ambient := preload("res://scripts/fx/nautilus_ambient.gd")
 const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 const DepthMission := preload("res://scripts/table/depth_mission.gd")
 const DEPTH_LAMP_COUNT := 8
@@ -17,6 +18,7 @@ const SAVE := Rect2(264, 1335, 144, 47)
 var _instruments: Node2D
 var _title_font: SystemFont
 var _depth := 0
+var _display_depth := 0.0
 var _sonar_mask := 0
 var _kraken_armed := false
 var _save_fraction := 0.0
@@ -30,6 +32,9 @@ func _ready() -> void:
 	_title_font = SystemFont.new()
 	_title_font.font_names = PackedStringArray(["Noto Serif", "DejaVu Serif", "serif"])
 	_title_font.font_weight = 700
+	var ambient := Ambient.new()
+	ambient.name = "Ambient"
+	add_child(ambient)
 	_instruments = Node2D.new()
 	_instruments.name = "Instruments"
 	_instruments.draw.connect(_draw_instruments)
@@ -61,6 +66,7 @@ func flash_jackpot() -> void:
 
 func _process(delta: float) -> void:
 	_clock += delta
+	_display_depth = move_toward(_display_depth, float(_depth), delta * 900.0)
 	_flash = maxf(0.0, _flash - delta * 2.8)
 	_jackpot = maxf(0.0, _jackpot - delta * 0.77)
 	if _clock >= _next_redraw:
@@ -195,6 +201,9 @@ func _draw_instruments() -> void:
 	for i in DEPTH_LAMP_COUNT:
 		var active := _depth >= (i + 1) * DepthMission.DEPTH_STEP
 		InsertLamp.draw(_instruments, Vector2(273 + i * 18, 1081), 4.0, AQUA, 1.0 if active else 0.0)
+	var depth_fraction := clampf(_display_depth / (DEPTH_LAMP_COUNT * DepthMission.DEPTH_STEP), 0.0, 1.0)
+	_instruments.draw_rect(Rect2(273, 1089, 130, 3), Color("#253a42"))
+	_instruments.draw_rect(Rect2(273, 1089, 130 * depth_fraction, 3), AQUA.lerp(Color.WHITE, _jackpot * 0.7))
 	var hint := "GOLPEÁ AL KRAKEN" if _kraken_armed else "ACTIVÁ LOS 3 SONARES"
 	_center_label(hint, Vector2(336, 1105), 14, tint.lerp(Color.WHITE, 0.18))
 	_center_label("SALVABOLAS", Vector2(336, 1361), 15, AQUA if _save_fraction > 0 else Color("#88a39f"))

@@ -12,6 +12,8 @@ var _armed := false
 var _angle := 0.0
 var _spin := 0.0
 var _flash := 0.0
+var _breath := 0.0
+var _arm_points := PackedVector2Array()
 
 
 func set_armed(armed: bool) -> void:
@@ -34,6 +36,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	_breath = fposmod(_breath + delta, TAU * 10.0)
 	_spin = move_toward(_spin, 0.0, delta * 7.0)
 	_angle = fposmod(_angle + (_spin + (1.4 if _armed else 0.36)) * delta, TAU)
 	_flash = move_toward(_flash, 0.0, delta * 3.0)
@@ -66,15 +69,16 @@ func _draw() -> void:
 
 func _draw_rotor(tint: Color) -> void:
 	for arm_index in 6:
-		var arm := PackedVector2Array()
+		if _arm_points.size() != 11:
+			_arm_points.resize(11)
 		for step in 11:
 			var length := float(step) / 10
-			var angle := _angle + TAU * arm_index / 6.0 + length * 1.06
-			arm.append(Vector2.from_angle(angle) * lerpf(10, 47, length))
-		draw_polyline(arm, Color("#08212d"), 13, true)
-		draw_polyline(arm, Color("#935d58").lerp(tint, _flash * 0.76), 8, true)
+			var angle := _angle + TAU * arm_index / 6.0 + length * (1.06 + 0.08 * sin(_breath * 0.7))
+			_arm_points[step] = Vector2.from_angle(angle) * lerpf(10, 47, length)
+		draw_polyline(_arm_points, Color("#08212d"), 13, true)
+		draw_polyline(_arm_points, Color("#935d58").lerp(tint, _flash * 0.76), 8, true)
 		for step in range(4, 11, 3):
-			draw_circle(arm[step], 2, Color("#ffd1a3"), true, -1, true)
+			draw_circle(_arm_points[step], 2, Color("#ffd1a3"), true, -1, true)
 	draw_circle(Vector2.ZERO, 17, Color("#2b5060"), true, -1, true)
 	draw_circle(Vector2.ZERO, 15, tint, false, 1.6, true)
 	draw_circle(Vector2.ZERO, 6, tint.lerp(Color.WHITE, 0.35), true, -1, true)
