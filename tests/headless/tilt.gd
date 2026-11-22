@@ -64,7 +64,10 @@ func _game_rules() -> void:
 	_check(_game.tilted, "calor alto: TILT")
 	var score_before: int = _game.score
 	var balls_before: int = _game.balls_left
+	var said := []
+	_game.message.connect(func(text: String): said.append(text))
 	_game.lose_ball()
+	_check("TILT: SIN BONUS" in said, "al perder la bola en TILT se avisa que no hay bonus")
 	_check(_game.score == score_before and _game.last_bonus_award == 0, "en TILT el bonus se pierde")
 	_check(not _game.tilted and _game.balls_left == balls_before - 1, "la bola siguiente vuelve a la normalidad")
 	_game.add_score(2000, Vector2.ZERO)

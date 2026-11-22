@@ -147,6 +147,8 @@ func award_bonus() -> int:
 	bonus_multiplier = 1
 	if tilted:
 		last_bonus_award = 0
+		if base > 0:
+			say("TILT: SIN BONUS")
 		return 0
 	last_bonus_award = base * multiplier
 	if last_bonus_award > 0:
