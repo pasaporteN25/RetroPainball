@@ -12,6 +12,9 @@ signal launched(power: float)
 ## Recorrido visual del resorte con carga completa.
 @export var travel := 46.0
 @export var color := Color("#829aa0")
+## G-09: ventana de potencia (0..1) del skill shot; se marca en las lámparas del lanzador.
+@export_range(0.0, 1.0) var skill_min := 0.70
+@export_range(0.0, 1.0) var skill_max := 0.90
 
 var charge := 0.0
 var _charging := false
@@ -41,6 +44,10 @@ func _ready() -> void:
 	sensor_shape.position = Vector2(0.0, -30.0)
 	_sensor.add_child(sensor_shape)
 	add_child(_sensor)
+
+
+func in_skill_window(power: float) -> bool:
+	return power >= skill_min and power <= skill_max
 
 
 func has_ball() -> bool:
@@ -103,6 +110,12 @@ func _draw() -> void:
 		var level := clampf(charge * 8.0 - i, 0.0, 1.0)
 		var lamp := Color("#193337").lerp(light, level)
 		draw_rect(Rect2(half - 7.0, y, 3.0, 6.0), lamp)
+	# Ventana del skill shot: marco dorado junto a las lámparas, a la altura de su potencia.
+	var band_low := bottom - 5.0 - skill_min * 80.0
+	var band_high := bottom - 5.0 - skill_max * 80.0
+	var in_band := in_skill_window(charge)
+	var gold := Color("#ffd35c") if in_band else Color("#a88a3a")
+	draw_rect(Rect2(half - 10.0, band_high, 9.0, band_low - band_high + 6.0), Color(gold, 0.9), false, 1.5)
 	draw_rect(Rect2(-half + 1.0, bottom, half * 2.0 - 2.0, 10.0), color.darkened(0.50))
 	draw_rect(Rect2(-half + 3.0, bottom, half * 2.0 - 6.0, 2.0), color)
 	draw_rect(Rect2(-half + 4.0, bottom + 4.0, 5.0, 3.0), light if _displayed_ready else Color("#243e42"))

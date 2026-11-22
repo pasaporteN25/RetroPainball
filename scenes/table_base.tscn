@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/fx/screen_shake.gd" id="12_shake"]
 
 [ext_resource type="Script" path="res://scripts/fx/bonus_lamps.gd" id="13_bonus"]
+[ext_resource type="Script" path="res://scripts/table/skill_shot.gd" id="14_skill"]
 
 [sub_resource type="RectangleShape2D" id="Rectangle_lane"]
 size = Vector2(25, 12)
@@ -181,6 +182,10 @@ shape = SubResource("Rectangle_gate")
 z_index = -3
 position = Vector2(336, 1155)
 script = ExtResource("13_bonus")
+
+[node name="SkillShot" type="Node2D" parent="Table"]
+z_index = -2
+script = ExtResource("14_skill")
 
 [node name="TouchControls" type="CanvasLayer" parent="."]
 script = ExtResource("8_touch")
