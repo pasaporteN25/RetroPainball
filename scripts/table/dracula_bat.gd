@@ -47,7 +47,7 @@ func strike() -> void:
 	_flash = 1.0
 	set_process(true)
 	queue_redraw()
-	Input.vibrate_handheld(8)
+	Settings.vibrate(8)
 	hit.emit()
 
 

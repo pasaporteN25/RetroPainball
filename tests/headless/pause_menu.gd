@@ -27,7 +27,7 @@ func _run() -> void:
 	menu._buttons[1].pressed.emit()
 	_check(not paused and state.score == 0 and state.playing, "Reiniciar comienza otra partida")
 	hud.toggle_pause()
-	menu._buttons[2].pressed.emit()
+	menu._buttons[3].pressed.emit()
 	await scene_changed
 	_check(not paused and current_scene.scene_file_path == "res://scenes/table_select.tscn", "Volver abre el selector")
 	current_scene.free()

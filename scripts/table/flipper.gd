@@ -95,7 +95,7 @@ func _physics_process(delta: float) -> void:
 	# En TILT el flipper no responde (cae a reposo aunque el botón siga apretado).
 	var pressed := Input.is_action_pressed(_action) and not GameState.tilted
 	if pressed and not _was_pressed:
-		Input.vibrate_handheld(12)
+		Settings.vibrate(12)
 	_was_pressed = pressed
 	var target := _up if pressed else _rest
 	var speed := up_speed if pressed else down_speed

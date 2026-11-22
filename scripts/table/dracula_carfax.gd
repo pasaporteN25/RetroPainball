@@ -57,7 +57,7 @@ func _crossed(body: Node2D, gate: int) -> void:
 	_pulse = 1.0
 	set_process(true)
 	queue_redraw()
-	Input.vibrate_handheld(12)
+	Settings.vibrate(12)
 	completed.emit(_gate_out.global_position)
 
 

@@ -45,7 +45,7 @@ func _crossed(body: Node2D, gate: int) -> void:
 		return
 	var exit_gate := _upper_gate if gate == 0 else _lower_gate
 	GameState.add_score(POINTS, exit_gate.global_position)
-	Input.vibrate_handheld(12)
+	Settings.vibrate(12)
 	_pulse = 1.0
 	set_process(true)
 	queue_redraw()

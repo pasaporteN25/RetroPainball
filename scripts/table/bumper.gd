@@ -59,7 +59,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 	_flash = 1.0
 	GameState.add_score.call_deferred(points, global_position)
 	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, dir), dir)
-	Input.vibrate_handheld(8)
+	Settings.vibrate(8)
 
 
 func _process(delta: float) -> void:
