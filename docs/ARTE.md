@@ -10,3 +10,7 @@ Usar líneas de 1–2 px para pistas y detalles, 2–3 px para contornos y acent
 En móvil preferir primitivas y geometría reutilizada, pocas capas y animaciones cortas; apagar el procesamiento de efectos cuando terminan. No generar recursos ni arreglos por cuadro. Comprobar rendimiento real en teléfono antes de sumar partículas o capas.
 
 S-04: personajes, dibujos y marcas deben ser originales o de dominio público comprobado; registrar autoría y licencias cuando corresponda. No copiar mascotas existentes ni diseños de adaptaciones protegidas. El pingüino y los daemons de Kernel Panic son diseños propios.
+
+## Drácula
+
+Noche `#0b0a14`, azul `#1b2140`, carmesí `#9e1b32`, hueso `#e9e1cf`, plata lunar `#c9d3e6`, oro viejo `#c9a35a` y niebla `#3a4468`. Castillo y murciélagos son dibujos vectoriales originales inspirados en la novela de dominio público, sin elementos de adaptaciones cinematográficas. Dejar tenues las zonas bajo las piezas y libre la franja del multiplicador. Medianoche tiñe lentamente el cielo y el relámpago es infrecuente, suave y sin parpadeos rápidos. En móvil se reutiliza la geometría de ocho murciélagos, con pocas bandas de niebla y redibujado limitado a 20 Hz; comprobar rendimiento en dispositivo.
