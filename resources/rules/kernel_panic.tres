@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="TableRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/rule_stage.gd" id="1_4h3sw"]
+[ext_resource type="Script" path="res://scripts/resources/table_rules.gd" id="2_g08ji"]
+
+[sub_resource type="Resource" id="Resource_2ei61"]
+script = ExtResource("1_4h3sw")
+award = 500
+message = "CARFAX {stage}/{total}"
+
+[sub_resource type="Resource" id="Resource_0ss6y"]
+script = ExtResource("1_4h3sw")
+award = 1000
+message = "CARFAX {stage}/{total}"
+
+[sub_resource type="Resource" id="Resource_rwitg"]
+script = ExtResource("1_4h3sw")
+award = 1500
+raise_multiplier = true
+message = "¡CARFAX!  BONUS X{bonus}"
+
+[sub_resource type="Resource" id="Resource_qtyrp"]
+script = ExtResource("1_4h3sw")
+award = 5000
+raise_multiplier = true
+message = "¡JACKPOT!  {depth} m  BONUS X{bonus}"
+
+[resource]
+script = ExtResource("2_g08ji")
+kraken_jackpot = SubResource("Resource_qtyrp")
+carfax_stages = Array[ExtResource("1_4h3sw")]([SubResource("Resource_2ei61"), SubResource("Resource_0ss6y"), SubResource("Resource_rwitg")])
+bumper_points = 100
+slingshot_points = 10
+lane_return_points = 50
+skill_shot_award = 5000
+skill_shot_seconds = 5.0
+standup_points = 225
+bank_award = 1000
+rollover_points = 125
+rollover_award = 1500

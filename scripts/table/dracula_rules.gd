@@ -11,19 +11,13 @@ signal midnight_ended
 ## Vuelta Carfax puntuada: 0 = primera (500), 1 = segunda (1000), 2 = tercera (1500 y multiplicador).
 signal carfax_scored(stage: int)
 
-const BAT_BANK_POINTS := 1000
-const CARFAX_POINTS := [500, 1000, 1500]
-const LOCK_POINTS := 500
-const PORTRAIT_POINTS := 250
-const JACKPOT_POINTS := 5000
-## Bolas encerradas que disparan la Medianoche.
-const LOCKS_FOR_MIDNIGHT := 2
+## Puntajes, umbrales y textos: salen de TableRules (resources/rules/dracula.tres), ver `_rules()`.
 
 var locks_lit := false
 var locked_balls := 0
 var midnight := false
 var bats_hit := 0
-## Vueltas Carfax cumplidas del ciclo (0..2): la próxima vuelta puntúa CARFAX_POINTS[carfax_stage].
+## Vueltas Carfax cumplidas del ciclo (0..2): la próxima vuelta puntúa `carfax_stages[carfax_stage]` de TableRules.
 var carfax_stage := 0
 
 var _bats: Array[Node] = []
@@ -32,6 +26,10 @@ var _coffin: Node
 var _portrait: Node
 var _art: Node
 var _main: Node
+
+
+func _rules() -> TableRules:
+	return GameState.active_rules()
 
 
 func _ready() -> void:
@@ -101,17 +99,17 @@ func _on_bat_hit() -> void:
 	bats_changed.emit(bats_hit)
 	if count < _bats.size() or _bats.is_empty():
 		return
-	GameState.add_score(BAT_BANK_POINTS, _bats[int(_bats.size() / 2.0)].global_position)
+	GameState.add_score(_rules().bat_bank_award, _bats[int(_bats.size() / 2.0)].global_position)
 	GameState.raise_multiplier(false)
 	for bat in _bats:
 		bat.set_activated(false)
 	bats_hit = 0
 	bats_changed.emit(0)
-	if not midnight and not locks_lit and locked_balls < LOCKS_FOR_MIDNIGHT:
+	if not midnight and not locks_lit and locked_balls < _rules().locks_for_midnight:
 		_set_lock_lit(true)
-		GameState.say("LOCK ENCENDIDO")
+		GameState.say(_rules().text("lock_lit"))
 	else:
-		GameState.say("MURCIÉLAGOS  BONUS X%d" % GameState.bonus_multiplier)
+		GameState.say(_rules().text("bats_bonus", {"bonus": GameState.bonus_multiplier}))
 
 
 func _set_lock_lit(lit: bool) -> void:
@@ -124,16 +122,20 @@ func _set_lock_lit(lit: bool) -> void:
 func _on_carfax_completed(at: Vector2) -> void:
 	if not GameState.playing:
 		return
+	var stages := _rules().carfax_stages
+	if stages.is_empty():
+		return
 	var stage := carfax_stage
-	GameState.add_score(CARFAX_POINTS[stage], at)
+	var lap := stages[stage]
+	GameState.add_score(lap.award, at)
 	carfax_scored.emit(stage)
-	if stage == CARFAX_POINTS.size() - 1:
-		carfax_stage = 0
+	var last := stage == stages.size() - 1
+	carfax_stage = 0 if last else stage + 1
+	if lap.raise_multiplier:
 		GameState.raise_multiplier(false)
-		GameState.say("¡CARFAX!  BONUS X%d" % GameState.bonus_multiplier)
-	else:
-		carfax_stage = stage + 1
-		GameState.say("CARFAX %d/%d" % [carfax_stage, CARFAX_POINTS.size()])
+	if not lap.message.is_empty():
+		GameState.say(TableRules.fill(lap.message, {"stage": stage + 1,
+			"total": stages.size(), "bonus": GameState.bonus_multiplier, "award": lap.award}))
 	if _carfax:
 		_carfax.set_stage(carfax_stage)
 
@@ -141,15 +143,15 @@ func _on_carfax_completed(at: Vector2) -> void:
 func _on_ball_locked(_ball: Node) -> void:
 	locked_balls += 1
 	_set_lock_lit(false)
-	GameState.add_score(LOCK_POINTS, _coffin.global_position)
+	GameState.add_score(_rules().lock_points, _coffin.global_position)
 	ball_locked.emit(locked_balls)
 	# Sale una bola nueva al carril (si no hay ya una esperando).
 	if _main and _main.has_method("serve_ball") and not GameState.ball_in_lane:
 		_main.serve_ball()
-	if locked_balls >= LOCKS_FOR_MIDNIGHT:
+	if locked_balls >= _rules().locks_for_midnight:
 		_start_midnight()
 	else:
-		GameState.say("BOLA ENCERRADA")
+		GameState.say(_rules().text("ball_locked"))
 
 
 ## Empieza la Medianoche sin tener que encerrar bolas (lo usa el modo de pruebas, Q-02).
@@ -166,7 +168,7 @@ func _start_midnight() -> void:
 	if _portrait:
 		_portrait.jackpot_ready = true
 	set_physics_process(true)
-	GameState.say("¡MEDIANOCHE!")
+	GameState.say(_rules().text("midnight_start"))
 	midnight_started.emit()
 
 
@@ -175,7 +177,7 @@ func _end_midnight() -> void:
 	if _portrait:
 		_portrait.jackpot_ready = false
 	set_physics_process(false)
-	GameState.say("AMANECE")
+	GameState.say(_rules().text("midnight_end"))
 	midnight_ended.emit()
 
 
@@ -186,16 +188,17 @@ func release_locked_balls() -> void:
 	_coffin.release_locked()
 	locked_balls = 0
 	ball_locked.emit(0)
-	GameState.say("BOLAS LIBERADAS")
+	GameState.say(_rules().text("balls_released"))
 
 
 func _on_portrait_struck(at: Vector2) -> void:
 	if not GameState.playing:
 		return
 	if not midnight:
-		GameState.add_score(PORTRAIT_POINTS, at)
+		GameState.add_score(_rules().portrait_points, at)
 		return
-	GameState.add_score(JACKPOT_POINTS, at)
-	GameState.say("¡JACKPOT!  %d" % JACKPOT_POINTS)
+	var jackpot := _rules().midnight_jackpot_points
+	GameState.add_score(jackpot, at)
+	GameState.say(_rules().text("jackpot", {"award": jackpot}))
 	if _art and _art.has_method("flash_jackpot"):
 		_art.flash_jackpot()

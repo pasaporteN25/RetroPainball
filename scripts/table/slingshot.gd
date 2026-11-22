@@ -11,7 +11,8 @@ const RECHARGE_SECONDS := 0.55
 const NEXT_KICK_FRAME := &"_next_slingshot_kick_frame"
 
 @export var kick_speed := 1000.0
-@export var points := 10
+## Puntos de la goma; -1 = los de TableRules.slingshot_points.
+@export var points := -1
 @export var color := Color("#314b52")
 @export var rubber_color := Color("#ffc06b")
 
@@ -64,7 +65,7 @@ func on_ball_contact(ball: RigidBody2D, state: PhysicsDirectBodyState2D, point: 
 	# esta bola. Cada bola tiene su propia recarga y conserva el rebote pasivo.
 	ball.set_meta(NEXT_KICK_FRAME, frame + ceili(RECHARGE_SECONDS * Engine.physics_ticks_per_second))
 	_flash = 1.0
-	GameState.add_score.call_deferred(points, (a + b) * 0.5)
+	GameState.add_score.call_deferred(points if points >= 0 else GameState.active_rules().slingshot_points, (a + b) * 0.5)
 	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, n), n)
 	Settings.vibrate(8)
 

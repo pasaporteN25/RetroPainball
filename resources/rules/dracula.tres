@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="TableRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/rule_stage.gd" id="1_w1gbb"]
+[ext_resource type="Script" path="res://scripts/resources/table_rules.gd" id="2_1pogc"]
+
+[sub_resource type="Resource" id="Resource_21di7"]
+script = ExtResource("1_w1gbb")
+award = 500
+message = "CARFAX {stage}/{total}"
+
+[sub_resource type="Resource" id="Resource_afcbj"]
+script = ExtResource("1_w1gbb")
+award = 1000
+message = "CARFAX {stage}/{total}"
+
+[sub_resource type="Resource" id="Resource_hjkaq"]
+script = ExtResource("1_w1gbb")
+award = 1500
+raise_multiplier = true
+message = "¡CARFAX!  BONUS X{bonus}"
+
+[sub_resource type="Resource" id="Resource_n78ou"]
+script = ExtResource("1_w1gbb")
+award = 5000
+raise_multiplier = true
+message = "¡JACKPOT!  {depth} m  BONUS X{bonus}"
+
+[resource]
+script = ExtResource("2_1pogc")
+table_id = "dracula"
+kraken_jackpot = SubResource("Resource_n78ou")
+carfax_stages = Array[ExtResource("1_w1gbb")]([SubResource("Resource_21di7"), SubResource("Resource_afcbj"), SubResource("Resource_hjkaq")])
+bumper_points = 100
+slingshot_points = 10
+lane_return_points = 50
+skill_shot_award = 5000
+skill_shot_seconds = 5.0
+bat_points = 150
+bat_bank_award = 1000
+carfax_travel_seconds = 3.0
+lock_points = 500
+coffin_points = 300
+coffin_hold_seconds = 0.6
+locks_for_midnight = 2
+portrait_points = 250
+midnight_jackpot_points = 5000
+messages = {
+"lock_lit": "LOCK ENCENDIDO",
+"bats_bonus": "MURCIÉLAGOS  BONUS X{bonus}",
+"ball_locked": "BOLA ENCERRADA",
+"midnight_start": "¡MEDIANOCHE!",
+"midnight_end": "AMANECE",
+"balls_released": "BOLAS LIBERADAS",
+"jackpot": "¡JACKPOT!  {award}"
+}

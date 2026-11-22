@@ -11,7 +11,8 @@ const ScreenShake := preload("res://scripts/fx/screen_shake.gd")
 		radius = value
 		_rebuild()
 @export var kick_speed := 1300.0
-@export var points := 100
+## Puntos de este bumper; -1 = los de TableRules.bumper_points de la mesa activa.
+@export var points := -1
 @export var color := Color("#ff6e5f"):
 	set(value):
 		color = value
@@ -61,7 +62,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 	var tangent := v - dir * v.dot(dir)
 	state.linear_velocity = tangent * _tangent_keep + dir * kick_speed
 	_flash = 1.0
-	GameState.add_score.call_deferred(points, global_position)
+	GameState.add_score.call_deferred(points if points >= 0 else GameState.active_rules().bumper_points, global_position)
 	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, dir), dir)
 	Settings.vibrate(8)
 

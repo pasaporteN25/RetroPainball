@@ -7,7 +7,8 @@ const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 ## Se emite cuando la bola golpea el blanco (DraculaRules lo escucha).
 signal hit
 
-@export var points := 150
+## Puntos del murciélago; -1 = los de TableRules.bat_points.
+@export var points := -1
 @export var tint := Color("#c0314d")
 
 ## Brillo de los insertos mientras el murciélago está activado.
@@ -42,7 +43,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 func strike() -> void:
 	if not GameState.playing:
 		return
-	GameState.add_score(points, global_position)
+	GameState.add_score(points if points >= 0 else GameState.active_rules().bat_points, global_position)
 	activated = true
 	_flash = 1.0
 	set_process(true)

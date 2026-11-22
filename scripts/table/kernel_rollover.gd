@@ -12,7 +12,8 @@ const LIT_LEVEL := 0.75
 signal crossed
 
 @export var caption := "BOOT"
-@export var points := 125
+## Puntos del carril; -1 = los de TableRules.rollover_points (la escena puede pisarlos por carril).
+@export var points := -1
 @export var tint := Color("#74eed0")
 
 var lit := false
@@ -48,7 +49,7 @@ func _physics_process(_delta: float) -> void:
 			continue
 		_entry_sides.erase(ball)
 		if GameState.playing and absf(ball.linear_velocity.y) >= MIN_CROSS_SPEED:
-			GameState.add_score(points, global_position)
+			GameState.add_score(points if points >= 0 else GameState.active_rules().rollover_points, global_position)
 			lit = true
 			_flash = 1.0
 			set_process(true)

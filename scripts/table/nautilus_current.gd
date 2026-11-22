@@ -4,8 +4,6 @@ extends Node2D
 
 const Ball := preload("res://scripts/table/ball.gd")
 const ENTRY_META := &"nautilus_current_entry"
-const POINTS := 360
-const TRAVEL_SECONDS := 3.0
 const BRASS := Color("#cba370")
 const LIGHT := Color("#8bffe5")
 var _channel := PackedVector2Array([Vector2(113, 364), Vector2(95, 393),
@@ -38,13 +36,13 @@ func _crossed(body: Node2D, gate: int) -> void:
 	if entering:
 		body.set_meta(ENTRY_META, Vector2i(gate, tick))
 		return
-	var time_limit := ceili(Engine.physics_ticks_per_second * TRAVEL_SECONDS)
+	var time_limit := ceili(Engine.physics_ticks_per_second * GameState.active_rules().current_travel_seconds)
 	var first: Vector2i = body.get_meta(ENTRY_META, Vector2i(-1, -time_limit - 1))
 	body.remove_meta(ENTRY_META)
 	if first.x != 1 - gate or tick - first.y > time_limit:
 		return
 	var exit_gate := _upper_gate if gate == 0 else _lower_gate
-	GameState.add_score(POINTS, exit_gate.global_position)
+	GameState.add_score(GameState.active_rules().current_points, exit_gate.global_position)
 	Settings.vibrate(12)
 	_pulse = 1.0
 	set_process(true)

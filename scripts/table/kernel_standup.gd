@@ -7,7 +7,11 @@ const InsertLamp := preload("res://scripts/fx/insert_lamp.gd")
 ## Se emite cuando la bola golpea el blanco (el banco lo escucha).
 signal hit
 
-@export var points := 225
+## Puntos del blanco; -1 = los de TableRules.standup_points. Leer `points` da el valor efectivo.
+@export var points_override := -1
+var points: int:
+	get:
+		return points_override if points_override >= 0 else GameState.active_rules().standup_points
 @export var tint := Color("#ffb874")
 
 ## Brillo de los insertos mientras el blanco está activado.
