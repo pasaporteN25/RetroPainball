@@ -9,8 +9,7 @@ var _tint := Color("#83ff91")
 
 
 func _ready() -> void:
-	if GameState.table_id == "nautilus":
-		_tint = Color("#78e4db")
+	_tint = GameState.active_theme().lamp_tint
 	GameState.bonus_awarded.connect(_on_bonus_awarded)
 	GameState.game_started.connect(_sync_multiplier)
 	GameState.game_resumed.connect(_sync_multiplier)
