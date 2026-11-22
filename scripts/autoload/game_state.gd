@@ -146,6 +146,11 @@ func active_theme(id := "") -> TableTheme:
 	return TableTheme.for_table(id if not id.is_empty() else table_id)
 
 
+## Reglas (puntajes, objetivos, tiempos, mensajes) de la mesa activa o de la mesa `id` (S-03).
+func active_rules(id := "") -> TableRules:
+	return TableRules.for_table(id if not id.is_empty() else table_id)
+
+
 func select_table(id: String) -> void:
 	if table_id != id:
 		table_id = id

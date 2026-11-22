@@ -19,8 +19,9 @@ const DIR := "res://resources/themes/"
 @export var records_title := "RÉCORDS"
 @export var new_record_text := "¡NUEVO RÉCORD!  PUESTO 1"
 @export var no_bonus_text := "SIN BONUS"
-## Nombres de modos que cada mesa muestra al jugador (clave lógica -> texto). Reservado para
-## cuando las reglas de cada mesa dejen de tener los textos cableados.
+## Reservado y sin uso: los nombres de modos y mensajes de cada mesa viven en `TableRules.messages` (S-03).
+## (Antes: nombres de modos que cada mesa muestra al jugador, clave lógica -> texto. Reservado para
+## cuando las reglas dejen de tener los textos cableados.)
 @export var mode_names: Dictionary = {}
 @export_group("Paleta de acento")
 ## Acento de la tarjeta del selector.

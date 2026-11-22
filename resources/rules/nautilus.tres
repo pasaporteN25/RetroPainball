@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="TableRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/rule_stage.gd" id="1_viy4x"]
+[ext_resource type="Script" path="res://scripts/resources/table_rules.gd" id="2_ms8ck"]
+
+[sub_resource type="Resource" id="Resource_3rlwx"]
+script = ExtResource("1_viy4x")
+award = 500
+message = "CARFAX {stage}/{total}"
+
+[sub_resource type="Resource" id="Resource_x1dqe"]
+script = ExtResource("1_viy4x")
+award = 1000
+message = "CARFAX {stage}/{total}"
+
+[sub_resource type="Resource" id="Resource_fyvl7"]
+script = ExtResource("1_viy4x")
+award = 1500
+raise_multiplier = true
+message = "¡CARFAX!  BONUS X{bonus}"
+
+[sub_resource type="Resource" id="Resource_qblh6"]
+script = ExtResource("1_viy4x")
+award = 5000
+raise_multiplier = true
+message = "¡JACKPOT!  {depth} m  BONUS X{bonus}"
+
+[resource]
+script = ExtResource("2_ms8ck")
+table_id = "nautilus"
+kraken_jackpot = SubResource("Resource_qblh6")
+carfax_stages = Array[ExtResource("1_viy4x")]([SubResource("Resource_3rlwx"), SubResource("Resource_x1dqe"), SubResource("Resource_fyvl7")])
+bumper_points = 100
+slingshot_points = 10
+lane_return_points = 50
+skill_shot_award = 5000
+skill_shot_seconds = 5.0
+sonar_count = 3
+sonar_points = 250
+kraken_points = 150
+depth_step = 1500
+chamber_points = 480
+chamber_hold_seconds = 0.58
+current_points = 360
+current_travel_seconds = 3.0
+messages = {
+"kraken_active": "¡KRAKEN ACTIVO!"
+}
