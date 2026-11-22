@@ -36,6 +36,9 @@ var _go_score: Label
 var _go_record: Label
 var _shown_score := 0.0
 var _message_tween: Tween
+var _message_queue: Array[Dictionary] = []
+var _message_active := false
+var _bonus_announcement := ""
 
 
 func _ready() -> void:
@@ -44,6 +47,7 @@ func _ready() -> void:
 	_build()
 	GameState.balls_changed.connect(func(n: int) -> void: _lamps.lit = n)
 	GameState.message.connect(show_message)
+	GameState.bonus_awarded.connect(_on_bonus_awarded)
 	GameState.game_started.connect(_on_game_started)
 	GameState.game_resumed.connect(_on_game_resumed)
 	GameState.game_ended.connect(_on_game_ended)
@@ -89,21 +93,85 @@ func toggle_pause() -> void:
 
 
 func show_message(text: String) -> void:
+	# La señal de bonus viene seguida del mismo aviso textual de GameState.
+	if text == _bonus_announcement and not text.is_empty():
+		_bonus_announcement = ""
+		return
+	_enqueue_message({"text": text})
+
+
+func _on_bonus_awarded(base: int, multiplier: int, total: int) -> void:
+	_bonus_announcement = "BONUS %d X%d" % [base, multiplier]
+	_clear_bonus_announcement.call_deferred()
+	_enqueue_message({"text": _bonus_announcement, "base": base, "multiplier": multiplier, "total": total})
+
+
+func _clear_bonus_announcement() -> void:
+	_bonus_announcement = ""
+
+
+func _enqueue_message(entry: Dictionary) -> void:
+	_message_queue.append(entry)
+	# Los avisos importantes pueden superar el límite si no hay descartables.
+	while _message_queue.size() > 3:
+		var discard := -1
+		for i in _message_queue.size():
+			var text: String = _message_queue[i]["text"]
+			if not _important_message(text):
+				discard = i
+				break
+		if discard < 0:
+			break
+		_message_queue.remove_at(discard)
+	if not _message_active:
+		_show_next_message()
+
+
+func _important_message(text: String) -> bool:
+	var upper := text.to_upper()
+	return text.begins_with("¡") or upper.contains("BONUS") or upper.contains("JACKPOT")
+
+
+func _show_next_message() -> void:
+	if _message_queue.is_empty():
+		_message_active = false
+		_toast.hide()
+		return
+	_message_active = true
+	var entry: Dictionary = _message_queue.pop_front()
+	var text: String = entry["text"]
 	_message.text = text
-	if _message_tween:
-		_message_tween.kill()
+	_message.modulate.a = 1.0
 	_toast.show()
+	_root.move_child(_toast, -1)
 	_toast.modulate.a = 1.0
 	_toast.scale = Vector2(0.9, 0.9)
-	_message_tween = create_tween()
-	_message_tween.set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	_message_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP)
 	_message_tween.tween_property(_toast, "scale", Vector2.ONE, 0.15).set_ease(Tween.EASE_OUT)
-	_message_tween.tween_interval(1.2)
+	if entry.has("total"):
+		_message_tween.tween_method(_update_bonus_text.bind(entry["multiplier"]), float(entry["base"]), float(entry["total"]), 0.8)
+	else:
+		if text.to_upper().contains("JACKPOT"):
+			for i in 2:
+				_message_tween.tween_property(_message, "modulate:a", 0.2, 0.09)
+				_message_tween.tween_property(_message, "modulate:a", 1.0, 0.09)
+			_message_tween.tween_interval(0.59)
+		else:
+			_message_tween.tween_interval(0.95)
 	_message_tween.tween_property(_toast, "modulate:a", 0.0, 0.3)
-	_message_tween.tween_callback(_toast.hide)
+	_message_tween.tween_callback(_show_next_message)
+
+
+func _update_bonus_text(value: float, multiplier: int) -> void:
+	_message.text = "BONUS %s  X%d" % [_format(roundi(value)), multiplier]
 
 
 func _on_game_started() -> void:
+	_message_queue.clear()
+	if _message_tween:
+		_message_tween.kill()
+	_message_active = false
+	_toast.hide()
 	_on_game_resumed()
 
 
