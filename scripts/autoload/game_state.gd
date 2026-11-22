@@ -141,6 +141,11 @@ func _set_active_run(new_score: int, new_balls_left: int) -> void:
 	balls_changed.emit(balls_left)
 
 
+## Tema (colores, textos, fuente) de la mesa activa o de la mesa `id` (S-01).
+func active_theme(id := "") -> TableTheme:
+	return TableTheme.for_table(id if not id.is_empty() else table_id)
+
+
 func select_table(id: String) -> void:
 	if table_id != id:
 		table_id = id
