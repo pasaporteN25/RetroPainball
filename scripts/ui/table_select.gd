@@ -9,7 +9,6 @@ const INK := Color("#071119")
 const MINT := Color("#8cead2")
 const GOLD := Color("#ffd397")
 const IVORY := Color("#edf2df")
-const CRIMSON := Color("#c0314d")
 
 var _kernel: Button
 var _nautilus: Button
@@ -28,9 +27,9 @@ func _ready() -> void:
 	_serif = SystemFont.new()
 	_serif.font_names = PackedStringArray(["Noto Serif", "DejaVu Serif", "serif"])
 	_serif.font_weight = 700
-	_kernel = _make_card("Kernel Panic", GameState.KERNEL_PANIC, 432.0, "res://scenes/main.tscn")
-	_nautilus = _make_card("20.000 Leguas", GameState.NAUTILUS, 646.0, "res://scenes/nautilus.tscn")
-	_dracula = _make_card("Drácula", GameState.DRACULA, 444.0, "res://scenes/dracula.tscn")
+	_kernel = _make_card(GameState.active_theme(GameState.KERNEL_PANIC).display_name, GameState.KERNEL_PANIC, 432.0, "res://scenes/main.tscn")
+	_nautilus = _make_card(GameState.active_theme(GameState.NAUTILUS).display_name, GameState.NAUTILUS, 646.0, "res://scenes/nautilus.tscn")
+	_dracula = _make_card(GameState.active_theme(GameState.DRACULA).display_name, GameState.DRACULA, 444.0, "res://scenes/dracula.tscn")
 	_kernel.focus_neighbor_bottom = _kernel.get_path_to(_nautilus)
 	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
 	_nautilus.focus_neighbor_bottom = _nautilus.get_path_to(_dracula)
@@ -126,7 +125,8 @@ func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
 	var nautical := table_id == GameState.NAUTILUS
 	var vampiric := table_id == GameState.DRACULA
 	var bounds := Rect2(Vector2.ZERO, card.size)
-	var accent := GOLD if nautical else (CRIMSON if vampiric else MINT)
+	var theme := GameState.active_theme(table_id)
+	var accent := theme.select_accent
 	var active := card.has_focus() or card.is_hovered()
 	card.draw_rect(bounds, Color("#12232a") if active else Color("#101d24"))
 	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else (214 if vampiric else 242))
@@ -146,8 +146,8 @@ func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
 	var text_start := illustration.end.y
 	card.draw_line(Vector2(17, text_start), Vector2(bounds.end.x - 17, text_start), Color(accent, 0.64), 2, true)
 	var headline := card.text
-	var subtitle := "Bajo el mar" if nautical else ("Noche en Transilvania" if vampiric else "Pinball clásico")
-	var summary := "Órbita  ·  Sonares  ·  Kraken" if nautical else ("Murciélagos  ·  Ataúd  ·  Medianoche" if vampiric else "Carriles y blancos en un circuito retro")
+	var subtitle := theme.subtitle
+	var summary := theme.summary
 	var left := 29.0
 	var font := ThemeDB.fallback_font
 	card.draw_string(_serif if (nautical or vampiric) else _heading, Vector2(left, text_start + 64),
@@ -156,11 +156,8 @@ func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
 		subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, 27, IVORY)
 	card.draw_string(font, Vector2(left, text_start + 143),
 		summary, HORIZONTAL_ALIGNMENT_LEFT, -1, 21, Color("#a9c0c1"))
-	if nautical:
-		card.draw_string(font, Vector2(left, text_start + 181), "Completá la misión para seguir descendiendo",
-			HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#a9c0c1"))
-	elif vampiric:
-		card.draw_string(font, Vector2(left, text_start + 181), "Encerrá dos bolas y desatá la Medianoche",
+	if not theme.tagline.is_empty():
+		card.draw_string(font, Vector2(left, text_start + 181), theme.tagline,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#a9c0c1"))
 	var arrow := Vector2(bounds.end.x - 49, text_start + 79)
 	card.draw_circle(arrow, 23, Color(accent, 0.18 if active else 0.08), true, -1, true)

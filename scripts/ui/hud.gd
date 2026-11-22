@@ -11,19 +11,14 @@ const InitialsEntry := preload("res://scripts/ui/initials_entry.gd")
 const Records := preload("res://scripts/util/records.gd")
 const Screen := preload("res://scripts/util/screen.gd")
 
-const AMBER := Color("#ffbc6b")
-const MINT := Color("#75e6c6")
-const CORAL := Color("#ff786b")
-const IVORY := Color("#f3ead8")
-const STEEL := Color("#a7b5b9")
-const FRAME := Color("#435052")
-const INK := Color("#101619")
 const BAR_SIZE := Vector2(680.0, 98.0)
 const PAUSE_RECT := Rect2(13.0, 14.0, 68.0, 70.0)
 const SCORE_RECT := Rect2(93.0, 12.0, 315.0, 74.0)
 const RECORD_RECT := Rect2(416.0, 12.0, 132.0, 74.0)
 const LAMPS_RECT := Rect2(556.0, 12.0, 111.0, 74.0)
 
+## Tema de la mesa (S-01). Se resuelve al construir: el HUD nace antes que `select_table` de la mesa.
+var _t: TableTheme
 var _root: Control
 var _bar: Control
 var _display: SevenSegment
@@ -194,14 +189,14 @@ func _on_game_ended(final_score: int, is_record: bool) -> void:
 	_update_record()
 	_go_score.text = _format(final_score)
 	var bonus_total: int = GameState.last_result.get("bonus_total", 0)
-	_go_bonus.text = "BONUS COBRADO  %s" % _format(bonus_total) if bonus_total > 0 else "SIN BONUS"
+	_go_bonus.text = "BONUS COBRADO  %s" % _format(bonus_total) if bonus_total > 0 else _t.no_bonus_text
 	var rank: int = GameState.last_result.get("rank", 0)
 	if rank > 0:
-		_go_record.text = "¡NUEVO RÉCORD!  PUESTO 1" if is_record else "¡PUESTO %d DE %d!" % [rank, Records.MAX_ENTRIES]
+		_go_record.text = _t.new_record_text if is_record else "¡PUESTO %d DE %d!" % [rank, Records.MAX_ENTRIES]
 		_go_entry.set_initials(GameState.pending_initials)
 	else:
 		_go_record.text = "RÉCORD  %s" % _format(GameState.high_score)
-	_go_record.add_theme_color_override("font_color", MINT if rank > 0 else STEEL)
+	_go_record.add_theme_color_override("font_color", _t.game_over_record_color if rank > 0 else _t.muted_color)
 	_arrange_game_over(rank > 0)
 	_game_over.show()
 
@@ -234,7 +229,7 @@ func _save_initials() -> void:
 	_go_entry.hide()
 	_go_save.hide()
 	_arrange_game_over(false)
-	_go_record.add_theme_color_override("font_color", MINT)
+	_go_record.add_theme_color_override("font_color", _t.game_over_record_color)
 
 
 func _play_again() -> void:
@@ -263,6 +258,8 @@ func _layout() -> void:
 
 
 func _build() -> void:
+	var parent_table = get_parent().get("table_id") if get_parent() else null
+	_t = GameState.active_theme(parent_table if parent_table is String else "")
 	_root = Control.new()
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_root)
@@ -287,10 +284,10 @@ func _build_bar() -> void:
 	menu.size = PAUSE_RECT.size
 	menu.focus_mode = Control.FOCUS_NONE
 	menu.add_theme_stylebox_override("normal", _box(Color("#2e2220"), 8, Color("#665042")))
-	menu.add_theme_stylebox_override("hover", _box(Color("#483128"), 8, AMBER.darkened(0.35)))
-	menu.add_theme_stylebox_override("pressed", _box(Color("#1c1a1b"), 8, AMBER))
+	menu.add_theme_stylebox_override("hover", _box(Color("#483128"), 8, _t.score_label_color.darkened(0.35)))
+	menu.add_theme_stylebox_override("pressed", _box(Color("#1c1a1b"), 8, _t.score_label_color))
 	menu.draw.connect(func() -> void:
-		var icon := AMBER.lightened(0.35) if menu.is_hovered() else AMBER
+		var icon := _t.score_label_color.lightened(0.35) if menu.is_hovered() else _t.score_label_color
 		menu.draw_rect(Rect2(22.0, 21.0, 7.0, 28.0), icon)
 		menu.draw_rect(Rect2(39.0, 21.0, 7.0, 28.0), icon))
 	menu.pressed.connect(func() -> void:
@@ -298,17 +295,18 @@ func _build_bar() -> void:
 			toggle_pause())
 	_bar.add_child(menu)
 
-	_label(_bar, "PUNTAJE", Rect2(107, 15, 179, 20), 15, AMBER, HORIZONTAL_ALIGNMENT_LEFT)
+	_label(_bar, "PUNTAJE", Rect2(107, 15, 179, 20), 15, _t.score_label_color, HORIZONTAL_ALIGNMENT_LEFT)
 	_display = SevenSegment.new()
 	_display.position = Vector2(105.0, 38.0)
 	_display.size = Vector2(290.0, 39.0)
+	_display.on_color = _t.display_color
 	_display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bar.add_child(_display)
 
-	_label(_bar, "RÉCORD", Rect2(423, 15, 118, 20), 15, STEEL)
-	_record = _label(_bar, "", Rect2(423, 40, 118, 33), 20, IVORY)
+	_label(_bar, "RÉCORD", Rect2(423, 15, 118, 20), 15, _t.record_label_color)
+	_record = _label(_bar, "", Rect2(423, 40, 118, 33), 20, _t.text_color)
 
-	_label(_bar, "BOLAS", Rect2(556, 15, 111, 20), 15, MINT)
+	_label(_bar, "BOLAS", Rect2(556, 15, 111, 20), 15, _t.balls_label_color)
 	_lamps = BallLamps.new()
 	_lamps.position = Vector2(565.0, 39.0)
 	_lamps.size = Vector2(93.0, 32.0)
@@ -321,7 +319,7 @@ func _build_bar() -> void:
 func _draw_bar() -> void:
 	var rect := Rect2(Vector2.ZERO, BAR_SIZE)
 	_bar.draw_style_box(_box(Color("#040809"), 13), Rect2(Vector2(0.0, 4.0), BAR_SIZE))
-	_bar.draw_style_box(_box(Color("#232f33"), 12, FRAME), rect)
+	_bar.draw_style_box(_box(Color("#232f33"), 12, _t.panel_frame_color), rect)
 	_bar.draw_line(Vector2(15, 4), Vector2(665, 4), Color("#778688"), 1.0, true)
 	_bar.draw_line(Vector2(15, 93), Vector2(665, 93), Color("#0e1619"), 2.0, true)
 	for housing: Rect2 in [SCORE_RECT, RECORD_RECT, LAMPS_RECT]:
@@ -343,9 +341,9 @@ func _build_toast() -> void:
 	_toast.add_theme_stylebox_override("panel", _box(Color("#172321"), 8, Color("#507267")))
 	_toast.draw.connect(func() -> void:
 		for x in [17.0, 275.0]:
-			_toast.draw_circle(Vector2(x, 24.0), 7.0, Color(MINT, 0.12), true, -1.0, true)
-			_toast.draw_circle(Vector2(x, 24.0), 3.0, MINT, true, -1.0, true))
-	_message = _label(_toast, "", Rect2(29, 0, 234, 47), 22, IVORY)
+			_toast.draw_circle(Vector2(x, 24.0), 7.0, Color(_t.toast_accent, 0.12), true, -1.0, true)
+			_toast.draw_circle(Vector2(x, 24.0), 3.0, _t.toast_accent, true, -1.0, true))
+	_message = _label(_toast, "", Rect2(29, 0, 234, 47), 22, _t.text_color)
 	_toast.hide()
 	_root.add_child(_toast)
 
@@ -367,18 +365,18 @@ func _build_overlays() -> void:
 		plunger.launched.connect(hint.on_launched)
 
 	_game_over = _overlay("GameOver")
-	_game_over_card = _card(_game_over, Vector2(520.0, 403.0), CORAL)
-	_label(_game_over_card, "FIN DEL JUEGO", Rect2(35, 30, 450, 57), 49, IVORY)
+	_game_over_card = _card(_game_over, Vector2(520.0, 403.0), _t.game_over_accent)
+	_label(_game_over_card, _t.game_over_title, Rect2(35, 30, 450, 57), 49, _t.text_color)
 	_go_score = _score_readout(_game_over_card, 92.0)
-	_go_bonus = _label(_game_over_card, "", Rect2(35, 188, 450, 26), 19, AMBER)
-	_go_record = _label(_game_over_card, "", Rect2(35, 214, 450, 38), 23, MINT)
+	_go_bonus = _label(_game_over_card, "", Rect2(35, 188, 450, 26), 19, _t.game_over_bonus_color)
+	_go_record = _label(_game_over_card, "", Rect2(35, 214, 450, 38), 23, _t.game_over_record_color)
 	_go_entry = InitialsEntry.new()
 	_go_entry.name = "Initials"
 	_go_entry.changed.connect(_on_initials_changed)
 	_game_over_card.add_child(_go_entry)
-	_go_save = _button(_game_over_card, "Guardar iniciales", Rect2(36, 396, 448, 46), AMBER, _save_initials, false)
-	_go_play = _button(_game_over_card, "Otra partida", Rect2(36, 266, 448, 72), MINT, _play_again)
-	_go_tables = _button(_game_over_card, "Mesas", Rect2(36, 345, 448, 42), MINT, _open_tables, false)
+	_go_save = _button(_game_over_card, "Guardar iniciales", Rect2(36, 396, 448, 46), _t.score_label_color, _save_initials, false)
+	_go_play = _button(_game_over_card, "Otra partida", Rect2(36, 266, 448, 72), _t.toast_accent, _play_again)
+	_go_tables = _button(_game_over_card, "Mesas", Rect2(36, 345, 448, 42), _t.toast_accent, _open_tables, false)
 
 
 func _open_tables() -> void:
@@ -391,7 +389,7 @@ func _open_tables() -> void:
 func _overlay(overlay_name: String) -> ColorRect:
 	var shade := ColorRect.new()
 	shade.name = overlay_name
-	shade.color = Color(0.015, 0.024, 0.032, 0.86)
+	shade.color = _t.backdrop_color
 	shade.mouse_filter = Control.MOUSE_FILTER_STOP
 	shade.hide()
 	_root.add_child(shade)
@@ -402,7 +400,7 @@ func _overlay(overlay_name: String) -> ColorRect:
 func _card(parent: Control, dimensions: Vector2, accent: Color) -> Panel:
 	var card := Panel.new()
 	card.size = dimensions
-	card.add_theme_stylebox_override("panel", _box(INK, 18, FRAME))
+	card.add_theme_stylebox_override("panel", _box(_t.panel_ink_color, 18, _t.panel_frame_color))
 	card.draw.connect(func() -> void:
 		var end := card.size
 		card.draw_line(Vector2(28, 18), Vector2(end.x - 28, 18), accent.darkened(0.38), 2.0, true)
@@ -421,8 +419,8 @@ func _score_readout(card: Panel, y: float) -> Label:
 	inset.add_theme_stylebox_override("panel", _box(Color("#211715"), 10, Color("#54392b")))
 	inset.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(inset)
-	_label(inset, "PUNTAJE", Rect2(0, 7, 448, 22), 16, AMBER)
-	return _label(inset, "", Rect2(12, 26, 424, 56), 45, IVORY)
+	_label(inset, "PUNTAJE", Rect2(0, 7, 448, 22), 16, _t.score_label_color)
+	return _label(inset, "", Rect2(12, 26, 424, 56), 45, _t.text_color)
 
 
 func _button(parent: Control, title: String, rect: Rect2, accent: Color, action: Callable, primary := true) -> Button:
@@ -441,9 +439,9 @@ func _button(parent: Control, title: String, rect: Rect2, accent: Color, action:
 		button.add_theme_stylebox_override("hover", _box(accent.lightened(0.22), 10, accent.lightened(0.46)))
 		button.add_theme_stylebox_override("pressed", _box(accent.darkened(0.22), 10, accent))
 	else:
-		button.add_theme_color_override("font_color", STEEL)
-		button.add_theme_color_override("font_hover_color", IVORY)
-		button.add_theme_stylebox_override("normal", _box(INK, 8))
+		button.add_theme_color_override("font_color", _t.muted_color)
+		button.add_theme_color_override("font_hover_color", _t.text_color)
+		button.add_theme_stylebox_override("normal", _box(_t.panel_ink_color, 8))
 		button.add_theme_stylebox_override("hover", _box(Color("#253336"), 8))
 		button.add_theme_stylebox_override("pressed", _box(Color("#1b272b"), 8))
 	button.pressed.connect(action)

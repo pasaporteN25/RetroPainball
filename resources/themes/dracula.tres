@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TableTheme" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/table_theme.gd" id="1_fucvg"]
+
+[resource]
+script = ExtResource("1_fucvg")
+table_id = "dracula"
+display_name = "Drácula"
+subtitle = "Noche en Transilvania"
+summary = "Murciélagos  ·  Ataúd  ·  Medianoche"
+tagline = "Encerrá dos bolas y desatá la Medianoche"
+select_accent = Color(0.7529412, 0.19215687, 0.3019608, 1)
+records_accent = Color(0.7529412, 0.19215687, 0.3019608, 1)
+popup_font_names = PackedStringArray("monospace")

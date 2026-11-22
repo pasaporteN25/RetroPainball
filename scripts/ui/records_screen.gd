@@ -9,14 +9,11 @@ const AMBER := Color("#ffbc6b")
 const IVORY := Color("#f3ead8")
 const STEEL := Color("#a7b5b9")
 const FRAME := Color("#435052")
-const CRIMSON := Color("#c0314d")
-const TABLES := [
-	[GameState.KERNEL_PANIC, "Kernel Panic", MINT],
-	[GameState.NAUTILUS, "20.000 Leguas", AMBER],
-	[GameState.DRACULA, "Drácula", CRIMSON],
-]
+const TABLE_IDS := [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA]
 
 var table_id := GameState.KERNEL_PANIC
+## [id, nombre, acento] de cada mesa, tomados de su TableTheme (S-01).
+var _tables: Array = []
 var _tabs: Array[Button] = []
 var _rows: Array[Label] = []
 var _title: Label
@@ -27,7 +24,10 @@ var _empty: Label
 
 func _ready() -> void:
 	GameState.leave_game()
-	if TABLES.any(func(t: Array) -> bool: return t[0] == GameState.table_id):
+	for id: String in TABLE_IDS:
+		var theme := GameState.active_theme(id)
+		_tables.append([id, theme.display_name, theme.records_accent])
+	if _tables.any(func(t: Array) -> bool: return t[0] == GameState.table_id):
 		table_id = GameState.table_id
 	var shade := ColorRect.new()
 	shade.color = INK
@@ -43,12 +43,12 @@ func _ready() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
 	_panel.add_child(column)
-	_title = _label("RÉCORDS", 48, IVORY, HORIZONTAL_ALIGNMENT_CENTER)
+	_title = _label(GameState.active_theme().records_title, 48, IVORY, HORIZONTAL_ALIGNMENT_CENTER)
 	column.add_child(_title)
 	var tab_row := HBoxContainer.new()
 	tab_row.add_theme_constant_override("separation", 8)
 	column.add_child(tab_row)
-	for entry: Array in TABLES:
+	for entry: Array in _tables:
 		var tab := Button.new()
 		tab.name = String(entry[0])
 		tab.text = entry[1]
@@ -86,11 +86,11 @@ func _ready() -> void:
 func show_table(id: String) -> void:
 	table_id = id
 	var accent := MINT
-	for i in TABLES.size():
-		var selected: bool = TABLES[i][0] == id
+	for i in _tables.size():
+		var selected: bool = _tables[i][0] == id
 		if selected:
-			accent = TABLES[i][2]
-		_style_button(_tabs[i], TABLES[i][2], selected)
+			accent = _tables[i][2]
+		_style_button(_tabs[i], _tables[i][2], selected)
 	var top := GameState.top_scores(Records.key(id, GameState.record_variant))
 	for i in _rows.size():
 		var row := _rows[i]

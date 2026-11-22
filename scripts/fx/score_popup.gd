@@ -14,17 +14,12 @@ func setup(points: int, at: Vector2, _tint: Color) -> void:
 	text = "+%d" % points
 	position = at - Vector2(0.0, 32.0)
 	# Las fuentes del sistema tienen alternativas genéricas para Android y PC.
+	var theme: TableTheme = (Engine.get_main_loop() as SceneTree).root.get_node("GameState").active_theme()
 	var themed_font := SystemFont.new()
-	if (Engine.get_main_loop() as SceneTree).root.get_node("GameState").table_id == "nautilus":
-		themed_font.font_names = PackedStringArray(["serif"])
-		color = Color("#78e4db")
-		plate_color = Color("#302719")
-		border_color = Color("#c5a15b")
-	else:
-		themed_font.font_names = PackedStringArray(["monospace"])
-		color = Color("#83ff91")
-		plate_color = Color("#071b0d")
-		border_color = color
+	themed_font.font_names = theme.popup_font_names
+	color = theme.popup_color
+	plate_color = theme.popup_plate_color
+	border_color = theme.popup_border_color
 	font = themed_font
 	duration = 1.05 if points >= 1000 else 0.70
 	font_size = 21 + int(6.0 * log(maxf(points, 1.0)) / log(10.0))

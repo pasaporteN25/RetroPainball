@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TableTheme" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/table_theme.gd" id="1_gib1h"]
+
+[resource]
+script = ExtResource("1_gib1h")
+table_id = "nautilus"
+display_name = "20.000 Leguas"
+subtitle = "Bajo el mar"
+summary = "Órbita  ·  Sonares  ·  Kraken"
+tagline = "Completá la misión para seguir descendiendo"
+select_accent = Color(1, 0.827451, 0.5921569, 1)
+records_accent = Color(1, 0.7372549, 0.41960785, 1)
+menu_accent = Color(1, 0.7372549, 0.41960785, 1)
+popup_font_names = PackedStringArray("serif")
+popup_color = Color(0.47058824, 0.89411765, 0.85882354, 1)
+popup_plate_color = Color(0.1882353, 0.15294118, 0.09803922, 1)
+popup_border_color = Color(0.77254903, 0.6313726, 0.35686275, 1)
+lamp_tint = Color(0.47058824, 0.89411765, 0.85882354, 1)

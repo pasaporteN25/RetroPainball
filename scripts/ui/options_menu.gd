@@ -3,7 +3,6 @@ extends CanvasLayer
 
 signal closed
 
-const AMBER := Color("#ffbc6b")
 const MINT := Color("#75e6c6")
 const IVORY := Color("#f3ead8")
 const ZONE_LABELS := {"media": "Mitad de pantalla", "baja": "Zona baja"}
@@ -68,7 +67,7 @@ func is_open() -> bool:
 
 
 func open() -> void:
-	_accent = AMBER if GameState.table_id == "nautilus" else MINT
+	_accent = GameState.active_theme().menu_accent
 	_apply_theme()
 	_refresh()
 	_shade.show()

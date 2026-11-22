@@ -4,11 +4,7 @@ extends CanvasLayer
 signal resume_requested
 signal tables_requested
 
-const AMBER := Color("#ffbc6b")
 const MINT := Color("#75e6c6")
-const IVORY := Color("#f3ead8")
-const INK := Color("#101619")
-const FRAME := Color("#435052")
 const OptionsMenu := preload("res://scripts/ui/options_menu.gd")
 
 var _accent := MINT
@@ -22,7 +18,7 @@ func _ready() -> void:
 	layer = 20
 	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	_shade = ColorRect.new()
-	_shade.color = Color(0.015, 0.024, 0.032, 0.86)
+	_shade.color = GameState.active_theme().backdrop_color
 	add_child(_shade)
 	_shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var center := CenterContainer.new()
@@ -32,8 +28,8 @@ func _ready() -> void:
 	var panel := _panel
 	panel.custom_minimum_size = Vector2(520, 0)
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color("#101619")
-	style.border_color = Color("#435052")
+	style.bg_color = GameState.active_theme().panel_ink_color
+	style.border_color = GameState.active_theme().panel_frame_color
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(18)
 	style.set_content_margin_all(32)
@@ -47,10 +43,10 @@ func _ready() -> void:
 	column.add_theme_constant_override("separation", 16)
 	panel.add_child(column)
 	var title := Label.new()
-	title.text = "PAUSA"
+	title.text = GameState.active_theme().pause_title
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 48)
-	title.add_theme_color_override("font_color", IVORY)
+	title.add_theme_color_override("font_color", GameState.active_theme().text_color)
 	column.add_child(title)
 	for item in [["Continuar", _resume], ["Reiniciar partida", _restart], ["Opciones", _open_options], ["Volver a mesas", _tables]]:
 		var button := Button.new()
@@ -94,12 +90,13 @@ func _box(color: Color, border: Color, radius: int = 10) -> StyleBoxFlat:
 
 
 func _apply_theme() -> void:
-	_accent = AMBER if GameState.table_id == "nautilus" else MINT
+	var theme := GameState.active_theme()
+	_accent = theme.menu_accent
 	_panel.queue_redraw()
 	for i in _buttons.size():
 		var button := _buttons[i]
-		var accent := (AMBER if GameState.table_id == "nautilus" else MINT) if i == 0 else MINT
-		var text_color := Color("#111b1b") if i == 0 else IVORY
+		var accent := theme.menu_accent if i == 0 else MINT
+		var text_color := Color("#111b1b") if i == 0 else theme.text_color
 		button.add_theme_color_override("font_color", text_color)
 		button.add_theme_color_override("font_hover_color", text_color)
 		button.add_theme_color_override("font_pressed_color", text_color)
@@ -114,7 +111,7 @@ func _apply_theme() -> void:
 			button.add_theme_stylebox_override("pressed", _box(Color("#1b272b"), accent))
 		var focus := StyleBoxFlat.new()
 		focus.bg_color = Color.TRANSPARENT
-		focus.border_color = IVORY
+		focus.border_color = theme.text_color
 		focus.set_border_width_all(4)
 		focus.set_corner_radius_all(10)
 		focus.set_expand_margin_all(4)
