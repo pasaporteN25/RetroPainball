@@ -52,6 +52,23 @@ drenaje y fin de partida. Los tests escriben en `user://test_*` y nunca tocan el
 
 En Linux, corré la misma suite con `godot --headless --path . -s tests/headless/all.gd`.
 
+## Modo de pruebas (solo desarrollo)
+
+Se activa únicamente con el flag `--test-mode` en una build de debug (el editor o una exportación debug); sin el flag, o en una build release, no existe. En Linux:
+
+```bash
+godot --path . -- --test-mode
+```
+
+Abre la mesa (por el selector) y aparece un cartelito amarillo en el borde izquierdo, a media mesa, lejos del HUD y de las zonas táctiles.
+
+| Tecla | Efecto |
+|---|---|
+| `F1` | Salta a la multibola de la mesa: Medianoche en Drácula, bolas del kraken en 20.000 Leguas. Kernel Panic aún no tiene multibola propia: suelta bolas hasta tener tres. |
+| `F2` | Bola infinita: perder la última bola no gasta bolas ni cobra bonus, y sale otra. |
+| `F3` | Muestra las colisiones (magenta sólidas, verde sensores). |
+| `F4` | Velocidad del juego: 0.25x, 0.5x, 1x, 2x (cicla). Vuelve a 1x al salir de la mesa. |
+
 ## Exportar a Android
 
 El preset `Android` ya está en `export_presets.cfg` (arm64, inmersivo, permiso de vibración).

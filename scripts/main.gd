@@ -9,6 +9,7 @@ const ScorePopup := preload("res://scripts/fx/score_popup.gd")
 const TableBurst := preload("res://scripts/fx/table_burst.gd")
 const Screen := preload("res://scripts/util/screen.gd")
 const GameSave := preload("res://scripts/util/game_save.gd")
+const TestMode := preload("res://scripts/util/test_mode.gd")
 
 const MINT := Color("#63e0c1")
 const AMBER := Color("#ffb75b")
@@ -46,6 +47,8 @@ const LANE_Y := 430.0
 @onready var _mission := get_node_or_null("Table/DepthMission") as DepthMission
 @onready var _hud: CanvasLayer = $HUD
 
+## Modo de pruebas (Q-02): si es true, perder la última bola no gasta bola ni cobra bonus.
+var infinite_balls := false
 ## Cuántas bolas escaparon de la mesa y hubo que darlas por drenadas (debería ser 0).
 var escaped_balls := 0
 var _ball_save_left := 0.0
@@ -71,6 +74,10 @@ func _ready() -> void:
 	_hud.checkpoint_requested.connect(save_run)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
+	if TestMode.is_enabled():
+		var test_mode := TestMode.new()
+		test_mode.name = "TestMode"
+		add_child(test_mode)
 	GameState.select_table(table_id)
 	var saved := GameSave.load_run(table_id, GameState.save_directory) if not GameState.save_directory.is_empty() else {}
 	if saved.is_empty():
@@ -262,6 +269,10 @@ func _on_drain(body: Node2D) -> void:
 			var rules := get_node_or_null("Table/DraculaRules")
 			if rules:
 				rules.release_locked_balls.call_deferred()
+		return
+	if infinite_balls:
+		_burst(Vector2(body.position.x, 1388.0), MINT, 12.0, 7)
+		_schedule_serve()
 		return
 	if GameState.tilted:
 		_ball_save_left = 0.0  # En TILT no hay bola salvada.
