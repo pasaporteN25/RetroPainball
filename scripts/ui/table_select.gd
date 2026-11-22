@@ -14,6 +14,7 @@ const CRIMSON := Color("#c0314d")
 var _kernel: Button
 var _nautilus: Button
 var _dracula: Button
+var _records: Button
 var _heading: FontVariation
 var _serif: SystemFont
 var _safe_top := 0.0
@@ -34,9 +35,38 @@ func _ready() -> void:
 	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
 	_nautilus.focus_neighbor_bottom = _nautilus.get_path_to(_dracula)
 	_dracula.focus_neighbor_top = _dracula.get_path_to(_nautilus)
+	_records = _make_records_button()
+	_kernel.focus_neighbor_top = _kernel.get_path_to(_records)
+	_records.focus_neighbor_bottom = _records.get_path_to(_kernel)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
 	_kernel.grab_focus()
+
+
+func _make_records_button() -> Button:
+	var button := Button.new()
+	button.name = "Records"
+	button.text = "Récords"
+	button.size = Vector2(160, 44)
+	button.add_theme_font_size_override("font_size", 23)
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		button.add_theme_color_override(state, IVORY)
+	for state in ["normal", "hover", "pressed"]:
+		var box := StyleBoxFlat.new()
+		box.bg_color = {"normal": Color("#101d24"), "hover": Color("#1d3a3d"), "pressed": Color("#12232a")}[state]
+		box.border_color = MINT if state != "normal" else Color(MINT, 0.5)
+		box.set_border_width_all(2)
+		box.set_corner_radius_all(10)
+		button.add_theme_stylebox_override(state, box)
+	var focus := StyleBoxFlat.new()
+	focus.bg_color = Color.TRANSPARENT
+	focus.border_color = IVORY
+	focus.set_border_width_all(3)
+	focus.set_corner_radius_all(10)
+	button.add_theme_stylebox_override("focus", focus)
+	button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/records.tscn"))
+	add_child(button)
+	return button
 
 
 func _make_card(title: String, table_id: String, height: float, scene_path: String) -> Button:
@@ -71,6 +101,7 @@ func _layout() -> void:
 	for card in [_kernel, _nautilus, _dracula]:
 		card.scale = Vector2.ONE * zoom
 	var left := (size.x - _kernel.size.x * zoom) * 0.5
+	_records.position = Vector2(size.x - _records.size.x - 24.0, _safe_top + 6.0)
 	_kernel.position = Vector2(left, _safe_top + 202.0 * zoom)
 	_nautilus.position = _kernel.position + Vector2(0, (_kernel.size.y + 26.0) * zoom)
 	_dracula.position = _nautilus.position + Vector2(0, (_nautilus.size.y + 26.0) * zoom)

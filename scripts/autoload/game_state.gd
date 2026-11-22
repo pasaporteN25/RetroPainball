@@ -23,6 +23,7 @@ const KERNEL_PANIC := "kernel_panic"
 const NAUTILUS := "nautilus"
 const DRACULA := "dracula"
 const Tilt := preload("res://scripts/table/tilt.gd")
+const Records := preload("res://scripts/util/records.gd")
 ## Variable (no const) para que los tests usen un archivo propio.
 var record_path := "user://records.cfg"
 ## Vacío desactiva los guardados, por ejemplo al probar la física.
@@ -61,6 +62,15 @@ var bonus_multiplier := 1
 var last_bonus_award := 0
 ## Calor de nudge/tilt (G-04). En TILT los flippers no responden y el bonus se pierde.
 var tilt := Tilt.new()
+## Variante del top 10 (p. ej. la dificultad). Vacía = un solo top por mesa.
+var record_variant := ""
+## Bonus cobrado en total durante la partida (se muestra al terminar).
+var bonus_total := 0
+## Resultado de la última partida terminada y si aún espera iniciales (U-05, U-06).
+## Claves: score, bonus_total, rank (0 = no entra al top), key, table_id.
+var last_result := {}
+var pending_record := false
+var pending_initials := Records.DEFAULT_INITIALS
 var tilted: bool:
 	get:
 		return tilt.tilted
@@ -100,6 +110,8 @@ func _set_active_run(new_score: int, new_balls_left: int) -> void:
 	bonus = 0
 	bonus_multiplier = 1
 	last_bonus_award = 0
+	bonus_total = 0
+	commit_pending_record()
 	_reset_tilt()
 	ball_in_lane = false
 	plunger_charge = 0.0
@@ -115,6 +127,7 @@ func select_table(id: String) -> void:
 
 
 func leave_game() -> void:
+	commit_pending_record()
 	playing = false
 	_reset_tilt()
 	ball_in_lane = false
@@ -154,6 +167,7 @@ func award_bonus() -> int:
 	last_bonus_award = base * multiplier
 	if last_bonus_award > 0:
 		score += last_bonus_award
+		bonus_total += last_bonus_award
 		score_changed.emit(score)
 		bonus_awarded.emit(base, multiplier, last_bonus_award)
 		say("BONUS %d X%d" % [base, multiplier])
@@ -201,7 +215,34 @@ func end_game() -> void:
 	if is_record:
 		high_score = score
 		_save_record()
+	var key := records_key()
+	var rank := Records.rank_for(Records.load_top(record_path, key), score)
+	last_result = {"score": score, "bonus_total": bonus_total, "rank": rank, "key": key, "table_id": table_id}
+	pending_record = rank > 0
+	pending_initials = Records.load_last_initials(record_path)
 	game_ended.emit(score, is_record)
+
+
+## Clave del top 10 de la mesa actual (y de la variante, si algún día hay dificultad).
+func records_key() -> String:
+	return Records.key(table_id, record_variant)
+
+
+func top_scores(key := "") -> Array[Dictionary]:
+	return Records.load_top(record_path, key if not key.is_empty() else records_key())
+
+
+## Guarda la partida terminada en el top con las iniciales elegidas. Devuelve la posición
+## (0 si no hay nada pendiente). Se llama al confirmar, o sola al empezar otra partida o salir.
+func commit_pending_record() -> int:
+	if not pending_record:
+		return 0
+	pending_record = false
+	var initials := Records.clean_initials(pending_initials)
+	Records.save_last_initials(record_path, initials)
+	var rank := Records.add(record_path, str(last_result["key"]), initials, int(last_result["score"]))
+	last_result["rank"] = rank
+	return rank
 
 
 func say(text: String) -> void:
