@@ -61,25 +61,52 @@ func _draw() -> void:
 
 func _draw_frame(tint: Color, glow: float) -> void:
 	draw_circle(Vector2(4, 6), RADIUS + 5.0, Color(0, 0, 0, 0.5), true, -1.0, true)
-	draw_circle(Vector2.ZERO, RADIUS, GOLD.darkened(0.45), true, -1.0, true)
-	draw_circle(Vector2.ZERO, RADIUS - 4.0, MIDNIGHT_BLUE, true, -1.0, true)
-	draw_arc(Vector2.ZERO, RADIUS - 1.0, 0.0, TAU, 40, GOLD, 2.5, true)
+	# Marco dorado ornamentado: aro grueso, filete, tachuelas y destello superior.
+	draw_circle(Vector2.ZERO, RADIUS, GOLD.darkened(0.55), true, -1.0, true)
+	draw_arc(Vector2.ZERO, RADIUS - 3.5, 0.0, TAU, 48, GOLD.darkened(0.2), 7.0, true)
+	draw_arc(Vector2.ZERO, RADIUS - 3.5, PI * 1.05, PI * 1.6, 16, GOLD.lightened(0.4), 2.0, true)
+	draw_arc(Vector2.ZERO, RADIUS - 8.0, 0.0, TAU, 48, GOLD.darkened(0.5), 1.0, true)
+	draw_circle(Vector2.ZERO, RADIUS - 8.0, MIDNIGHT_BLUE.darkened(0.15), true, -1.0, true)
+	draw_circle(Vector2(0, -6), 36.0, Color(FOG, 0.34), true, -1.0, true)
+	draw_circle(Vector2(0, -6), 24.0, Color(FOG, 0.2), true, -1.0, true)
+	for i in 12:
+		var a := i * TAU / 12.0
+		draw_circle(Vector2.from_angle(a) * (RADIUS - 3.5), 1.6, GOLD.lightened(0.3), true, -1.0, true)
 	if jackpot_ready or _flash > 0.0:
-		draw_arc(Vector2.ZERO, RADIUS + 5.0, 0.0, TAU, 40, Color(tint, 0.35 + 0.4 * maxf(glow, _flash)), 3.0, true)
+		draw_arc(Vector2.ZERO, RADIUS + 5.0, 0.0, TAU, 48, Color(tint, 0.35 + 0.4 * maxf(glow, _flash)), 3.0, true)
+		draw_arc(Vector2.ZERO, RADIUS + 9.0, 0.0, TAU, 48, Color(tint, 0.12 + 0.12 * maxf(glow, _flash)), 5.0, true)
 
 
 func _draw_figure(tint: Color, glow: float) -> void:
-	# Capa, cara pálida y ojos rojos (silueta original, sin parecido a ninguna película).
-	var cape := PackedVector2Array([Vector2(-34, 38), Vector2(-24, 6), Vector2(-12, -12),
-		Vector2(12, -12), Vector2(24, 6), Vector2(34, 38)])
+	# Capa con cuello alto, forro carmesí, rostro pálido con pico de viuda y ojos que brillan en Medianoche.
+	var cape := PackedVector2Array([Vector2(-30, 38), Vector2(-33, 14), Vector2(-24, -4), Vector2(-9, -9),
+		Vector2(0, 4), Vector2(9, -9), Vector2(24, -4), Vector2(33, 14), Vector2(30, 38)])
 	draw_colored_polygon(cape, NIGHT)
-	draw_polyline(cape, FOG, 1.5, true)
-	draw_colored_polygon(PackedVector2Array([Vector2(-8, -12), Vector2(0, 8), Vector2(8, -12)]), tint.darkened(0.3))
-	draw_circle(Vector2(0, -20), 15.0, BONE, true, -1.0, true)
-	draw_colored_polygon(PackedVector2Array([Vector2(-15, -22), Vector2(-9, -37), Vector2(0, -32),
-		Vector2(9, -37), Vector2(15, -22), Vector2(0, -28)]), NIGHT)
+	draw_polyline(cape, FOG, 1.2, true)
+	draw_colored_polygon(PackedVector2Array([Vector2(-9, -9), Vector2(0, 26), Vector2(9, -9), Vector2(0, 4)]), tint.darkened(0.35))
 	for side in [-1.0, 1.0]:
-		draw_circle(Vector2(side * 5.5, -20), 2.2 + glow, tint, true, -1.0, true)
+		var collar := PackedVector2Array([Vector2(side * 8.0, -8), Vector2(side * 24.0, -17), Vector2(side * 27.0, -3),
+			Vector2(side * 14.0, 2)])
+		draw_colored_polygon(collar, Color("#15172b"))
+		draw_polyline(collar, Color(FOG, 0.9), 1.2, true)
+	draw_circle(Vector2(0, 17), 2.4, GOLD, true, -1.0, true)
+	var face := PackedVector2Array([Vector2(-11, -28), Vector2(11, -28), Vector2(12, -16), Vector2(7, -6),
+		Vector2(0, -2), Vector2(-7, -6), Vector2(-12, -16)])
+	draw_colored_polygon(face, BONE)
+	for side in [-1.0, 1.0]:
+		draw_colored_polygon(PackedVector2Array([Vector2(side * 11.0, -20), Vector2(side * 17.0, -27), Vector2(side * 12.0, -14)]), BONE.darkened(0.08))
+	draw_colored_polygon(PackedVector2Array([Vector2(-13, -26), Vector2(-11, -35), Vector2(0, -38), Vector2(11, -35),
+		Vector2(13, -26), Vector2(7, -29), Vector2(0, -22), Vector2(-7, -29)]), NIGHT)
+	var eye := 0.3 + 0.7 * maxf(glow, _flash)
+	for side in [-1.0, 1.0]:
+		draw_line(Vector2(side * 8.0, -21.5), Vector2(side * 3.0, -19.5), NIGHT, 1.4, true)
+		if eye > 0.5:
+			draw_circle(Vector2(side * 5.0, -17.0), 5.0, Color(tint, 0.25 * eye), true, -1.0, true)
+		draw_circle(Vector2(side * 5.0, -17.0), 1.5 + 1.2 * maxf(glow, _flash), Color(tint, eye).lerp(Color("#ff8b94"), maxf(glow, _flash) * 0.5), true, -1.0, true)
+	draw_line(Vector2(-3, -9), Vector2(3, -9), CRIMSON.darkened(0.3), 1.2, true)
+	if jackpot_ready:
+		for side in [-1.0, 1.0]:
+			draw_colored_polygon(PackedVector2Array([Vector2(side * 2.5, -9), Vector2(side * 1.0, -9), Vector2(side * 1.6, -6)]), Color.WHITE)
 
 
 func _draw_caption(tint: Color) -> void:

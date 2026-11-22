@@ -72,8 +72,14 @@ func _draw() -> void:
 		return
 	var top := _gate_in.position
 	var bottom := _gate_out.position
-	draw_line(top, bottom, Color(MIDNIGHT_BLUE, 0.65), 46.0, true)
-	draw_line(top, bottom, Color(CRIMSON, 0.22 + 0.3 * _pulse), 2.0, true)
+	var forward := (bottom - top).normalized()
+	var side := forward.orthogonal()
+	# Canal de piedra con rieles dorados y borde carmesí al completar una vuelta.
+	draw_line(top, bottom, Color("#060510", 0.55), 52.0, true)
+	draw_line(top, bottom, Color(MIDNIGHT_BLUE, 0.75), 46.0, true)
+	draw_line(top, bottom, Color(CRIMSON, 0.1 + 0.22 * _pulse), 18.0, true)
+	for sign in [-1.0, 1.0]:
+		draw_line(top + side * sign * 23.0, bottom + side * sign * 23.0, GOLD.lerp(CRIMSON, _pulse), 1.5, true)
 	_draw_chevrons(top, bottom)
 	_draw_gate(_gate_in)
 	_draw_gate(_gate_out)
@@ -86,6 +92,7 @@ func _draw_chevrons(top: Vector2, bottom: Vector2) -> void:
 	var forward := (bottom - top).normalized()
 	var wing := forward.orthogonal() * 9.0
 	var color := GOLD.lerp(CRIMSON, _pulse)
+	color.a = 0.8
 	for i in 4:
 		var at := top.lerp(bottom, fposmod(_flow + i * 0.25, 1.0))
 		draw_line(at - wing - forward * 5.0, at + forward * 3.0, color, 2.0, true)
@@ -93,19 +100,36 @@ func _draw_chevrons(top: Vector2, bottom: Vector2) -> void:
 
 
 func _draw_gate(gate: Area2D) -> void:
+	# Reja con barrotes y pilares de piedra; los barrotes se tiñen al completar la vuelta.
 	var shape := (gate.get_node("Shape") as CollisionShape2D).shape as RectangleShape2D
 	var rect := Rect2(gate.position - shape.size * 0.5, shape.size)
+	var iron := GOLD.lerp(CRIMSON, _pulse)
 	draw_rect(rect, Color("#0b0a14"))
-	draw_rect(rect, Color(GOLD, 0.64), false, 1.0)
-	draw_rect(rect.grow(-3), FOG.lerp(CRIMSON, _pulse))
+	var x := rect.position.x + 5.0
+	while x < rect.end.x - 3.0:
+		draw_line(Vector2(x, rect.position.y), Vector2(x, rect.end.y + 3.0), Color(iron, 0.85), 1.5, true)
+		draw_colored_polygon(PackedVector2Array([Vector2(x - 2.0, rect.end.y + 3.0), Vector2(x + 2.0, rect.end.y + 3.0),
+			Vector2(x, rect.end.y + 7.0)]), Color(iron, 0.85))
+		x += 8.0
+	draw_rect(rect, Color(GOLD, 0.7), false, 1.5)
+	for px in [rect.position.x - 6.0, rect.end.x]:
+		draw_rect(Rect2(px, rect.position.y - 5.0, 6.0, rect.size.y + 10.0), Color("#171426"))
+		draw_rect(Rect2(px, rect.position.y - 5.0, 6.0, rect.size.y + 10.0), Color(GOLD, 0.55), false, 1.0)
+		draw_colored_polygon(PackedVector2Array([Vector2(px, rect.position.y - 5.0), Vector2(px + 3.0, rect.position.y - 10.0),
+			Vector2(px + 6.0, rect.position.y - 5.0)]), Color(GOLD, 0.7))
 
 
 func _draw_caption() -> void:
 	var font := ThemeDB.fallback_font
 	var caption := "CARFAX"
 	var width := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
-	draw_set_transform(Vector2(646, 560), PI * 0.5)
+	draw_set_transform(Vector2(637, 560), PI * 0.5)
+	# Cartel de madera con filete dorado y clavos.
+	var plate := Rect2(-width * 0.5 - 12.0, -18.0, width + 24.0, 25.0)
+	draw_rect(plate, Color("#10101d", 0.92))
+	draw_rect(plate, Color(GOLD, 0.7), false, 1.5)
+	for px in [plate.position.x + 4.0, plate.end.x - 4.0]:
+		draw_circle(Vector2(px, plate.get_center().y), 1.3, GOLD, true, -1.0, true)
 	var baseline := Vector2(-width * 0.5, 0)
-	draw_string_outline(font, baseline, caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 5, Color("#0b0a14"))
 	draw_string(font, baseline, caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, BONE.lerp(CRIMSON, _pulse))
 	draw_set_transform(Vector2.ZERO)

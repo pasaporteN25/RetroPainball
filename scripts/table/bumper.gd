@@ -24,6 +24,10 @@ const ScreenShake := preload("res://scripts/fx/screen_shake.gd")
 var _shape_node: CollisionShape2D
 var _flash := 0.0
 var _blink_time := 0.0
+## Solo Drácula: tiempo de la llama del candelabro y el redibujado a ~15 Hz.
+var _flame_time := 0.0
+var _flame_redraw := 0.0
+static var _flame_shape := PackedVector2Array()
 
 
 func _ready() -> void:
@@ -64,6 +68,12 @@ func _process(delta: float) -> void:
 		_blink_time += delta
 		if was_blinking != (fmod(_blink_time, 5.1) < 0.15):
 			queue_redraw()
+	elif not Engine.is_editor_hint() and GameState.table_id == GameState.DRACULA:
+		_flame_time += delta
+		_flame_redraw += delta
+		if _flame_redraw >= 1.0 / 15.0:
+			_flame_redraw = 0.0
+			queue_redraw()
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - delta * 3.5)
 		queue_redraw()
@@ -98,6 +108,9 @@ func _draw() -> void:
 	if not Engine.is_editor_hint() and GameState.table_id == GameState.KERNEL_PANIC:
 		_draw_daemon(light)
 		return
+	if not Engine.is_editor_hint() and GameState.table_id == GameState.DRACULA:
+		_draw_candelabra(light)
+		return
 	var font := ThemeDB.fallback_font
 	var font_size := maxi(8, roundi(radius * 0.47))
 	var label := str(points)
@@ -121,3 +134,32 @@ func _draw_daemon(light: Color) -> void:
 		var h := 1.5 if fmod(_blink_time, 5.1) < 0.15 else 4.0 + _flash * 3.0
 		draw_rect(Rect2(c + Vector2(side * radius * 0.18 - 2.0, -h * 0.5), Vector2(4.0 + _flash * 2.0, h)), edge)
 	draw_line(c + Vector2(-4, radius * 0.23), c + Vector2(4, radius * 0.23), edge, 1.5)
+
+
+func _draw_candelabra(light: Color) -> void:
+	# Candelabro de tres brazos visto desde arriba: llamas que se mecen y se avivan con el golpe.
+	if _flame_shape.is_empty():
+		_flame_shape = PackedVector2Array([Vector2(0, -1.0), Vector2(0.55, -0.45), Vector2(0.4, 0.15),
+			Vector2(0, 0.55), Vector2(-0.4, 0.15), Vector2(-0.55, -0.45)])
+	var brass := Color("#c9a35a").lerp(Color.WHITE, _flash * 0.3)
+	var wax := Color("#e9e1cf")
+	var phase := global_position.x * 0.013 + global_position.y * 0.007
+	draw_circle(Vector2.ZERO, radius * 0.22, brass.darkened(0.35), true, -1.0, true)
+	draw_arc(Vector2.ZERO, radius * 0.22, 0, TAU, 16, brass, 1.5, true)
+	for i in 3:
+		var angle := -PI * 0.5 + i * TAU / 3.0
+		var tip := Vector2.from_angle(angle) * radius * 0.34
+		draw_line(Vector2.ZERO, tip, brass, 2.2, true)
+		draw_circle(tip, radius * 0.115, brass.darkened(0.25), true, -1.0, true)
+		draw_circle(tip, radius * 0.085, wax, true, -1.0, true)
+		var sway := sin(_flame_time * 2.1 + phase + i * 2.0) * 0.5 + sin(_flame_time * 3.3 + phase * 1.7 + i) * 0.5
+		var height := radius * (0.38 + 0.08 * sway + 0.22 * _flash)
+		var base := tip + Vector2(0, -radius * 0.06)
+		draw_circle(base + Vector2(0, -height * 0.5), height * (1.15 + _flash), Color(light, 0.1 + 0.12 * _flash), true, -1.0, true)
+		draw_set_transform(base, sway * 0.16, Vector2(height * 0.62, height))
+		draw_colored_polygon(_flame_shape, Color("#e0502f", 0.95))
+		draw_set_transform(base + Vector2(0, -height * 0.04), sway * 0.2, Vector2(height * 0.36, height * 0.62))
+		draw_colored_polygon(_flame_shape, Color("#f2b256"))
+		draw_set_transform(base + Vector2(0, height * 0.05), 0.0, Vector2(height * 0.16, height * 0.3))
+		draw_colored_polygon(_flame_shape, Color("#fff1c9"))
+		draw_set_transform(Vector2.ZERO)

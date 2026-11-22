@@ -29,7 +29,7 @@ func _ready() -> void:
 	_serif.font_weight = 700
 	_kernel = _make_card("Kernel Panic", GameState.KERNEL_PANIC, 432.0, "res://scenes/main.tscn")
 	_nautilus = _make_card("20.000 Leguas", GameState.NAUTILUS, 646.0, "res://scenes/nautilus.tscn")
-	_dracula = _make_card("Drácula", GameState.DRACULA, 432.0, "res://scenes/dracula.tscn")
+	_dracula = _make_card("Drácula", GameState.DRACULA, 444.0, "res://scenes/dracula.tscn")
 	_kernel.focus_neighbor_bottom = _kernel.get_path_to(_nautilus)
 	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
 	_nautilus.focus_neighbor_bottom = _nautilus.get_path_to(_dracula)
@@ -98,7 +98,7 @@ func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
 	var accent := GOLD if nautical else (CRIMSON if vampiric else MINT)
 	var active := card.has_focus() or card.is_hovered()
 	card.draw_rect(bounds, Color("#12232a") if active else Color("#101d24"))
-	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else 242)
+	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else (214 if vampiric else 242))
 	if nautical:
 		var texture_size := NAUTILUS_PRINT.get_size()
 		var crop := Rect2(0, 42, texture_size.x, texture_size.x * illustration.size.y / illustration.size.x)
