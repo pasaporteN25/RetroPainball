@@ -36,6 +36,9 @@ const LANE_Y := 430.0
 ## Cambio de velocidad (px/s) que un empujón le da a cada bola en juego.
 @export var nudge_speed := 240.0
 
+## Física de la mesa (G-01). Si no se asigna, se usa resources/table_physics.tres.
+@export var physics: TablePhysics
+
 @export var table_id := GameState.KERNEL_PANIC
 
 @onready var _table: Node2D = $Table
@@ -56,6 +59,13 @@ var _save_armed := false
 var _serve_timer: Timer
 var _checkpoint_left := CHECKPOINT_INTERVAL
 var _last_saved_run := {}
+
+
+## Fija la física antes de que las piezas (hijas) hagan su _ready y la lean.
+func _enter_tree() -> void:
+	TablePhysics.use(physics)
+	var space := get_viewport().world_2d.space
+	PhysicsServer2D.area_set_param(space, PhysicsServer2D.AREA_PARAM_GRAVITY, TablePhysics.active().gravity)
 
 
 func _ready() -> void:
@@ -163,7 +173,7 @@ func _restore_run(saved: Dictionary) -> void:
 	var probe := PhysicsShapeQueryParameters2D.new()
 	var circle := CircleShape2D.new()
 	# Ignora el pequeño solapamiento del contacto normal con una goma o un rail.
-	circle.radius = Ball.RADIUS - 2.0
+	circle.radius = TablePhysics.active().ball_radius - 2.0
 	probe.shape = circle
 	probe.collision_mask = 1
 	var field: PackedVector2Array = $Table/OuterWall/Shape.polygon
@@ -219,7 +229,7 @@ func serve_ball() -> void:
 	_serve_timer.stop()
 	if not GameState.playing:
 		return
-	_spawn_ball(_plunger.position + Vector2(0.0, -Ball.RADIUS - 1.0), Vector2.ZERO)
+	_spawn_ball(_plunger.position + Vector2(0.0, -TablePhysics.active().ball_radius - 1.0), Vector2.ZERO)
 	_save_armed = true
 	save_run()
 
@@ -254,7 +264,7 @@ func _schedule_serve() -> void:
 
 
 func _on_launched(power: float) -> void:
-	var release_position := _plunger.position - Vector2(0.0, Ball.RADIUS)
+	var release_position := _plunger.position - Vector2(0.0, TablePhysics.active().ball_radius)
 	_burst(release_position, AMBER, 6.0, 5, Vector2.UP * lerpf(240.0, 410.0, power))
 	if _save_armed:
 		_save_armed = false

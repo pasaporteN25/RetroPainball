@@ -23,6 +23,7 @@ const ScreenShake := preload("res://scripts/fx/screen_shake.gd")
 
 var _shape_node: CollisionShape2D
 var _flash := 0.0
+var _tangent_keep := 0.5
 var _blink_time := 0.0
 ## Solo Drácula: tiempo de la llama del candelabro y el redibujado a ~15 Hz.
 var _flame_time := 0.0
@@ -33,7 +34,10 @@ static var _flame_shape := PackedVector2Array()
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		var mat := PhysicsMaterial.new()
-		mat.bounce = 0.0
+		var phys := TablePhysics.active()
+		mat.bounce = phys.bumper_bounce
+		kick_speed = phys.bumper_kick_speed
+		_tangent_keep = phys.bumper_tangent_keep
 		physics_material_override = mat
 	_rebuild()
 
@@ -55,7 +59,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 	var dir := (state.transform.origin - global_position).normalized()
 	var v := state.linear_velocity
 	var tangent := v - dir * v.dot(dir)
-	state.linear_velocity = tangent * 0.5 + dir * kick_speed
+	state.linear_velocity = tangent * _tangent_keep + dir * kick_speed
 	_flash = 1.0
 	GameState.add_score.call_deferred(points, global_position)
 	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, dir), dir)
