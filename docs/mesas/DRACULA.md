@@ -39,6 +39,7 @@ compuerta del carril de saque y lanzador vienen de la base y no se tocan.
    comienza **MEDIANOCHE**: se liberan las 2 bolas (multibola de 3 con la que está en juego).
 4. **Medianoche:** mientras haya más de una bola, golpear el Retrato paga 5000 (jackpot); termina cuando
    queda una sola bola. Mensajes con `GameState.say(...)`: "LOCK ENCENDIDO", "BOLA ENCERRADA", "¡MEDIANOCHE!".
+Todos los números y textos de estas reglas (1000, 500/1000/1500, 500, 300, 250, 5000, 0,6 s, 2 bolas, mensajes) salen de `resources/rules/dracula.tres` (`TableRules`, ver docs/ARTE.md); los de arriba son los valores por defecto.
 5. Nada de esto se guarda en la partida (salvo las bolas vivas, como en las otras mesas). Las bolas
    encerradas cuentan como bolas en juego al guardar.
 

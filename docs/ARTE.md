@@ -24,3 +24,16 @@ Los colores y textos de interfaz de cada mesa viven en un Resource `TableTheme` 
 3. Sumar el id a `TABLE_IDS` de `scripts/ui/records_screen.gd` y la tarjeta en `scripts/ui/table_select.gd` (la ilustración sigue dibujándose ahí).
 4. Leer siempre el tema con `GameState.active_theme()` (mesa activa) o `GameState.active_theme("<id>")`; no escribir colores por mesa con `if table_id == ...`. Si el id no tiene `.tres`, se usa el de Kernel Panic.
 5. Agregar la mesa a `tests/headless/table_theme.gd`.
+
+## Definir las reglas de una mesa con `TableRules` (S-03 / G-13)
+
+Los números y textos de las reglas (puntajes, objetivos, tiempos, nombres de modos y mensajes) viven en un Resource `TableRules` (`scripts/resources/table_rules.gd`), uno por mesa en `resources/rules/<table_id>.tres`, igual que el tema. Las piezas y reglas lo leen con `GameState.active_rules()` (mesa activa) o `GameState.active_rules("<id>")`; no hay que escribir constantes ni `if table_id == ...` en el código.
+
+1. Duplicar `resources/rules/kernel_panic.tres` como `resources/rules/<table_id>.tres` y poner `table_id`. Lo que no se toca toma el valor por defecto del script, que es el que tenían las mesas existentes (sin `.tres` se usa el de Kernel Panic).
+2. Cambiar los grupos que correspondan: **Comunes** (bumpers, gomas, carriles de retorno, skill shot), y los de cada familia de piezas (Kernel, Nautilus, Drácula). Las piezas con `points`/`award` exportados en la escena usan `-1` = "tomar de TableRules"; un valor explícito en la escena pisa a la regla solo en ese nodo (p. ej. los carriles BOOT/BUS de Kernel).
+3. **Mensajes y nombres de modos:** `messages` (clave -> texto) pisa los textos de `TableRules.DEFAULT_MESSAGES`; se piden con `rules.text("clave", {"bonus": 2})` y admiten `{bonus}`, `{award}`, `{depth}`, `{stage}`, `{total}`. Una clave nueva se agrega en `messages` y se usa con `text()`. `TableTheme.mode_names` queda reservado y sin uso: el tema es solo aspecto.
+4. **Objetivos escalonados:** `RuleStage` (`scripts/resources/rule_stage.gd`) describe una etapa: `threshold` (progreso necesario), `award`, `raise_multiplier` y `message`. Una mesa con una cadena de etapas (vueltas de Carfax, jackpot del kraken, misiones de Baker Street o Alicia) declara `Array[RuleStage]` en el `.tres`; la pieza avanza por la lista y paga/dice lo que dice la etapa (`TableRules.stage_index_for(stages, progreso)` elige la etapa por umbral). No es un motor de misiones: la pieza decide cuándo avanza. Para campos nuevos con etapas, agregar un `@export var xxx_stages: Array[RuleStage]` a `TableRules` con sus valores por defecto en `_init()`.
+5. Los campos nuevos de una mesa nueva se agregan a `TableRules` en su grupo, con el valor actual como default, y la pieza los lee con `GameState.active_rules()`.
+6. Probar en `tests/headless/table_rules.gd` (el `.tres` es válido y cambiar un valor cambia el puntaje real).
+
+Limitaciones: `DepthMission.DEPTH_STEP` sigue como constante por defecto porque la lee el arte de Nautilus (`nautilus_art.gd`); si una mesa cambiara `depth_step`, el arte tendría que leer `TableRules.depth_step`. El tamaño del banco (murciélagos, blancos) sale de los nodos de la escena, no de las reglas.
