@@ -29,6 +29,10 @@ Cada mesa guarda automáticamente su partida en curso. Si volvés al selector o 
 juego, elegí la mesa marcada **Continuar**. Se recuperan el puntaje, las bolas en juego, el tiempo
 del salvavidas y el progreso de 20.000 Leguas. La opción **Reiniciar** de la pausa empieza otra partida.
 
+Cada mesa guarda su top 10 con tres iniciales estilo arcade. Al terminar la partida se ve el puntaje, el bonus
+cobrado y el puesto logrado; si entra al top, se eligen las iniciales con las flechas (o el teclado) y se
+elige **Otra partida** o **Mesas**. El botón **Récords** del selector abre la lista de cada mesa.
+
 | Acción | Touch | Teclado | Mando |
 |---|---|---|---|
 | Flipper izquierdo | mitad izquierda de la parte baja | `Z` `A` `←` | L1 |
