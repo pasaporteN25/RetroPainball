@@ -5,6 +5,8 @@ signal checkpoint_requested
 
 const SevenSegment := preload("res://scripts/ui/seven_segment.gd")
 const BallLamps := preload("res://scripts/ui/ball_lamps.gd")
+const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
+const FirstRunHint := preload("res://scripts/ui/first_run_hint.gd")
 const Screen := preload("res://scripts/util/screen.gd")
 
 const AMBER := Color("#ffbc6b")
@@ -27,11 +29,9 @@ var _lamps: BallLamps
 var _record: Label
 var _toast: Panel
 var _message: Label
-var _pause: ColorRect
+var _pause: CanvasLayer
 var _game_over: ColorRect
-var _pause_card: Panel
 var _game_over_card: Panel
-var _paused_score: Label
 var _go_score: Label
 var _go_record: Label
 var _shown_score := 0.0
@@ -88,8 +88,7 @@ func toggle_pause() -> void:
 	if not tree.paused:
 		checkpoint_requested.emit()
 	tree.paused = not tree.paused
-	_paused_score.text = _format(GameState.score)
-	_pause.visible = tree.paused
+	_pause.set_paused(tree.paused)
 
 
 func show_message(text: String) -> void:
@@ -180,7 +179,7 @@ func _on_game_resumed() -> void:
 	_display.value = GameState.score
 	_update_record()
 	_game_over.hide()
-	_pause.hide()
+	_pause.set_paused(false)
 	get_tree().paused = false
 
 
@@ -207,7 +206,7 @@ func _layout() -> void:
 	_bar.position = Vector2((visible.x - BAR_SIZE.x) * 0.5, insets.top + 11.0)
 	_toast.position = Vector2((visible.x - _toast.size.x) * 0.5, insets.top + 117.0)
 	var safe_height: float = visible.y - insets.top - insets.bottom
-	for card: Panel in [_pause_card, _game_over_card]:
+	for card: Panel in [_game_over_card]:
 		var card_center := maxf(card.size.y * 0.5, safe_height * 0.43)
 		card.position = Vector2((visible.x - card.size.x) * 0.5, insets.top + card_center - card.size.y * 0.5)
 
@@ -301,13 +300,20 @@ func _build_toast() -> void:
 
 
 func _build_overlays() -> void:
-	_pause = _overlay("Pause")
-	_pause_card = _card(_pause, Vector2(520.0, 352.0), MINT)
-	_label(_pause_card, "PAUSA", Rect2(35, 36, 450, 57), 52, IVORY)
-	_paused_score = _score_readout(_pause_card, 106.0)
-	_button(_pause_card, "Continuar", Rect2(36, 217, 448, 66), MINT, toggle_pause)
-	_button(_pause_card, "Reiniciar", Rect2(36, 290, 220, 42), MINT, GameState.start_game, false)
-	_button(_pause_card, "Mesas", Rect2(264, 290, 220, 42), MINT, _open_tables, false)
+	_pause = PauseMenu.new()
+	_pause.name = "PauseMenu"
+	_pause.resume_requested.connect(toggle_pause)
+	_pause.tables_requested.connect(_open_tables)
+	add_child(_pause)
+	var hint := FirstRunHint.new()
+	hint.name = "FirstRunHint"
+	# Los tests que aíslan récords también aíslan la configuración de la pista.
+	if GameState.record_path != "user://records.cfg":
+		hint.settings_path = GameState.record_path + ".hint.cfg"
+	add_child(hint)
+	var plunger := get_parent().get_node_or_null("Table/Plunger")
+	if plunger:
+		plunger.launched.connect(hint.on_launched)
 
 	_game_over = _overlay("GameOver")
 	_game_over_card = _card(_game_over, Vector2(520.0, 403.0), CORAL)
