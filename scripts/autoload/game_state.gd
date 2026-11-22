@@ -14,11 +14,17 @@ signal bonus_awarded(base: int, multiplier: int, total: int)
 ## Un empujón válido: la mesa le da un impulso a las bolas en juego.
 signal nudged(direction: Vector2)
 signal tilt_changed(tilted: bool)
+## G-12: cambió el kickback (rearmado o gastado) o las bolas extra pendientes.
+signal kickback_changed(ready: bool)
+signal extra_balls_changed(extra_balls: int)
 
 const BALLS_PER_GAME := 3
 ## Fracción de cada puntaje que se acumula en el bonus de la bola.
 const BONUS_RATE := 0.1
 const MAX_MULTIPLIER := 5
+## Bolas extra que se pueden ganar en una partida y acumular a la vez (G-12).
+const MAX_EXTRA_AWARDS := 1
+const MAX_PENDING_EXTRA := 2
 const KERNEL_PANIC := "kernel_panic"
 const NAUTILUS := "nautilus"
 const DRACULA := "dracula"
@@ -59,6 +65,13 @@ var bonus := 0
 var bonus_multiplier := 1
 ## Puntos del último bonus cobrado (0 si no hubo), para que la mesa espere el aviso.
 var last_bonus_award := 0
+## G-12: el kickback se gasta una vez por bola y se rearma al empezar la bola siguiente.
+var kickback_ready := true
+## Bolas extra pendientes (la próxima bola perdida se repite sin gastar una) y cuántas se dieron.
+var extra_balls := 0
+var extra_awarded := 0
+## true si la última bola perdida se repitió por una bola extra.
+var last_ball_replayed := false
 ## Calor de nudge/tilt (G-04). En TILT los flippers no responden y el bonus se pierde.
 var tilt := Tilt.new()
 var tilted: bool:
@@ -87,10 +100,14 @@ func start_game() -> void:
 	game_started.emit()
 
 
-func resume_game(saved_score: int, saved_balls_left: int, saved_bonus := 0, saved_multiplier := 1) -> void:
+func resume_game(saved_score: int, saved_balls_left: int, saved_bonus := 0, saved_multiplier := 1,
+		saved_extra := 0, saved_awarded := 0, saved_kickback := true) -> void:
 	_set_active_run(saved_score, saved_balls_left)
 	bonus = maxi(saved_bonus, 0)
 	bonus_multiplier = clampi(saved_multiplier, 1, MAX_MULTIPLIER)
+	extra_balls = clampi(saved_extra, 0, MAX_PENDING_EXTRA)
+	extra_awarded = clampi(saved_awarded, 0, MAX_EXTRA_AWARDS)
+	kickback_ready = saved_kickback
 	game_resumed.emit()
 
 
@@ -100,6 +117,10 @@ func _set_active_run(new_score: int, new_balls_left: int) -> void:
 	bonus = 0
 	bonus_multiplier = 1
 	last_bonus_award = 0
+	extra_balls = 0
+	extra_awarded = 0
+	last_ball_replayed = false
+	kickback_ready = true
 	_reset_tilt()
 	ball_in_lane = false
 	plunger_charge = 0.0
@@ -137,6 +158,37 @@ func raise_multiplier(announce := true) -> void:
 	bonus_multiplier += 1
 	if announce:
 		say("BONUS X%d" % bonus_multiplier)
+	# Hito del bonus: llegar al multiplicador máximo regala una bola extra (una por partida).
+	if bonus_multiplier >= MAX_MULTIPLIER and extra_awarded < MAX_EXTRA_AWARDS:
+		award_extra_ball()
+
+
+## Otorga una bola extra: la próxima bola que se pierda se repite sin gastar una de la partida.
+## Devuelve false si no hay partida o ya hay el máximo pendiente.
+func award_extra_ball(announce := true) -> bool:
+	if not playing or extra_balls >= MAX_PENDING_EXTRA:
+		return false
+	extra_balls += 1
+	extra_awarded = mini(extra_awarded + 1, MAX_EXTRA_AWARDS)
+	extra_balls_changed.emit(extra_balls)
+	if announce:
+		say("¡BOLA EXTRA!")
+	return true
+
+
+## Gasta el kickback si está listo. Devuelve true si la bola debe ser devuelta.
+func use_kickback() -> bool:
+	if not playing or not kickback_ready:
+		return false
+	kickback_ready = false
+	kickback_changed.emit(false)
+	return true
+
+
+func rearm_kickback() -> void:
+	if not kickback_ready:
+		kickback_ready = true
+		kickback_changed.emit(true)
 
 
 ## Cobra el bonus acumulado y lo reinicia para la bola siguiente.
@@ -164,6 +216,14 @@ func award_bonus() -> int:
 func lose_ball() -> bool:
 	award_bonus()
 	_reset_tilt()
+	rearm_kickback()
+	last_ball_replayed = false
+	if extra_balls > 0:
+		# Bola extra: se repite la bola y balls_left no baja.
+		extra_balls -= 1
+		last_ball_replayed = true
+		extra_balls_changed.emit(extra_balls)
+		return true
 	balls_left -= 1
 	balls_changed.emit(balls_left)
 	if balls_left <= 0:

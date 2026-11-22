@@ -10,6 +10,8 @@ const STATE_KEYS := [
 ]
 ## Claves opcionales: las partidas guardadas antes del bonus siguen siendo válidas.
 const BONUS_KEYS := ["bonus", "bonus_multiplier"]
+## G-12: bolas extra y kickback. Solo aparecen junto con las claves del bonus.
+const EXTRA_KEYS := ["extra_balls", "extra_awarded", "kickback_ready"]
 const MAX_BONUS := 10000000
 const BALL_KEYS := ["position", "velocity", "spin", "rotation"]
 
@@ -87,9 +89,18 @@ static func _valid_table(table_id: String) -> bool:
 static func _valid_state(state: Dictionary, table_id: String) -> bool:
 	if not state.has_all(STATE_KEYS):
 		return false
-	var has_bonus: bool = state.size() == STATE_KEYS.size() + BONUS_KEYS.size() and state.has_all(BONUS_KEYS)
-	if state.size() != STATE_KEYS.size() and not has_bonus:
+	var base_size := STATE_KEYS.size() + BONUS_KEYS.size()
+	var has_bonus: bool = state.size() >= base_size and state.has_all(BONUS_KEYS)
+	var has_extra: bool = has_bonus and state.size() == base_size + EXTRA_KEYS.size() and state.has_all(EXTRA_KEYS)
+	if state.size() != STATE_KEYS.size() and not (has_bonus and (state.size() == base_size or has_extra)):
 		return false
+	if has_extra:
+		var extra: Variant = state.extra_balls
+		var awarded: Variant = state.extra_awarded
+		if not extra is int or extra < 0 or extra > 2 or not awarded is int or awarded < 0 or awarded > 1:
+			return false
+		if not state.kickback_ready is bool:
+			return false
 	if has_bonus:
 		var multiplier: Variant = state.bonus_multiplier
 		if not state.bonus is int or state.bonus < 0 or state.bonus > MAX_BONUS:

@@ -36,7 +36,7 @@ func _run() -> void:
 func _settle() -> void:
 	await create_timer(1.0).timeout
 	for ball in _table.get_node("Balls").get_children():
-		ball.free()
+		ball.queue_free()
 	_state.score = 0
 
 
@@ -62,13 +62,13 @@ func _test_award() -> void:
 	var ball := _spawn(center, Vector2.ZERO)
 	await create_timer(0.1).timeout
 	_check(_state.score == before + skill.award and not skill.armed, "%s: entrar al carril armado da el premio una vez" % label)
-	ball.free()
+	ball.queue_free()
 	skill.disarm()
 	before = _state.score
 	ball = _spawn(center, Vector2.ZERO)
 	await create_timer(0.1).timeout
 	_check(_state.score == before, "%s: sin armar el carril no da premio" % label)
-	ball.free()
+	ball.queue_free()
 	# El premio vence si la bola tarda: queda desarmado tras SKILL_TIME.
 	skill.on_launched(0.8)
 	await create_timer(skill.SKILL_TIME + 0.3).timeout
@@ -96,7 +96,7 @@ func _test_launch(power: float, expect_award: bool) -> void:
 		label, power, "da" if expect_award else "no da"])
 	skill.scored.disconnect(on_scored)
 	if is_instance_valid(ball):
-		ball.free()
+		ball.queue_free()
 	skill.disarm()
 
 
