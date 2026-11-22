@@ -80,7 +80,7 @@ func _fire() -> void:
 			ball.linear_velocity = Vector2(0.0, -speed)
 	charge = 0.0
 	_launch_flash = 1.0
-	Input.vibrate_handheld(20)
+	Settings.vibrate(20)
 	launched.emit(power)
 
 

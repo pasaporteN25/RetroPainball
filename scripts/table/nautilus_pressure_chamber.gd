@@ -57,7 +57,7 @@ func _catch(ball: Ball) -> void:
 	ball.angular_velocity = 0.0
 	ball.reset_physics_interpolation()
 	_release_timer.start(HOLD_TIME)
-	Input.vibrate_handheld(12)
+	Settings.vibrate(12)
 	set_process(true)
 	queue_redraw()
 
@@ -75,7 +75,7 @@ func _launch() -> void:
 	ball.reset_physics_interpolation()
 	# La bola detenida puede volver a entrar desde un guardado sin duplicar puntos.
 	GameState.add_score(POINTS, global_position)
-	Input.vibrate_handheld(22)
+	Settings.vibrate(22)
 	_flash = 1.0
 	set_process(true)
 	queue_redraw()

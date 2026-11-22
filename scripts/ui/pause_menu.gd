@@ -9,11 +9,13 @@ const MINT := Color("#75e6c6")
 const IVORY := Color("#f3ead8")
 const INK := Color("#101619")
 const FRAME := Color("#435052")
+const OptionsMenu := preload("res://scripts/ui/options_menu.gd")
 
 var _accent := MINT
 var _panel: PanelContainer
 var _shade: ColorRect
 var _buttons: Array[Button] = []
+var _options: CanvasLayer
 
 
 func _ready() -> void:
@@ -50,7 +52,7 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", 48)
 	title.add_theme_color_override("font_color", IVORY)
 	column.add_child(title)
-	for item in [["Continuar", _resume], ["Reiniciar partida", _restart], ["Volver a mesas", _tables]]:
+	for item in [["Continuar", _resume], ["Reiniciar partida", _restart], ["Opciones", _open_options], ["Volver a mesas", _tables]]:
 		var button := Button.new()
 		button.name = item[0].replace(" ", "")
 		button.text = item[0]
@@ -63,11 +65,17 @@ func _ready() -> void:
 	for i in _buttons.size():
 		_buttons[i].focus_neighbor_top = _buttons[(i + _buttons.size() - 1) % _buttons.size()].get_path()
 		_buttons[i].focus_neighbor_bottom = _buttons[(i + 1) % _buttons.size()].get_path()
+	_options = OptionsMenu.new()
+	_options.name = "OptionsMenu"
+	_options.closed.connect(func() -> void: _buttons[2].grab_focus())
+	add_child(_options)
 	_apply_theme()
 	_shade.hide()
 
 
 func set_paused(value: bool) -> void:
+	if not value and _options.is_open():
+		_options.close()
 	_shade.visible = value
 	if value:
 		_apply_theme()
@@ -111,6 +119,10 @@ func _apply_theme() -> void:
 		focus.set_corner_radius_all(10)
 		focus.set_expand_margin_all(4)
 		button.add_theme_stylebox_override("focus", focus)
+
+
+func _open_options() -> void:
+	_options.open()
 
 
 func _resume() -> void:

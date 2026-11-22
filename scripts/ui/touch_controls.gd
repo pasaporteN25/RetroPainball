@@ -9,6 +9,8 @@ extends CanvasLayer
 
 ## Desde qué altura (proporción de la pantalla) empiezan las zonas.
 @export_range(0.0, 1.0) var zone_top_ratio := 0.5
+## Si es true, la altura sale de las opciones del jugador (U-07).
+@export var use_settings := true
 @export var pad_height := 78.0
 
 ## Gesto de nudge: deslizar el pulgar hacia arriba al menos esto (px) en menos de NUDGE_SWIPE_TIME.
@@ -38,7 +40,14 @@ func _ready() -> void:
 	_canvas.draw.connect(_draw_pads)
 	add_child(_canvas)
 	get_viewport().size_changed.connect(_layout)
+	Settings.changed.connect(_sync_settings)
+	_sync_settings()
 	_layout()
+
+
+func _sync_settings() -> void:
+	if use_settings:
+		zone_top_ratio = Settings.zone_top_ratio()
 
 
 func _process(_delta: float) -> void:

@@ -115,7 +115,7 @@ func _catch(ball: Ball) -> void:
 	_held_ball = ball
 	_freeze_at(ball, global_position)
 	_release_timer.start(HOLD_TIME)
-	Input.vibrate_handheld(12)
+	Settings.vibrate(12)
 	set_process(true)
 	queue_redraw()
 
@@ -127,7 +127,7 @@ func _lock(ball: Ball) -> void:
 	ball.set_meta(LOCKED_META, true)
 	_locked.append(ball)
 	_flash = 1.0
-	Input.vibrate_handheld(30)
+	Settings.vibrate(30)
 	set_process(true)
 	queue_redraw()
 	ball_locked.emit(ball)
@@ -154,7 +154,7 @@ func _launch() -> void:
 	ball.linear_velocity = direction * EXIT_SPEED
 	ball.reset_physics_interpolation()
 	GameState.add_score(POINTS, global_position)
-	Input.vibrate_handheld(22)
+	Settings.vibrate(22)
 	_flash = 1.0
 	set_process(true)
 	queue_redraw()
