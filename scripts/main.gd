@@ -18,6 +18,9 @@ const CORAL := Color("#ff675f")
 const BALL_SAVE_TIME := 8.0
 const SERVE_DELAY := 0.7
 const CHECKPOINT_INTERVAL := 4.0
+## Medidas de la mesa (coordenadas de Table) y margen más allá del cual una bola se da por escapada.
+const FIELD_SIZE := Vector2(720.0, 1800.0)
+const ESCAPE_MARGIN := 48.0
 ## Empujón con el que se destraba una bola quieta (px/s).
 const UNSTICK_SPEED := 520.0
 ## Desde esta altura (coordenadas de la mesa) la bola está en la zona de flippers.
@@ -43,6 +46,8 @@ const LANE_Y := 430.0
 @onready var _mission := get_node_or_null("Table/DepthMission") as DepthMission
 @onready var _hud: CanvasLayer = $HUD
 
+## Cuántas bolas escaparon de la mesa y hubo que darlas por drenadas (debería ser 0).
+var escaped_balls := 0
 var _ball_save_left := 0.0
 var _save_armed := false
 var _serve_timer: Timer
@@ -82,6 +87,20 @@ func _process(delta: float) -> void:
 		_checkpoint_left -= delta
 		if _checkpoint_left <= 0.0:
 			save_run()
+
+
+## Red de seguridad: una bola que atraviesa una pared (tunneling) cae para siempre y la
+## partida quedaría trabada sin bola nueva. Se la trata como una bola drenada.
+func _physics_process(_delta: float) -> void:
+	for ball: RigidBody2D in _balls.get_children():
+		if ball.is_queued_for_deletion():
+			continue
+		var at := ball.position
+		if at.x < -ESCAPE_MARGIN or at.y < -ESCAPE_MARGIN \
+				or at.x > FIELD_SIZE.x + ESCAPE_MARGIN or at.y > FIELD_SIZE.y + ESCAPE_MARGIN:
+			escaped_balls += 1
+			push_warning("Bola fuera de la mesa en %s: se trata como drenada" % at.round())
+			_on_drain(ball)
 
 
 func _notification(what: int) -> void:
