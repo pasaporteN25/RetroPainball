@@ -21,6 +21,26 @@ Skill shot: soltá el lanzador con la potencia dentro del marco dorado del resor
 SKILL SHOT del arco izquierdo para ganar 5.000. El kickback devuelve una vez por bola la bola que cae por el
 outlane izquierdo. Llegar al multiplicador de bonus X5 da una bola extra (una por partida).
 
+### Piezas genéricas: saucer y spinner (G-10)
+
+Dos piezas sueltas y reutilizables para armar mesas nuevas (ninguna mesa actual las usa todavía). Son escenas
+simples en `scenes/pieces/`; basta instanciarlas en el tablero y ajustarlas desde el inspector. Si no traen
+`CollisionShape2D`, crean el suyo. Detectan solo la bola (capa de colisión 2) y solo suman puntos con la partida en curso.
+
+- **Saucer / kicker** (`scenes/pieces/saucer.tscn`, `scripts/table/saucer.gd`): agujero que retiene la bola
+  `saucer_hold_seconds`, suma `saucer_points` y la devuelve con velocidad `saucer_kick_speed` en `kick_direction`.
+  Propiedades: `kick_direction`, `kick_speed` (0 = usa el valor de TableRules), `exit_offset`, `radius`,
+  `rearm_distance`. Señal `kicked(ball)`. No recaptura la bola que acaba de expulsar.
+- **Spinner** (`scenes/pieces/spinner.tscn`, `scripts/table/spinner.gd`): la bola lo atraviesa sin frenarse y lo hace
+  girar a `velocidad × spinner_spin_per_speed` rad/s (más rápida la bola, más vueltas); el sentido depende de
+  `lane_direction`. Cada vuelta completa suma `spinner_lap_points`. Propiedades: `length`, `friction`,
+  `lane_direction`. Señal `lap_completed(total)`.
+
+Los números viven en `TableRules` (grupo "Piezas genéricas"): `saucer_points`, `saucer_hold_seconds`,
+`saucer_kick_speed`, `spinner_lap_points`, `spinner_spin_per_speed`. Los defaults no tocan las mesas actuales; una
+mesa nueva los pisa en su `resources/rules/<id>.tres`. Suenan con `Sfx.play` y vibran como las demás piezas.
+Test: `tests/headless/saucer_spinner.gd`.
+
 ## Correrlo
 
 1. Abrí Godot 4.7.2 → *Importar* → elegí `project.godot`.

@@ -100,6 +100,14 @@ const DEFAULT_MESSAGES := {
 @export var teapot_points := 250
 ## Jackpot de la Tetera durante Té Loco ({award} en el mensaje).
 @export var tea_jackpot: RuleStage
+@export_group("Piezas genéricas (G-10)")
+## Saucer/kicker: puntos al retener la bola, segundos que la retiene y velocidad (px/s) con la que la devuelve.
+@export var saucer_points := 500
+@export var saucer_hold_seconds := 0.6
+@export var saucer_kick_speed := 900.0
+## Spinner: puntos por vuelta completa y giro (rad/s) por cada px/s de velocidad de la bola.
+@export var spinner_lap_points := 25
+@export var spinner_spin_per_speed := 0.03
 @export_group("Mensajes")
 ## clave -> texto; ver DEFAULT_MESSAGES.
 @export var messages: Dictionary = {}
