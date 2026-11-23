@@ -19,6 +19,17 @@ var _records: Button
 var _heading: FontVariation
 var _serif: SystemFont
 var _safe_top := 0.0
+var _safe_bottom := 0.0
+var _cards: Array[Button] = []
+var _ids: Array[String] = []
+var _selected := 0
+var _display_index := 0.0
+var _clock := 0.0
+var _drag_start := Vector2.ZERO
+var _dragging := false
+var _swiped := false
+var _previous: Button
+var _next: Button
 
 
 func _ready() -> void:
@@ -33,18 +44,90 @@ func _ready() -> void:
 	_nautilus = _make_card(GameState.active_theme(GameState.NAUTILUS).display_name, GameState.NAUTILUS, 646.0, "res://scenes/nautilus.tscn")
 	_dracula = _make_card(GameState.active_theme(GameState.DRACULA).display_name, GameState.DRACULA, 444.0, "res://scenes/dracula.tscn")
 	_alicia = _make_card(GameState.active_theme(GameState.ALICIA).display_name, GameState.ALICIA, 444.0, "res://scenes/alicia.tscn")
-	_kernel.focus_neighbor_bottom = _kernel.get_path_to(_nautilus)
-	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
-	_nautilus.focus_neighbor_bottom = _nautilus.get_path_to(_dracula)
-	_dracula.focus_neighbor_top = _dracula.get_path_to(_nautilus)
-	_dracula.focus_neighbor_bottom = _dracula.get_path_to(_alicia)
-	_alicia.focus_neighbor_top = _alicia.get_path_to(_dracula)
+	_cards = [_kernel, _nautilus, _dracula, _alicia]
+	_ids = [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA, GameState.ALICIA]
 	_records = _make_records_button()
-	_kernel.focus_neighbor_top = _kernel.get_path_to(_records)
-	_records.focus_neighbor_bottom = _records.get_path_to(_kernel)
+	_previous = _make_arrow("‹", -1)
+	_next = _make_arrow("›", 1)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
 	_kernel.grab_focus()
+
+
+func _make_arrow(label: String, direction: int) -> Button:
+	var button := Button.new()
+	button.text = label
+	button.size = Vector2(72, 72)
+	button.add_theme_font_size_override("font_size", 48)
+	button.pressed.connect(func() -> void: _select(_selected + direction))
+	add_child(button)
+	return button
+
+
+func _select(index: int) -> void:
+	_selected = clampi(index, 0, _cards.size() - 1)
+	_cards[_selected].grab_focus()
+	queue_redraw()
+
+
+func _activate_card(card: Button, scene_path: String) -> void:
+	if _swiped:
+		return
+	var index := _cards.find(card)
+	if index != _selected:
+		_select(index)
+	else:
+		get_tree().change_scene_to_file(scene_path)
+
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_left"):
+		_select(_selected - 1)
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("ui_right"):
+		_select(_selected + 1)
+		get_viewport().set_input_as_handled()
+		return
+	var point := Vector2.ZERO
+	var pressed := false
+	var released := false
+	if event is InputEventScreenTouch:
+		point = event.position
+		pressed = event.pressed
+		released = not event.pressed
+	elif event is InputEventScreenDrag:
+		point = event.position
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		point = event.position
+		pressed = event.pressed
+		released = not event.pressed
+	elif event is InputEventMouseMotion:
+		point = event.position
+	else:
+		return
+	if pressed:
+		_drag_start = point
+		_dragging = point.y > _safe_top + 180.0 and point.y < size.y - _safe_bottom - 100.0
+		_swiped = false
+	elif _dragging:
+		if absf(point.x - _drag_start.x) > 55.0:
+			_swiped = true
+		if released:
+			if _swiped:
+				_select(_selected + (1 if point.x < _drag_start.x else -1))
+			_dragging = false
+			_clear_swipe.call_deferred()
+
+
+func _clear_swipe() -> void:
+	_swiped = false
+
+
+func _process(delta: float) -> void:
+	_clock += delta
+	_display_index = lerpf(_display_index, float(_selected), minf(delta * 8.0, 1.0))
+	_layout_cards()
 
 
 func _make_records_button() -> Button:
@@ -90,7 +173,7 @@ func _make_card(title: String, table_id: String, height: float, scene_path: Stri
 	for state in ["font_color", "font_pressed_color", "font_hover_color", "font_focus_color", "font_hover_pressed_color", "font_outline_color"]:
 		card.add_theme_color_override(state, Color.TRANSPARENT)
 	card.draw.connect(_draw_card.bind(card, table_id, has_save))
-	card.pressed.connect(func() -> void: get_tree().change_scene_to_file(scene_path))
+	card.pressed.connect(_activate_card.bind(card, scene_path))
 	add_child(card)
 	return card
 
@@ -98,19 +181,32 @@ func _make_card(title: String, table_id: String, height: float, scene_path: Stri
 func _layout() -> void:
 	var safe := Screen.safe_insets(get_viewport())
 	_safe_top = safe.top
-	var remaining: float = size.y - _safe_top - safe.bottom
-	# Cuatro tarjetas apiladas: 202 de encabezado, las alturas y 26 de separación entre cada una.
-	var content := 202.0 + _kernel.size.y + _nautilus.size.y + _dracula.size.y + _alicia.size.y + 3.0 * 26.0 + 20.0
-	var zoom := clampf(remaining / content, 0.35, 1.0)
-	for card in [_kernel, _nautilus, _dracula, _alicia]:
-		card.scale = Vector2.ONE * zoom
-	var left := (size.x - _kernel.size.x * zoom) * 0.5
+	_safe_bottom = safe.bottom
 	_records.position = Vector2(size.x - _records.size.x - 24.0, _safe_top + 6.0)
-	_kernel.position = Vector2(left, _safe_top + 202.0 * zoom)
-	_nautilus.position = _kernel.position + Vector2(0, (_kernel.size.y + 26.0) * zoom)
-	_dracula.position = _nautilus.position + Vector2(0, (_nautilus.size.y + 26.0) * zoom)
-	_alicia.position = _dracula.position + Vector2(0, (_dracula.size.y + 26.0) * zoom)
+	_previous.position = Vector2(18, size.y - _safe_bottom - 100)
+	_next.position = Vector2(size.x - 90, size.y - _safe_bottom - 100)
+	_layout_cards()
 	queue_redraw()
+
+
+func _layout_cards() -> void:
+	if _cards.is_empty():
+		return
+	var available := size.y - _safe_top - _safe_bottom
+	var center := Vector2(size.x * 0.5, _safe_top + available * 0.48)
+	for i in _cards.size():
+		var card := _cards[i]
+		var offset := float(i) - _display_index
+		var distance := absf(offset)
+		card.visible = distance < 1.8
+		var zoom := minf(size.x * 0.70 / card.size.x, available * 0.53 / card.size.y)
+		zoom *= 1.0 - minf(distance, 1.0) * 0.32
+		card.pivot_offset = card.size * 0.5
+		card.scale = Vector2(zoom * (1.0 - minf(distance, 1.0) * 0.18), zoom)
+		card.rotation = offset * -0.12 + sin(_clock * 1.3 + float(i)) * 0.015
+		card.position = center + Vector2(offset * size.x * 0.36, distance * 35.0) - card.pivot_offset
+		card.z_index = 10 - int(distance * 4.0)
+		card.queue_redraw()
 
 
 func _draw() -> void:
@@ -122,9 +218,21 @@ func _draw() -> void:
 	var at := Vector2(size.x * 0.5, _safe_top + 94)
 	_center_text(self, _heading, "PINBALL TEMÁTICO", at, 49, IVORY)
 	_center_text(self, ThemeDB.fallback_font, "Elegí una mesa", at + Vector2(0, 49), 27, MINT)
+	var record := _selected_record()
+	var accent := GameState.active_theme(_ids[_selected]).select_accent
+	_center_text(self, _heading, "RÉCORD  %d" % record, Vector2(size.x * 0.5, size.y - _safe_bottom - 145), 30, accent)
+	_center_text(self, ThemeDB.fallback_font, "Deslizá o usá las flechas · Tocá para jugar", Vector2(size.x * 0.5, size.y - _safe_bottom - 55), 20, IVORY)
 	var dash := Vector2(91, 0)
 	draw_line(at + Vector2(-274, 38), at + Vector2(-274, 38) + dash, Color(MINT, 0.45), 1, true)
 	draw_line(at + Vector2(274, 38), at + Vector2(274, 38) - dash, Color(MINT, 0.45), 1, true)
+
+
+func _selected_record() -> int:
+	var cfg := ConfigFile.new()
+	if cfg.load(GameState.record_path) != OK:
+		return 0
+	var section := "records" if _ids[_selected] == GameState.KERNEL_PANIC else "records/" + _ids[_selected]
+	return int(cfg.get_value(section, "high_score", 0))
 
 
 func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
@@ -134,7 +242,7 @@ func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
 	var bounds := Rect2(Vector2.ZERO, card.size)
 	var theme := GameState.active_theme(table_id)
 	var accent := theme.select_accent
-	var active := card.has_focus() or card.is_hovered()
+	var active := _cards.size() > _selected and card == _cards[_selected]
 	card.draw_rect(bounds, Color("#12232a") if active else Color("#101d24"))
 	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else (214 if (vampiric or wonderland) else 242))
 	if nautical:

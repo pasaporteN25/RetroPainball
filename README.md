@@ -25,6 +25,7 @@ outlane izquierdo. Llegar al multiplicador de bonus X5 da una bola extra (una po
 
 1. Abrí Godot 4.7.2 → *Importar* → elegí `project.godot`.
 2. **F5** para abrir la pantalla de título (de ahí al selector de mesas). En la PC, el mouse simula el touch.
+   En el selector, deslizá horizontalmente o usá las flechas del teclado, mando o pantalla para elegir una mesa; tocá la tarjeta central para jugar. Se muestra su récord y la marca **Continuar** si tiene una partida guardada.
    Para cambiar de mesa, elegí **Mesas** en la pausa o al terminar la partida.
 
 En Linux también podés jugar desde la raíz del proyecto con `godot --path .`.
