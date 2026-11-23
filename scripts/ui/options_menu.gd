@@ -3,6 +3,7 @@ extends CanvasLayer
 
 signal closed
 
+const BackNav := preload("res://scripts/util/back_nav.gd")
 const Arcade := preload("res://scripts/ui/arcade_style.gd")
 const ZONE_LABELS := {"media": "Mitad de pantalla", "baja": "Zona baja"}
 const LANGUAGE_LABELS := {"es": "Español", "en": "English"}
@@ -97,8 +98,19 @@ func close() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _shade.visible and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause")):
+	if _shade.visible and BackNav.is_back_event(event):
 		get_viewport().set_input_as_handled()
+		go_back()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		go_back()
+
+
+## Atrás: cierra las opciones y vuelve a la pantalla anterior.
+func go_back() -> void:
+	if _shade.visible and BackNav.claim():
 		close()
 
 

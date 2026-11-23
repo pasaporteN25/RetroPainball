@@ -2,6 +2,9 @@ extends Control
 ## Pantalla de título estilo arcade. Tocar el fondo, Enter o el botón del mando abre el selector.
 
 const Screen := preload("res://scripts/util/screen.gd")
+const BackNav := preload("res://scripts/util/back_nav.gd")
+## Atrás en el título: el primer atrás avisa y el segundo (dentro de EXIT_WINDOW segundos) cierra la app.
+const EXIT_WINDOW := 2.0
 const OptionsMenu := preload("res://scripts/ui/options_menu.gd")
 const SELECT_SCENE := "res://scenes/table_select.tscn"
 const RECORDS_SCENE := "res://scenes/records.tscn"
@@ -81,6 +84,9 @@ var _redraw_elapsed := 0.0
 var _art_origin := Vector2.ZERO
 var _art_scale := 1.0
 var _leaving := false
+var quit_app: Callable = func() -> void: get_tree().quit()
+var _exit_until := -1.0
+var _exit_hint: Label
 
 
 func _ready() -> void:
@@ -111,6 +117,17 @@ func _ready() -> void:
 	_options.name = "OptionsMenu"
 	_options.closed.connect(_close_options)
 	add_child(_options)
+	_exit_hint = Label.new()
+	_exit_hint.name = "ExitHint"
+	_exit_hint.text = "Tocá atrás otra vez para salir"
+	_exit_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_exit_hint.add_theme_font_size_override("font_size", 24)
+	_exit_hint.add_theme_color_override("font_color", IVORY)
+	_exit_hint.add_theme_color_override("font_outline_color", INK)
+	_exit_hint.add_theme_constant_override("outline_size", 8)
+	_exit_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_exit_hint.hide()
+	add_child(_exit_hint)
 	resized.connect(_layout)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
@@ -148,6 +165,7 @@ func _close_options() -> void:
 
 func _show_records() -> void:
 	if not _leaving and not _options.is_open():
+		BackNav.records_return = BackNav.TITLE_SCENE
 		get_tree().change_scene_to_file(RECORDS_SCENE)
 
 
@@ -205,10 +223,14 @@ func _layout() -> void:
 		top + (_play.position.y - top - 36.0 - ART_SIZE.y * _art_scale) * 0.5)
 	_attract.position = _art_origin
 	_attract.scale = Vector2.ONE * _art_scale
+	_exit_hint.size = Vector2(size.x, 40.0)
+	_exit_hint.position = Vector2(0.0, size.y - 120.0)
 	queue_redraw()
 
 
 func _process(delta: float) -> void:
+	if _exit_hint.visible and not exit_armed():
+		_exit_hint.hide()
 	_clock += delta
 	_redraw_elapsed += delta
 	if _redraw_elapsed >= ATTRACT_STEP:
@@ -234,6 +256,29 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept") and not _options.is_open():
 		get_viewport().set_input_as_handled()
 		start()
+	elif BackNav.is_back_event(event) and not _options.is_open():
+		get_viewport().set_input_as_handled()
+		go_back()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		go_back()
+
+
+func exit_armed() -> bool:
+	return Time.get_ticks_msec() / 1000.0 < _exit_until
+
+
+## Atrás en el título: doble atrás para salir de la app (con las opciones abiertas, ellas lo atienden).
+func go_back() -> void:
+	if _leaving or _options.is_open() or not BackNav.claim():
+		return
+	if exit_armed():
+		quit_app.call()
+		return
+	_exit_until = Time.get_ticks_msec() / 1000.0 + EXIT_WINDOW
+	_exit_hint.show()
 
 
 func _draw() -> void:
