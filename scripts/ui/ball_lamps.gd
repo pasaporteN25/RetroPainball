@@ -12,8 +12,14 @@ extends Control
 		lit = v
 		queue_redraw()
 
-@export var on_color := Color("#75e6c6")
-@export var off_color := Color("#304341")
+@export var on_color := Color("#75e6c6"):
+	set(v):
+		on_color = v
+		queue_redraw()
+@export var off_color := Color("#304341"):
+	set(v):
+		off_color = v
+		queue_redraw()
 
 
 func _draw() -> void:

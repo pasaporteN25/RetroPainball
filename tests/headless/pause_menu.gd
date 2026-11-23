@@ -16,9 +16,10 @@ func _run() -> void:
 	await scene_changed
 	var hud := current_scene.get_node("HUD")
 	var menu := hud.get_node("PauseMenu")
+	var pause_button: Button = hud.get_node("Root/Backbox/PauseButton")
 	state.add_score(123, Vector2.ZERO)
-	hud.toggle_pause()
-	_check(paused and menu._shade.visible, "pausa y muestra el menú")
+	pause_button.pressed.emit()
+	_check(paused and menu._shade.visible, "el botón del HUD pausa y muestra el menú")
 	_check(SAVE.load_run("kernel_panic", scratch).get("score") == 123, "guarda al pausar")
 	_check(menu._buttons[0].has_focus(), "enfoca Continuar")
 	menu._buttons[0].pressed.emit()
