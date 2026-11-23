@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="432" viewBox="0 0 108 108">
+<!-- Generado por tools/generate_app_branding.gd -->
+
+<defs>
+  <radialGradient id="plate" cx=".54" cy=".41" r=".67">
+    <stop stop-color="#214a4d"/><stop offset=".56" stop-color="#102932"/><stop offset="1" stop-color="#061019"/>
+  </radialGradient>
+</defs>
+<rect width="108" height="108" fill="url(#plate)"/>
+<g fill="none" stroke="#8cead2" stroke-opacity=".24" stroke-width=".65" stroke-linecap="round">
+  <path d="M14 43 V32 Q14 18 28 18 H40 M14 49 V54 M94 66 V76 Q94 90 80 90 H68 M94 59 V55"/>
+</g>
+
+</svg>
