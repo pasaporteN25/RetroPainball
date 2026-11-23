@@ -5,6 +5,10 @@ const MIN_STRENGTH := 1250.0
 const MAX_AMPLITUDE := 4.0
 const DURATION := 0.11
 const RECOVERY := 0.17
+## Paso máximo por frame. Con un tirón (por ejemplo, ~50 ms al cargar la mesa) dos frames
+## caían justo en los cruces por cero del seno y la sacudida terminaba sin verse nunca.
+## Así la oscilación avanza a lo sumo esto por frame y siempre se muestrea su pico.
+const MAX_STEP := 1.0 / 30.0
 
 var _direction := Vector2.ZERO
 var _amplitude := 0.0
@@ -36,7 +40,7 @@ func on_impact(strength: float, direction: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
-	_elapsed += delta
+	_elapsed += minf(delta, MAX_STEP)
 	var t := minf(_elapsed / DURATION, 1.0)
 	_apply_offset(_direction * roundf(_amplitude * sin(TAU * t) * (1.0 - t)))
 	if _elapsed >= DURATION + RECOVERY:
