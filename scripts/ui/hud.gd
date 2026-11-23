@@ -240,6 +240,7 @@ func _arrange_game_over(entering: bool) -> void:
 	_go_save.visible = entering
 	var shift := 0.0
 	if entering:
+		_go_save.position.y = _go_entry.position.y + _go_entry.size.y + 10.0
 		shift = _go_save.position.y + _go_save.size.y + 10.0 - _play_top
 	_go_play.position.y = _play_top + shift
 	_go_tables.position.y = _tables_top + shift
