@@ -51,11 +51,22 @@ func _run() -> void:
 	cfg.save(path)
 	_check(state.table_stats("alicia") == {"games": 0, "best_ball": 0, "jackpots": 0}, "los datos inválidos se ignoran")
 
-	var screen: Control = load("res://scenes/records.tscn").instantiate()
+	root.content_scale_size = Vector2i(720, 1280)
+	var screen = load("res://scenes/records.tscn").instantiate()
 	root.add_child(screen)
 	await process_frame
 	var text: String = screen.stats_text("nautilus")
 	_check(text.contains("Partidas 2") and text.contains("4.000") and text.contains("Jackpots 3"), "la pantalla de récords muestra las estadísticas")
+	screen.show_table("nautilus")
+	_check(screen._stat_values[0].text == "2" and screen._stat_values[1].text == "4.000" and screen._stat_values[2].text == "3", "el panel muestra las tres estadísticas de Nautilus")
+	screen.show_table("dracula")
+	_check(screen._stat_values[0].text == "0" and screen._stat_values[1].text == "0" and screen._stat_values[2].text == "0", "al cambiar de pestaña se actualiza el panel")
+	await process_frame
+	await process_frame
+	var visible := root.get_visible_rect()
+	_check(visible.size == Vector2(720, 1280) and visible.encloses(screen._panel.get_global_rect()), "el panel de récords entra en un viewport vertical 9:16")
+	var back: Button = screen._back
+	_check(back.has_focus() and back.get_node(back.focus_neighbor_top) == screen._tabs[2], "Volver conecta con la pestaña activa")
 	screen.queue_free()
 
 	var dir := DirAccess.open(_scratch)

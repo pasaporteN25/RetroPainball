@@ -3,6 +3,7 @@ extends CanvasLayer
 
 signal checkpoint_requested
 
+const Arcade := preload("res://scripts/ui/arcade_style.gd")
 const SevenSegment := preload("res://scripts/ui/seven_segment.gd")
 const BallLamps := preload("res://scripts/ui/ball_lamps.gd")
 const PauseMenu := preload("res://scripts/ui/pause_menu.gd")
@@ -199,6 +200,10 @@ func _on_game_ended(final_score: int, is_record: bool) -> void:
 	_go_record.add_theme_color_override("font_color", _t.game_over_record_color if rank > 0 else _t.muted_color)
 	_arrange_game_over(rank > 0)
 	_game_over.show()
+	if rank > 0:
+		_go_entry.grab_focus()
+	else:
+		_go_play.grab_focus()
 
 
 ## Con puesto en el top 10 aparece el ingreso de iniciales y la tarjeta crece.
@@ -208,8 +213,10 @@ func _arrange_game_over(entering: bool) -> void:
 	var y := 266.0
 	if entering:
 		_go_entry.position = Vector2(36, 258)
-		_go_save.position = Vector2(36, 396)
-		y = 452.0
+		_go_save.position = _go_entry.position + Vector2(0, _go_entry.size.y + 10.0)
+		y = _go_save.position.y + _go_save.size.y + 10.0
+	_go_play.focus_neighbor_top = _go_play.get_path_to(_go_save if entering else _go_tables)
+	_go_tables.focus_neighbor_bottom = _go_tables.get_path_to(_go_entry if entering else _go_play)
 	_go_play.position = Vector2(36, y)
 	_go_tables.position = Vector2(36, y + 79.0)
 	_game_over_card.size = Vector2(520.0, y + 79.0 + 42.0 + 16.0)
@@ -229,6 +236,7 @@ func _save_initials() -> void:
 	_go_entry.hide()
 	_go_save.hide()
 	_arrange_game_over(false)
+	_go_play.grab_focus()
 	_go_record.add_theme_color_override("font_color", _t.game_over_record_color)
 
 
@@ -370,13 +378,26 @@ func _build_overlays() -> void:
 	_go_score = _score_readout(_game_over_card, 92.0)
 	_go_bonus = _label(_game_over_card, "", Rect2(35, 188, 450, 26), 19, _t.game_over_bonus_color)
 	_go_record = _label(_game_over_card, "", Rect2(35, 214, 450, 38), 23, _t.game_over_record_color)
-	_go_entry = InitialsEntry.new()
+	var entry := InitialsEntry.new()
+	entry.palette = _t
+	_go_entry = entry
 	_go_entry.name = "Initials"
 	_go_entry.changed.connect(_on_initials_changed)
 	_game_over_card.add_child(_go_entry)
 	_go_save = _button(_game_over_card, "Guardar iniciales", Rect2(36, 396, 448, 46), _t.score_label_color, _save_initials, false)
 	_go_play = _button(_game_over_card, "Otra partida", Rect2(36, 266, 448, 72), _t.toast_accent, _play_again)
 	_go_tables = _button(_game_over_card, "Mesas", Rect2(36, 345, 448, 42), _t.toast_accent, _open_tables, false)
+	_go_entry.focus_next = _go_entry.get_path_to(_go_save)
+	_go_save.focus_neighbor_top = _go_save.get_path_to(_go_entry)
+	_go_save.focus_neighbor_bottom = _go_save.get_path_to(_go_play)
+	_go_play.focus_neighbor_bottom = _go_play.get_path_to(_go_tables)
+	_go_tables.focus_neighbor_top = _go_tables.get_path_to(_go_play)
+	for button in [_go_save, _go_play, _go_tables]:
+		Arcade.enable_pad_accept(button)
+		button.focus_mode = Control.FOCUS_ALL
+		button.add_theme_stylebox_override("focus", Arcade.focus_ring(_t.text_color))
+		button.focus_neighbor_left = NodePath(".")
+		button.focus_neighbor_right = NodePath(".")
 
 
 func _open_tables() -> void:

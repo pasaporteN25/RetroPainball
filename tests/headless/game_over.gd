@@ -14,6 +14,7 @@ func _run() -> void:
 	var state := root.get_node("GameState")
 	state.save_directory = ""
 	state.record_path = scratch.path_join("records.cfg")
+	root.content_scale_size = Vector2i(720, 1280)
 	change_scene_to_file("res://scenes/main.tscn")
 	await scene_changed
 	var hud := current_scene.get_node("HUD")
@@ -29,13 +30,25 @@ func _run() -> void:
 	_check(state.bonus_total > 0 and state.last_result["bonus_total"] == state.bonus_total, "el bonus total queda en el resultado")
 	_check(state.last_result["rank"] == 1 and hud._go_entry.visible and hud._go_save.visible, "entra al top: pide iniciales")
 	_check(hud._go_record.text.contains("PUESTO 1"), "muestra el puesto")
-	hud._go_entry.cycle(0, 1)
-	hud._go_entry.cycle(1, -1)
+	_check(hud._go_entry.has_focus(), "al entrar al top, el foco queda en las iniciales")
+	_check(root.get_visible_rect().encloses(hud._game_over_card.get_global_rect()) and not hud._go_entry.get_global_rect().intersects(hud._go_save.get_global_rect()), "el ingreso y Guardar entran sin superponerse en vertical")
+	_press_pad(JOY_BUTTON_DPAD_RIGHT)
+	_press_pad(JOY_BUTTON_DPAD_UP)
+	_check(hud._go_entry.current == 1 and state.pending_initials == "ABA", "la cruceta cambia de casillero y de letra")
+	hud._go_entry.set_initials("AAA")
+	hud._go_entry.get_node("Up0").pressed.emit()
+	hud._go_entry.get_node("Down1").pressed.emit()
 	_check(state.pending_initials == "BZA", "las flechas cambian las iniciales")
 	hud._go_entry.set_initials("LCS")
-	hud._go_entry.type_letter("n")
+	var letter := InputEventKey.new()
+	letter.keycode = KEY_N
+	letter.pressed = true
+	root.push_input(letter)
 	_check(hud._go_entry.initials() == "NCS", "escribir una letra la fija y avanza")
-	hud._go_save.pressed.emit()
+	_press_pad(JOY_BUTTON_A)
+	_check(hud._go_save.has_focus() and state.pending_record, "A pasa a Guardar sin confirmar todavía")
+	_press_pad(JOY_BUTTON_A)
+	_check(hud._go_play.has_focus(), "al guardar el foco pasa a Otra partida")
 	_check(state.top_scores()[0]["initials"] == "NCS" and state.top_scores()[0]["score"] == state.last_result["score"], "Guardar escribe en el top")
 	_check(not hud._go_entry.visible and hud._go_record.text.contains("GUARDADO"), "tras guardar se oculta el ingreso")
 
@@ -72,6 +85,16 @@ func _run() -> void:
 			dir.remove(file)
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(scratch))
 	quit(1 if failures else 0)
+
+
+func _press_pad(button: JoyButton) -> void:
+	var event := InputEventJoypadButton.new()
+	event.button_index = button
+	event.pressed = true
+	root.push_input(event)
+	event = event.duplicate()
+	event.pressed = false
+	root.push_input(event)
 
 
 func _check(ok: bool, message: String) -> void:
