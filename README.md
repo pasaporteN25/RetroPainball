@@ -24,7 +24,7 @@ outlane izquierdo. Llegar al multiplicador de bonus X5 da una bola extra (una po
 ## Correrlo
 
 1. Abrí Godot 4.7.2 → *Importar* → elegí `project.godot`.
-2. **F5** para abrir el selector de mesas. En la PC, el mouse simula el touch.
+2. **F5** para abrir la pantalla de título (de ahí al selector de mesas). En la PC, el mouse simula el touch.
    Para cambiar de mesa, elegí **Mesas** en la pausa o al terminar la partida.
 
 En Linux también podés jugar desde la raíz del proyecto con `godot --path .`.
@@ -108,6 +108,7 @@ Para M-03/M-05: agregar una entrada por pista o fuente antes de subir el archivo
 ## Estructura
 
 ```
+scenes/title.tscn           Pantalla de título (escena inicial)
 scenes/table_select.tscn    Selector de mesas
 scenes/main.tscn            Mesa base y Kernel Panic
 scenes/table_base.tscn      Geometría y controles compartidos
