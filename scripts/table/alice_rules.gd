@@ -279,6 +279,7 @@ func _on_teapot_struck(at: Vector2) -> void:
 		GameState.add_score(_rules().teapot_points, at)
 		return
 	var stage := _rules().tea_jackpot
+	GameState.register_jackpot()
 	GameState.add_score(stage.award, at)
 	if stage.raise_multiplier:
 		GameState.raise_multiplier(false)

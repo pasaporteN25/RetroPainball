@@ -20,6 +20,7 @@ var _title: Label
 var _panel: PanelContainer
 var _back: Button
 var _empty: Label
+var _stats: Label
 
 
 func _ready() -> void:
@@ -68,6 +69,8 @@ func _ready() -> void:
 		_rows.append(row)
 	_empty = _label("Todavía no hay récords en esta mesa", 20, STEEL, HORIZONTAL_ALIGNMENT_CENTER)
 	column.add_child(_empty)
+	_stats = _label("", 22, STEEL, HORIZONTAL_ALIGNMENT_CENTER)
+	column.add_child(_stats)
 	_back = Button.new()
 	_back.name = "Back"
 	_back.text = "Volver"
@@ -101,6 +104,14 @@ func show_table(id: String) -> void:
 			row.text = "%2d   ---   ·" % [i + 1]
 			row.add_theme_color_override("font_color", STEEL.darkened(0.45))
 	_empty.visible = top.is_empty()
+	_stats.text = stats_text(id)
+
+
+## Línea de estadísticas de la mesa: partidas, mejor bola y jackpots (U-09).
+func stats_text(id: String) -> String:
+	var stats := GameState.table_stats(id)
+	return "Partidas %d   ·   Mejor bola %s   ·   Jackpots %d" % [
+		stats["games"], _format(int(stats["best_ball"])), stats["jackpots"]]
 
 
 func row_texts() -> Array[String]:

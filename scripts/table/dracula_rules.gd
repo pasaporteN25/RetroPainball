@@ -198,6 +198,7 @@ func _on_portrait_struck(at: Vector2) -> void:
 		GameState.add_score(_rules().portrait_points, at)
 		return
 	var jackpot := _rules().midnight_jackpot_points
+	GameState.register_jackpot()
 	GameState.add_score(jackpot, at)
 	GameState.say(_rules().text("jackpot", {"award": jackpot}))
 	if _art and _art.has_method("flash_jackpot"):

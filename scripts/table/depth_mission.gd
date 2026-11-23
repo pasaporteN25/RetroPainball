@@ -56,6 +56,7 @@ func on_kraken(at: Vector2) -> void:
 		GameState.add_score(rules.kraken_points, at)
 		return
 	var jackpot_stage := rules.kraken_jackpot
+	GameState.register_jackpot()
 	GameState.add_score(jackpot_stage.award, at)
 	sonar_mask = 0
 	depth += rules.depth_step

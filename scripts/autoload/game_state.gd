@@ -33,6 +33,7 @@ const DRACULA := "dracula"
 const ALICIA := "alicia"
 const Tilt := preload("res://scripts/table/tilt.gd")
 const Records := preload("res://scripts/util/records.gd")
+const TableStats := preload("res://scripts/util/table_stats.gd")
 ## Variable (no const) para que los tests usen un archivo propio.
 var record_path := "user://records.cfg"
 ## Vacío desactiva los guardados, por ejemplo al probar la física.
@@ -80,6 +81,10 @@ var last_ball_replayed := false
 var tilt := Tilt.new()
 ## Variante del top 10 (p. ej. la dificultad). Vacía = un solo top por mesa.
 var record_variant := ""
+## Puntos de la bola en juego, mejor bola de la partida y jackpots cobrados (U-09).
+var ball_points := 0
+var best_ball := 0
+var jackpots := 0
 ## Bonus cobrado en total durante la partida (se muestra al terminar).
 var bonus_total := 0
 ## Resultado de la última partida terminada y si aún espera iniciales (U-05, U-06).
@@ -131,6 +136,9 @@ func _set_active_run(new_score: int, new_balls_left: int) -> void:
 	bonus_multiplier = 1
 	last_bonus_award = 0
 	bonus_total = 0
+	ball_points = 0
+	best_ball = 0
+	jackpots = 0
 	commit_pending_record()
 	extra_balls = 0
 	extra_awarded = 0
@@ -172,6 +180,7 @@ func add_score(points: int, world_position: Vector2) -> void:
 	if not playing:
 		return
 	score += points
+	ball_points += points
 	bonus += int(points * BONUS_RATE)
 	scored.emit(points, world_position)
 	score_changed.emit(score)
@@ -242,6 +251,8 @@ func award_bonus() -> int:
 ## Resta una bola. Devuelve true si la partida sigue.
 func lose_ball() -> bool:
 	ball_lost.emit()
+	best_ball = maxi(best_ball, ball_points)
+	ball_points = 0
 	award_bonus()
 	_reset_tilt()
 	rearm_kickback()
@@ -285,6 +296,9 @@ func _reset_tilt() -> void:
 
 func end_game() -> void:
 	playing = false
+	best_ball = maxi(best_ball, ball_points)
+	ball_points = 0
+	TableStats.add_game(record_path, table_id, best_ball, jackpots)
 	var is_record := score > high_score
 	if is_record:
 		high_score = score
@@ -295,6 +309,16 @@ func end_game() -> void:
 	pending_record = rank > 0
 	pending_initials = Records.load_last_initials(record_path)
 	game_ended.emit(score, is_record)
+
+
+## Las mesas avisan cada jackpot cobrado, para las estadísticas.
+func register_jackpot() -> void:
+	jackpots += 1
+
+
+## Estadísticas guardadas de una mesa (la actual si no se indica).
+func table_stats(id := "") -> Dictionary:
+	return TableStats.load_stats(record_path, id if not id.is_empty() else table_id)
 
 
 ## Clave del top 10 de la mesa actual (y de la variante, si algún día hay dificultad).
