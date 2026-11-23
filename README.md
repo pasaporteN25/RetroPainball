@@ -116,6 +116,7 @@ scenes/nautilus.tscn        20.000 Leguas, con geometría y misión propias
 scripts/
   autoload/game_state.gd    Puntaje, bolas, récord, acciones de input por defecto
   autoload/sfx.gd           Efectos base generados en código (M-02)
+  autoload/music.gd         Playlist por mesa con crossfade (M-04)
   main.gd                   Ciclo de la bola: sacar, drenar, salvavidas, popups
   table/                    Piezas reutilizables y arte del tablero (playfield_art.gd)
   ui/                       HUD (display 7 segmentos, vidas, pausa) y zonas táctiles
@@ -130,6 +131,17 @@ generado (ondas y ruido con envolvente, estilo sfxr; originales, sin licencias) 
 por el bus **Efectos**. Se usa con `Sfx.play(&"bumper")`. Sonidos: `flipper`, `bumper`,
 `slingshot`, `plunger`, `drain`, `ball_saved`, `jackpot`. Se enganchan en las piezas de
 `scripts/table` y en `main.gd`. En headless (sin dispositivo de audio) no tira errores.
+
+### Música por mesa (M-04)
+`Music` (autoload) reproduce la playlist de la mesa por el bus **Música**: orden aleatorio que no
+repite el tema anterior seguido y crossfade (`crossfade_time`, 2 s) entre dos `AudioStreamPlayer`.
+La lista sale del campo `playlist` de `TableTheme` (`PackedStringArray` de rutas `res://...`,
+vacía por defecto = silencio, sin errores; también en headless sin dispositivo de audio).
+`main.gd` llama a `Music.play_table(table_id)` al entrar a la mesa y a `Music.stop()` al salir.
+API: `play_table(id)`, `play_list(items)` (streams, rutas o Dictionary con `stream`/`path`),
+`next_track()`, `stop()`. La señal `track_changed(info)` trae `id`, `title`, `author`, `license`,
+`source`, `path` e `index`; si la ruta está en `credits.json` se completan de ahí (M-05 mostrará
+"Sonando: ..." con esto; la UI todavía no existe).
 
 ### Cómo está armada la física (para quien viene de Android)
 - La **bola** es un `RigidBody2D` con detección continua de choques (CCD) y la física corre a
