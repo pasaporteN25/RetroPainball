@@ -67,6 +67,7 @@ func on_ball_contact(ball: RigidBody2D, state: PhysicsDirectBodyState2D, point: 
 	_flash = 1.0
 	GameState.add_score.call_deferred(points if points >= 0 else GameState.active_rules().slingshot_points, (a + b) * 0.5)
 	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, n), n)
+	Sfx.play(&"slingshot", randf_range(0.95, 1.05))
 	Settings.vibrate(8)
 
 

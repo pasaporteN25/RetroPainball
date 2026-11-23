@@ -110,6 +110,7 @@ scenes/table_base.tscn      Geometría y controles compartidos
 scenes/nautilus.tscn        20.000 Leguas, con geometría y misión propias
 scripts/
   autoload/game_state.gd    Puntaje, bolas, récord, acciones de input por defecto
+  autoload/sfx.gd           Efectos base generados en código (M-02)
   main.gd                   Ciclo de la bola: sacar, drenar, salvavidas, popups
   table/                    Piezas reutilizables y arte del tablero (playfield_art.gd)
   ui/                       HUD (display 7 segmentos, vidas, pausa) y zonas táctiles
@@ -117,6 +118,13 @@ scripts/
 tests/headless/             Tests automáticos (all.gd los encuentra y corre)
 tools/test.ps1              Corre la suite
 ```
+
+### Efectos de sonido (M-02)
+No hay archivos de audio: `Sfx` (autoload) arma cada efecto como un `AudioStreamWAV` con PCM
+generado (ondas y ruido con envolvente, estilo sfxr; originales, sin licencias) y lo reproduce
+por el bus **Efectos**. Se usa con `Sfx.play(&"bumper")`. Sonidos: `flipper`, `bumper`,
+`slingshot`, `plunger`, `drain`, `ball_saved`, `jackpot`. Se enganchan en las piezas de
+`scripts/table` y en `main.gd`. En headless (sin dispositivo de audio) no tira errores.
 
 ### Cómo está armada la física (para quien viene de Android)
 - La **bola** es un `RigidBody2D` con detección continua de choques (CCD) y la física corre a

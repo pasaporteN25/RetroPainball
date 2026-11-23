@@ -68,6 +68,7 @@ func on_ball_contact(_ball: RigidBody2D, state: PhysicsDirectBodyState2D, _point
 	GameState.add_score.call_deferred(points if points >= 0 else GameState.active_rules().bumper_points, global_position)
 	impact.emit.call_deferred(ScreenShake.contact_strength(state, self, dir), dir)
 	Settings.vibrate(8)
+	Sfx.play(&"bumper", randf_range(0.92, 1.08))
 
 
 func _process(delta: float) -> void:
