@@ -15,7 +15,6 @@
 [ext_resource type="Script" path="res://scripts/ui/first_run_hint.gd" id="5_hint"]
 
 
-[ext_resource type="Script" path="res://scripts/ui/initials_entry.gd" id="6_initials"]
 
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_case"]
@@ -475,29 +474,6 @@ theme_override_font_sizes/font_size = 23
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Initials" type="Control" parent="Root/GameOver/Card"]
-offset_left = 36.0
-offset_top = 258.0
-offset_right = 484.0
-offset_bottom = 386.0
-visible = false
-script = ExtResource("6_initials")
-
-[node name="SaveInitials" type="Button" parent="Root/GameOver/Card"]
-offset_left = 36.0
-offset_top = 396.0
-offset_right = 484.0
-offset_bottom = 442.0
-focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_secondary")
-theme_override_styles/hover = SubResource("StyleBoxFlat_secondaryHover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_secondaryPressed")
-visible = false
-theme_override_colors/font_color = Color(0.654902, 0.709804, 0.72549, 1)
-theme_override_colors/font_hover_color = Color(0.952941, 0.917647, 0.847059, 1)
-theme_override_font_sizes/font_size = 23
-text = "Guardar iniciales"
-
 [node name="PlayAgain" type="Button" parent="Root/GameOver/Card"]
 offset_left = 36.0
 offset_top = 266.0
@@ -534,10 +510,6 @@ script = ExtResource("4_pause")
 script = ExtResource("5_hint")
 
 [connection signal="pressed" from="Root/Backbox/PauseButton" to="." method="_on_pause_pressed"]
-
-[connection signal="changed" from="Root/GameOver/Card/Initials" to="." method="_on_initials_changed"]
-
-[connection signal="pressed" from="Root/GameOver/Card/SaveInitials" to="." method="_save_initials"]
 
 [connection signal="pressed" from="Root/GameOver/Card/PlayAgain" to="." method="_play_again"]
 

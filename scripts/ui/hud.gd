@@ -24,15 +24,10 @@ var _t: TableTheme
 @onready var _go_score: Label = $Root/GameOver/Card/ScoreReadout/Score
 @onready var _go_record: Label = $Root/GameOver/Card/Record
 @onready var _go_bonus: Label = $Root/GameOver/Card/Bonus
-@onready var _go_entry: Control = $Root/GameOver/Card/Initials
-@onready var _go_save: Button = $Root/GameOver/Card/SaveInitials
 @onready var _go_play: Button = $Root/GameOver/Card/PlayAgain
 @onready var _go_tables: Button = $Root/GameOver/Card/Tables
 @onready var _bar_top := _bar.offset_top
 @onready var _toast_top := _toast.offset_top
-@onready var _compact_card_height := _game_over_card.size.y
-@onready var _play_top := _go_play.position.y
-@onready var _tables_top := _go_tables.position.y
 @onready var _record_font_size := _record.get_theme_font_size("font_size")
 
 var _shown_score := 0.0
@@ -55,12 +50,11 @@ func _ready() -> void:
 	_apply_theme()
 	_toast.draw.connect(_draw_toast)
 	_game_over_card.draw.connect(_draw_game_over_card)
-	_go_entry.focus_next = _go_entry.get_path_to(_go_save)
-	_go_save.focus_neighbor_top = _go_save.get_path_to(_go_entry)
-	_go_save.focus_neighbor_bottom = _go_save.get_path_to(_go_play)
+	_go_play.focus_neighbor_top = _go_play.get_path_to(_go_tables)
 	_go_play.focus_neighbor_bottom = _go_play.get_path_to(_go_tables)
 	_go_tables.focus_neighbor_top = _go_tables.get_path_to(_go_play)
-	for button: Button in [_go_save, _go_play, _go_tables]:
+	_go_tables.focus_neighbor_bottom = _go_tables.get_path_to(_go_play)
+	for button: Button in [_go_play, _go_tables]:
 		Arcade.enable_pad_accept(button)
 		button.focus_mode = Control.FOCUS_ALL
 		button.add_theme_stylebox_override("focus", Arcade.focus_ring(_t.text_color))
@@ -222,53 +216,15 @@ func _on_game_ended(final_score: int, is_record: bool) -> void:
 	var rank: int = GameState.last_result.get("rank", 0)
 	if rank > 0:
 		_go_record.text = _t.new_record_text if is_record else "¡PUESTO %d DE %d!" % [rank, Records.MAX_ENTRIES]
-		_go_entry.set_initials(GameState.pending_initials)
 	else:
 		_go_record.text = "RÉCORD  %s" % _format(GameState.high_score)
 	_go_record.add_theme_color_override("font_color", _t.game_over_record_color if rank > 0 else _t.muted_color)
-	_arrange_game_over(rank > 0)
-	_game_over.show()
-	if rank > 0:
-		_go_entry.grab_focus()
-	else:
-		_go_play.grab_focus()
-
-
-## Con puesto en el top 10 aparece el ingreso de iniciales y la tarjeta crece.
-func _arrange_game_over(entering: bool) -> void:
-	_go_entry.visible = entering
-	_go_save.visible = entering
-	var shift := 0.0
-	if entering:
-		_go_save.position.y = _go_entry.position.y + _go_entry.size.y + 10.0
-		shift = _go_save.position.y + _go_save.size.y + 10.0 - _play_top
-	_go_play.position.y = _play_top + shift
-	_go_tables.position.y = _tables_top + shift
-	_game_over_card.size.y = _compact_card_height + shift
-	_go_play.focus_neighbor_top = _go_play.get_path_to(_go_save if entering else _go_tables)
-	_go_tables.focus_neighbor_bottom = _go_tables.get_path_to(_go_entry if entering else _go_play)
-	_game_over_card.queue_redraw()
 	_layout()
-
-
-func _on_initials_changed(initials: String) -> void:
-	GameState.pending_initials = initials
-
-
-func _save_initials() -> void:
-	GameState.pending_initials = _go_entry.initials()
-	var rank := GameState.commit_pending_record()
-	if rank > 0:
-		_go_record.text = "GUARDADO  PUESTO %d" % rank
-	_go_entry.hide()
-	_go_save.hide()
-	_arrange_game_over(false)
+	_game_over.show()
 	_go_play.grab_focus()
-	_go_record.add_theme_color_override("font_color", _t.game_over_record_color)
 
 
 func _play_again() -> void:
-	GameState.commit_pending_record()
 	GameState.start_game()
 
 
@@ -325,7 +281,7 @@ func _apply_theme() -> void:
 	_tint_label(_go_bonus, _t.game_over_bonus_color)
 	_tint_label(_go_record, _t.game_over_record_color)
 	_tint_button(_go_play, toast_color, toast_color.lightened(0.32))
-	for button: Button in [_go_save, _go_tables]:
+	for button: Button in [_go_tables]:
 		button.add_theme_color_override("font_color", _t.muted_color)
 		button.add_theme_color_override("font_hover_color", _t.text_color)
 		_tint_button(button, ink, frame)
@@ -371,7 +327,6 @@ func _draw_game_over_card() -> void:
 
 
 func _open_tables() -> void:
-	GameState.commit_pending_record()
 	checkpoint_requested.emit()
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/table_select.tscn")

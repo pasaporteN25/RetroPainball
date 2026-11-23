@@ -66,9 +66,9 @@ func _ready() -> void:
 	var leaderboard := VBoxContainer.new()
 	leaderboard.add_theme_constant_override("separation", 3)
 	column.add_child(leaderboard)
-	_heading = _score_row(leaderboard, 32, 16, ["PUESTO", "INICIALES", "PUNTAJE"])
+	_heading = _score_row(leaderboard, 32, 16, ["PUESTO", "PUNTAJE"])
 	for rank in Records.MAX_ENTRIES:
-		_rows.append(_score_row(leaderboard, 43, 26, ["%d" % (rank + 1), "", ""]))
+		_rows.append(_score_row(leaderboard, 43, 26, ["%d" % (rank + 1), ""]))
 	_empty = _label("Todavía no hay récords en esta mesa", 20, HORIZONTAL_ALIGNMENT_CENTER)
 	column.add_child(_empty)
 	_build_stats(column)
@@ -123,9 +123,7 @@ func show_table(id: String) -> void:
 		style.content_margin_right = 14
 		var surface := row.get_parent() as PanelContainer
 		surface.add_theme_stylebox_override("panel", style)
-		var initials: Label = row.get_child(1)
-		initials.text = top[i]["initials"] if filled else "---"
-		var score: Label = row.get_child(2)
+		var score: Label = row.get_child(1)
 		score.text = _format(int(top[i]["score"])) if filled else "·"
 		for label: Label in row.get_children():
 			var tint := _palette.text_color if filled else _palette.muted_color.darkened(0.24)
@@ -146,12 +144,12 @@ func _score_row(parent: VBoxContainer, height: float, font_size: int, texts: Arr
 	row.add_theme_constant_override("separation", 10)
 	surface.add_child(row)
 	for i in texts.size():
-		var label := _label(texts[i], font_size, HORIZONTAL_ALIGNMENT_RIGHT if i == 2 else HORIZONTAL_ALIGNMENT_CENTER)
+		var label := _label(texts[i], font_size, HORIZONTAL_ALIGNMENT_RIGHT if i == 1 else HORIZONTAL_ALIGNMENT_CENTER)
 		row.add_child(label)
-		if i == 2:
+		if i == 1:
 			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		else:
-			label.custom_minimum_size.x = 72 if i == 0 else 106
+			label.custom_minimum_size.x = 72
 	return row
 
 
@@ -206,9 +204,8 @@ func row_texts() -> Array[String]:
 	var texts: Array[String] = []
 	for row in _rows:
 		var rank: Label = row.get_child(0)
-		var initials: Label = row.get_child(1)
-		var score: Label = row.get_child(2)
-		texts.append("%2d   %s   %s" % [int(rank.text), initials.text, score.text])
+		var score: Label = row.get_child(1)
+		texts.append("%2d   %s" % [int(rank.text), score.text])
 	return texts
 
 
