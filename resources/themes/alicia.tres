@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TableTheme" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/table_theme.gd" id="1_theme"]
+
+[resource]
+script = ExtResource("1_theme")
+table_id = "alicia"
+display_name = "Alicia"
+subtitle = "En el país de las maravillas"
+summary = "Tamaño  ·  Naipes  ·  Té Loco"
+tagline = "Encerrá dos bolas en la madriguera y servite el té"
+select_accent = Color(0.7019608, 0.14901961, 0.18039216, 1)
+records_accent = Color(0.7019608, 0.14901961, 0.18039216, 1)
+menu_accent = Color(0.7019608, 0.14901961, 0.18039216, 1)
+toast_accent = Color(0.7019608, 0.14901961, 0.18039216, 1)
+popup_font_names = PackedStringArray("serif")
+popup_color = Color(0.9254902, 0.8862745, 0.78431374, 1)
+popup_border_color = Color(0.7882353, 0.63529414, 0.2901961, 1)
+lamp_tint = Color(0.7882353, 0.63529414, 0.2901961, 1)

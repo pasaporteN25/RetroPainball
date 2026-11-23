@@ -25,6 +25,11 @@ const DEFAULT_MESSAGES := {
 	"midnight_end": "AMANECE",
 	"balls_released": "BOLAS LIBERADAS",
 	"jackpot": "¡JACKPOT!  {award}",
+	"size_small": "CHICA",
+	"size_big": "GRANDE",
+	"size_normal": "TAMAÑO NORMAL",
+	"tea_start": "¡TÉ LOCO!",
+	"tea_end": "FIN DEL TÉ",
 }
 
 @export var table_id := "kernel_panic"
@@ -72,6 +77,29 @@ const DEFAULT_MESSAGES := {
 @export var locks_for_midnight := 2
 @export var portrait_points := 250
 @export var midnight_jackpot_points := 5000
+@export_group("Alicia")
+## Puntos de cada naipe del banco (con tamaño GRANDE se multiplican por `big_card_multiplier`).
+@export var card_points := 150
+@export var big_card_multiplier := 2
+## Banco de naipes completo: premio, multiplicador y mensaje ("NAIPES COMPLETOS").
+@export var card_bank: RuleStage
+## Puntos de BEBÉ-ME / CÓMEME cada vez que cambian el tamaño.
+@export var size_change_points := 100
+## Tamaño de dibujo de los hongos según el estado (NORMAL, CHICA, GRANDE). Solo es aspecto: la física no cambia.
+@export var mushroom_draw_scale := PackedFloat32Array([1.0, 1.2, 0.85])
+@export var rabbithole_points := 300
+@export var rabbithole_hold_seconds := 1.0
+@export var alice_lock_points := 500
+## Gato de Cheshire: visible y oculto (s) en cada ciclo, premio por golpe y segundos que queda visible tras el golpe.
+@export var cheshire_visible_seconds := 4.0
+@export var cheshire_hidden_seconds := 3.0
+@export var cheshire_points := 1500
+@export var cheshire_extend_seconds := 4.0
+## Bolas encerradas que disparan Té Loco.
+@export var locks_for_tea_party := 2
+@export var teapot_points := 250
+## Jackpot de la Tetera durante Té Loco ({award} en el mensaje).
+@export var tea_jackpot: RuleStage
 @export_group("Mensajes")
 ## clave -> texto; ver DEFAULT_MESSAGES.
 @export var messages: Dictionary = {}
@@ -85,6 +113,8 @@ func _init() -> void:
 		make_stage(0, 1000, false, "CARFAX {stage}/{total}"),
 		make_stage(0, 1500, true, "¡CARFAX!  BONUS X{bonus}")]
 	carfax_stages = laps
+	card_bank = make_stage(0, 1000, true, "NAIPES COMPLETOS")
+	tea_jackpot = make_stage(0, 5000, false, "¡JACKPOT!  {award}")
 
 
 static func make_stage(threshold: int, award: int, raise: bool, message: String) -> RuleStage:

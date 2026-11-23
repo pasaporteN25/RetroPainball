@@ -17,6 +17,8 @@ signal tilt_changed(tilted: bool)
 ## G-12: cambió el kickback (rearmado o gastado) o las bolas extra pendientes.
 signal kickback_changed(ready: bool)
 signal extra_balls_changed(extra_balls: int)
+## Se perdió la bola en juego (antes de cobrar el bonus): las mesas con estado por bola lo reinician.
+signal ball_lost
 
 const BALLS_PER_GAME := 3
 ## Fracción de cada puntaje que se acumula en el bonus de la bola.
@@ -28,6 +30,7 @@ const MAX_PENDING_EXTRA := 2
 const KERNEL_PANIC := "kernel_panic"
 const NAUTILUS := "nautilus"
 const DRACULA := "dracula"
+const ALICIA := "alicia"
 const Tilt := preload("res://scripts/table/tilt.gd")
 const Records := preload("res://scripts/util/records.gd")
 ## Variable (no const) para que los tests usen un archivo propio.
@@ -238,6 +241,7 @@ func award_bonus() -> int:
 
 ## Resta una bola. Devuelve true si la partida sigue.
 func lose_ball() -> bool:
+	ball_lost.emit()
 	award_bonus()
 	_reset_tilt()
 	rearm_kickback()

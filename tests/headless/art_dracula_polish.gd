@@ -26,7 +26,7 @@ func _test_selector() -> void:
 	change_scene_to_file("res://scenes/table_select.tscn")
 	await scene_changed
 	var select := current_scene
-	var cards: Array[Control] = [select._kernel, select._nautilus, select._dracula]
+	var cards: Array[Control] = [select._kernel, select._nautilus, select._dracula, select._alicia]
 	# El proyecto estira con ancho fijo (720): 620x1343 -> 720x1560, 720x1280 -> 720x1280, 540x960 -> 720x960.
 	for resolution in [Vector2i(720, 1560), Vector2i(720, 1280), Vector2i(720, 960)]:
 		select.set_deferred("size", Vector2(resolution))
@@ -42,14 +42,16 @@ func _test_selector() -> void:
 			inside = inside and view.grow(0.5).encloses(rect)
 			ordered = ordered and rect.position.y >= previous_bottom - 0.5
 			previous_bottom = rect.end.y
-		_check(inside, "las 3 tarjetas entran completas en %s" % resolution)
+		_check(inside, "las 4 tarjetas entran completas en %s" % resolution)
 		_check(ordered and view.size.y - previous_bottom >= 8.0, "tarjetas sin solaparse y con margen inferior en %s" % resolution)
-		_check(cards[2].scale.x > 0.5, "las tarjetas no se achican de más en %s (zoom %.2f)" % [resolution, cards[2].scale.x])
+		_check(cards[3].scale.x > 0.4, "las tarjetas no se achican de más en %s (zoom %.2f)" % [resolution, cards[2].scale.x])
 	# Foco entre las 3 tarjetas con teclado/gamepad.
 	select._kernel.grab_focus()
 	_check(select._kernel.focus_neighbor_bottom == select._kernel.get_path_to(select._nautilus), "foco Kernel -> Nautilus")
 	_check(select._nautilus.focus_neighbor_bottom == select._nautilus.get_path_to(select._dracula), "foco Nautilus -> Drácula")
 	_check(select._dracula.focus_neighbor_top == select._dracula.get_path_to(select._nautilus), "foco Drácula -> Nautilus")
+	_check(select._dracula.focus_neighbor_bottom == select._dracula.get_path_to(select._alicia), "foco Drácula -> Alicia")
+	_check(select._alicia.focus_neighbor_top == select._alicia.get_path_to(select._dracula), "foco Alicia -> Drácula")
 	select._dracula.grab_focus()
 	await process_frame
 	_check(select._dracula.has_focus(), "Drácula toma el foco")

@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="TableRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/rule_stage.gd" id="1_stage"]
+[ext_resource type="Script" path="res://scripts/resources/table_rules.gd" id="2_rules"]
+
+[sub_resource type="Resource" id="Resource_cards"]
+script = ExtResource("1_stage")
+award = 1000
+raise_multiplier = true
+message = "NAIPES COMPLETOS"
+
+[sub_resource type="Resource" id="Resource_tea"]
+script = ExtResource("1_stage")
+award = 5000
+message = "¡JACKPOT!  {award}"
+
+[resource]
+script = ExtResource("2_rules")
+table_id = "alicia"
+bumper_points = 100
+slingshot_points = 10
+lane_return_points = 50
+skill_shot_award = 5000
+skill_shot_seconds = 5.0
+card_points = 150
+big_card_multiplier = 2
+card_bank = SubResource("Resource_cards")
+size_change_points = 100
+mushroom_draw_scale = PackedFloat32Array(1, 1.2, 0.85)
+rabbithole_points = 300
+rabbithole_hold_seconds = 1.0
+alice_lock_points = 500
+cheshire_visible_seconds = 4.0
+cheshire_hidden_seconds = 3.0
+cheshire_points = 1500
+cheshire_extend_seconds = 4.0
+locks_for_tea_party = 2
+teapot_points = 250
+tea_jackpot = SubResource("Resource_tea")
+messages = {
+"lock_lit": "LOCK ENCENDIDO",
+"ball_locked": "BOLA ENCERRADA",
+"balls_released": "BOLAS LIBERADAS",
+"size_small": "CHICA",
+"size_big": "GRANDE",
+"size_normal": "TAMAÑO NORMAL",
+"tea_start": "¡TÉ LOCO!",
+"tea_end": "FIN DEL TÉ"
+}

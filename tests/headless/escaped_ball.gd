@@ -14,7 +14,7 @@ func _run() -> void:
 	var game := root.get_node("GameState")
 	game.record_path = _scratch.path_join("records.cfg")
 	game.save_directory = ""
-	for path: String in ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn"]:
+	for path: String in ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn", "res://scenes/alicia.tscn"]:
 		change_scene_to_file(path)
 		await scene_changed
 		await create_timer(0.8).timeout

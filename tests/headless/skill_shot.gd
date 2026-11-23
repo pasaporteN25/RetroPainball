@@ -2,7 +2,7 @@ extends SceneTree
 ## G-09: skill shot según la potencia del lanzador, en las tres mesas.
 
 const Ball := preload("res://scripts/table/ball.gd")
-const TABLES := ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn"]
+const TABLES := ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn", "res://scenes/alicia.tscn"]
 
 var _state: Node
 var _table: Node2D

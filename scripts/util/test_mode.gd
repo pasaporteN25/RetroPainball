@@ -105,6 +105,13 @@ func jump_to_multiball() -> bool:
 		rules.start_midnight()
 		GameState.say("MULTIBOLA (PRUEBAS)")
 		return true
+	var alice := table.get_node_or_null("AliceRules")
+	if alice:
+		# Té Loco termina sola con una bola en juego, así que primero hay que tener varias.
+		_ensure_balls(2)
+		alice.start_tea_party()
+		GameState.say("MULTIBOLA (PRUEBAS)")
+		return true
 	var mission := table.get_node_or_null("DepthMission")
 	if mission:
 		# El jackpot de 20.000 Leguas suelta dos bolas desde el kraken si hay una sola en juego.
