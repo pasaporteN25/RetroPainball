@@ -1,0 +1,22 @@
+{
+  "entries": [
+    {
+      "id": "nautilus_playfield",
+      "kind": "art",
+      "title": "Fondo de la mesa 20.000 Leguas",
+      "author": "Proyecto RetroPainball",
+      "license": "original",
+      "source": "assets/nautilus_playfield.webp (agregado en el commit 2287def del repo; sin procedencia externa registrada)",
+      "path": "res://assets/nautilus_playfield.webp"
+    },
+    {
+      "id": "app_icon",
+      "kind": "art",
+      "title": "Ícono de la aplicación",
+      "author": "Proyecto RetroPainball",
+      "license": "original",
+      "source": "icon.svg (en el repo desde el commit c779267)",
+      "path": "res://icon.svg"
+    }
+  ]
+}

@@ -92,6 +92,15 @@ adb install -r build/pinball-debug.apk
 
 O desde el editor, con el teléfono conectado por USB y la depuración activada: el ícono de Android arriba a la derecha (*Remote Debug*).
 
+## Licencias y créditos
+
+Todo asset de terceros (música, fuentes, arte) se registra en `resources/credits.json`; el test `tests/headless/credits.gd` lo valida. Cada entrada lleva:
+
+- `id` (único), `kind` (`music`, `font` o `art`), `title`, `author`, `license`, `source` (URL o procedencia) y, opcional, `path` (`res://...`; el test verifica que exista).
+- `license` solo puede ser `CC0`, `CC-BY`, `CC-BY-SA`, `OFL`, `MIT`, `public-domain` u `original`. Nada NC ni ND.
+
+Para M-03/M-05: agregar una entrada por pista o fuente antes de subir el archivo; el aviso "Sonando" y la pantalla de créditos pueden leer este mismo JSON.
+
 ## Estructura
 
 ```
