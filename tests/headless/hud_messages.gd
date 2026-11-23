@@ -15,8 +15,15 @@ func _run() -> void:
 	var scratch := "user://test_hud_%d" % OS.get_process_id()
 	state.save_directory = scratch
 	state.record_path = scratch + "/records.cfg"
-	var hud = load("res://scripts/ui/hud.gd").new()
+	var hud = load("res://scenes/ui/hud.tscn").instantiate()
+	check(hud.has_node("Root/Backbox/ScoreWell/Glass/Display") and hud.has_node("Root/Status/Message"), "el display y los avisos son nodos editables")
 	root.add_child(hud)
+	var bar: Rect2 = hud._bar.get_global_rect()
+	var viewport: Rect2 = root.get_visible_rect()
+	check(viewport.encloses(bar) and is_equal_approx(bar.get_center().x, viewport.get_center().x), "la barra queda centrada dentro del viewport vertical")
+	check(hud._lamps.total == state.BALLS_PER_GAME and hud._lamps.lit == state.balls_left, "el HUD arranca con las lámparas de GameState")
+	state.balls_changed.emit(1)
+	check(hud._lamps.lit == 1, "las lámparas se actualizan al cambiar las bolas")
 	hud.show_message("primero")
 	hud.show_message("viejo")
 	hud.show_message("¡JACKPOT!")

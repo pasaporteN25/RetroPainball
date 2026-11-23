@@ -134,6 +134,7 @@ scenes/table_select.tscn    Selector de mesas
 scenes/main.tscn            Mesa base y Kernel Panic
 scenes/table_base.tscn      Geometría y controles compartidos
 scenes/nautilus.tscn        20.000 Leguas, con geometría y misión propias
+scenes/ui/hud.tscn          HUD compartido, editable en el editor
 scripts/
   autoload/game_state.gd    Puntaje, bolas, récord, acciones de input por defecto
   autoload/sfx.gd           Efectos base generados en código (M-02)
@@ -145,6 +146,12 @@ scripts/
 tests/headless/             Tests automáticos (all.gd los encuentra y corre)
 tools/test.ps1              Corre la suite
 ```
+
+### HUD (U-01)
+
+Abrí `scenes/ui/hud.tscn` para editar el layout del marcador, los avisos y el panel de fin de partida. El HUD
+se centra en el viewport vertical, respeta el margen seguro y lee los colores de `TableTheme` al cargar la mesa.
+El display de siete segmentos y las lámparas se dibujan en vector. Los tests están en `hud_messages.gd` y `table_theme.gd`.
 
 ### Efectos de sonido (M-02)
 No hay archivos de audio: `Sfx` (autoload) arma cada efecto como un `AudioStreamWAV` con PCM

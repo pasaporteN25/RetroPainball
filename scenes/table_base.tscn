@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://scripts/table/bumper.gd" id="4_bumper"]
 [ext_resource type="Script" path="res://scripts/table/slingshot.gd" id="5_sling"]
 [ext_resource type="Script" path="res://scripts/table/plunger.gd" id="6_plunger"]
-[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="7_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="7_hud"]
 [ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="8_touch"]
 [ext_resource type="Script" path="res://scripts/table/playfield_art.gd" id="9_art"]
 
@@ -195,8 +195,7 @@ script = ExtResource("15_kick")
 [node name="TouchControls" type="CanvasLayer" parent="."]
 script = ExtResource("8_touch")
 
-[node name="HUD" type="CanvasLayer" parent="."]
-script = ExtResource("7_hud")
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
 
 [node name="ScreenShake" type="Node" parent="."]
 script = ExtResource("12_shake")

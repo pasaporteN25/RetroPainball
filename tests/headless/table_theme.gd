@@ -38,19 +38,28 @@ func _run() -> void:
 
 	# El HUD toma el color del display y de las etiquetas desde el tema.
 	state.table_id = "kernel_panic"
-	var hud = load("res://scripts/ui/hud.gd").new()
+	var hud = load("res://scenes/ui/hud.tscn").instantiate()
 	root.add_child(hud)
 	check(hud._t == kernel, "el HUD lee el tema de la mesa activa")
 	check(hud._display.on_color == kernel.display_color, "el display usa display_color del tema")
-	hud.free()
-	var tinted: TableTheme = nautilus.duplicate()
-	tinted.display_color = Color("#123456")
-	check(tinted.display_color != nautilus.display_color, "el tema es editable por mesa")
+	var original_display := nautilus.display_color
+	var original_lamps := nautilus.balls_label_color
+	var original_frame := nautilus.panel_frame_color
+	nautilus.display_color = Color("#123456")
+	nautilus.balls_label_color = Color("#ffe1a3")
+	nautilus.panel_frame_color = Color("#765632")
 	state.table_id = "nautilus"
-	var hud2 = load("res://scripts/ui/hud.gd").new()
+	var hud2 = load("res://scenes/ui/hud.tscn").instantiate()
 	root.add_child(hud2)
 	check(hud2._t == nautilus, "el HUD de Nautilus lee el tema de Nautilus")
+	check(hud2._display.on_color == nautilus.display_color and hud2._lamps.on_color == nautilus.balls_label_color, "display y lámparas toman el color de su tema")
+	check(hud2._bar.get_theme_stylebox("panel").border_color == nautilus.panel_frame_color, "el marco toma el color de su tema")
+	check(hud._bar.get_theme_stylebox("panel").border_color == kernel.panel_frame_color, "aplicar otro tema no cambia el estilo del HUD anterior")
 	hud2.free()
+	hud.free()
+	nautilus.display_color = original_display
+	nautilus.balls_label_color = original_lamps
+	nautilus.panel_frame_color = original_frame
 
 	var popup = load("res://scripts/fx/score_popup.gd").new()
 	popup.setup(100, Vector2(300, 300), Color.WHITE)
