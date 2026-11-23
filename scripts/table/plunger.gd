@@ -91,6 +91,7 @@ func _fire() -> void:
 	charge = 0.0
 	_launch_flash = 1.0
 	Settings.vibrate(20)
+	Sfx.play(&"plunger", lerpf(0.9, 1.15, power))
 	launched.emit(power)
 
 

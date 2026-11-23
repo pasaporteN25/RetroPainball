@@ -298,10 +298,12 @@ func _on_drain(body: Node2D) -> void:
 		_art.set_ball_save_fraction(0.0)
 		_burst(Vector2(336.0, 1368.0), MINT, 25.0, 12)
 		GameState.say("¡BOLA SALVADA!")
+		Sfx.play(&"ball_saved")
 		_schedule_serve()
 		save_run.call_deferred()
 		return
 	_burst(Vector2(body.position.x, 1388.0), CORAL, 8.0, 7, Vector2.DOWN * 90.0)
+	Sfx.play(&"drain")
 	if GameState.lose_ball():
 		# Si se cobró bonus, su aviso queda en pantalla en vez de "BOLA n".
 		if GameState.last_bonus_award == 0:
@@ -352,6 +354,7 @@ func _refresh_mission() -> void:
 
 
 func _on_jackpot() -> void:
+	Sfx.play(&"jackpot")
 	_art.flash_jackpot()
 	if ball_count() == 1:
 		var origin: Vector2 = $Table/Kraken.position

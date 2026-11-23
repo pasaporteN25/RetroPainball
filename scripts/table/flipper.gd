@@ -99,6 +99,7 @@ func _physics_process(delta: float) -> void:
 	var pressed := Input.is_action_pressed(_action) and not GameState.tilted
 	if pressed and not _was_pressed:
 		Settings.vibrate(12)
+		Sfx.play(&"flipper", randf_range(0.95, 1.05))
 	_was_pressed = pressed
 	var target := _up if pressed else _rest
 	var speed := up_speed if pressed else down_speed
