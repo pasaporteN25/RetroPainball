@@ -7,6 +7,7 @@ const Arcade := preload("res://scripts/ui/arcade_style.gd")
 const SevenSegment := preload("res://scripts/ui/seven_segment.gd")
 const BallLamps := preload("res://scripts/ui/ball_lamps.gd")
 const Records := preload("res://scripts/util/records.gd")
+const BackNav := preload("res://scripts/util/back_nav.gd")
 const Screen := preload("res://scripts/util/screen.gd")
 
 var _t: TableTheme
@@ -88,16 +89,28 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause") and GameState.playing:
-		toggle_pause()
+	# En el fin de partida solo Esc/B: la P (pausa) puede ser una letra de las iniciales.
+	var back := BackNav.is_back_event(event) if GameState.playing else (_game_over.visible and event.is_action_pressed("ui_cancel"))
+	if back:
 		get_viewport().set_input_as_handled()
+		go_back()
+
+
+## Atrás en la mesa: abre la pausa; con la pausa abierta la cierra y sigue jugando (las opciones, si
+## están abiertas, se cierran solas primero). En la pantalla de fin de partida vuelve al selector.
+func go_back() -> void:
+	if _pause.options_open() or not BackNav.claim():
+		return
+	if GameState.playing:
+		toggle_pause()
+	elif _game_over.visible:
+		_open_tables.call_deferred()
 
 
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
-			if GameState.playing:
-				toggle_pause()
+			go_back()
 		NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED:
 			if GameState.playing and not get_tree().paused:
 				toggle_pause()

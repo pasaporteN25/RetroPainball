@@ -2,6 +2,7 @@ extends Control
 ## Entrada a las mesas. Las teclas y el mando navegan los mismos botones que el touch.
 
 const Screen := preload("res://scripts/util/screen.gd")
+const BackNav := preload("res://scripts/util/back_nav.gd")
 const GameSave := preload("res://scripts/util/game_save.gd")
 const DraculaCard := preload("res://scripts/ui/dracula_card.gd")
 const AliceCard := preload("res://scripts/ui/alice_card.gd")
@@ -78,6 +79,23 @@ func _activate_card(card: Button, scene_path: String) -> void:
 		_select(index)
 	else:
 		get_tree().change_scene_to_file(scene_path)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if BackNav.is_back_event(event):
+		get_viewport().set_input_as_handled()
+		go_back()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		go_back()
+
+
+## Atrás en el selector: vuelve al título.
+func go_back() -> void:
+	if BackNav.claim():
+		get_tree().change_scene_to_file.call_deferred(BackNav.TITLE_SCENE)
 
 
 func _input(event: InputEvent) -> void:

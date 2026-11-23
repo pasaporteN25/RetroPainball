@@ -5,6 +5,7 @@ signal resume_requested
 signal tables_requested
 
 const MINT := Color("#75e6c6")
+const BackNav := preload("res://scripts/util/back_nav.gd")
 const OptionsMenu := preload("res://scripts/ui/options_menu.gd")
 
 var _accent := MINT
@@ -48,7 +49,7 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", 48)
 	title.add_theme_color_override("font_color", GameState.active_theme().text_color)
 	column.add_child(title)
-	for item in [["Continuar", _resume], ["Reiniciar partida", _restart], ["Opciones", _open_options], ["Volver a mesas", _tables]]:
+	for item in [["Continuar", _resume], ["Reiniciar partida", _restart], ["Opciones", _open_options], ["Mesas", _tables]]:
 		var button := Button.new()
 		button.name = item[0].replace(" ", "")
 		button.text = item[0]
@@ -116,6 +117,10 @@ func _apply_theme() -> void:
 		focus.set_corner_radius_all(10)
 		focus.set_expand_margin_all(4)
 		button.add_theme_stylebox_override("focus", focus)
+
+
+func options_open() -> bool:
+	return _options.is_open()
 
 
 func _open_options() -> void:

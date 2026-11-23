@@ -75,6 +75,21 @@ jackpots cobrados (20.000 Leguas, Drácula y Alicia). Se guardan en el mismo arc
 | Lanzar (mantener = cargar) | mitad derecha, con la bola en el carril | `Espacio` `↓` `Enter` | A |
 | Pausa | botón `II` arriba / atrás de Android | `Esc` `P` | Start |
 
+## Atrás en cada pantalla
+
+El atrás de Android (botón o gesto), `Esc` y B del mando hacen lo mismo. La lógica vive en cada pantalla (`go_back()`)
+con el helper `scripts/util/back_nav.gd`, que evita atender dos veces un mismo atrás (notificación + tecla) en un frame.
+
+| Pantalla | Qué hace atrás |
+|---|---|
+| Título | Avisa "Tocá atrás otra vez para salir"; un segundo atrás dentro de 2 s cierra la app |
+| Selector de mesas | Vuelve al título |
+| Mesa jugando | Abre la pausa (guarda la partida) |
+| Pausa | Cierra la pausa y sigue jugando; el botón **Mesas** vuelve al selector |
+| Opciones (título o pausa) | Cierra y vuelve a la pantalla anterior (título o pausa) |
+| Récords | Vuelve a la pantalla desde donde se abrió (título o selector) |
+| Fin de partida | Vuelve al selector (como **Mesas**) |
+
 ## Tests (definición de hecho)
 
 Un solo comando corre todos los tests de `tests/headless/`. Cada uno corre en su propio proceso, y un test nuevo entra solo:

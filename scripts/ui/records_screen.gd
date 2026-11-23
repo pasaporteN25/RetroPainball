@@ -2,6 +2,7 @@ extends Control
 ## Pantalla de récords: el top 10 de cada mesa. Se abre desde el selector de mesas.
 
 const Arcade := preload("res://scripts/ui/arcade_style.gd")
+const BackNav := preload("res://scripts/util/back_nav.gd")
 const Records := preload("res://scripts/util/records.gd")
 const TABLE_IDS := [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA, GameState.ALICIA]
 const STAT_LABELS := ["PARTIDAS", "MEJOR BOLA", "JACKPOTS"]
@@ -210,11 +211,17 @@ func row_texts() -> Array[String]:
 
 
 func _close() -> void:
-	get_tree().change_scene_to_file("res://scenes/table_select.tscn")
+	if BackNav.claim():
+		get_tree().change_scene_to_file.call_deferred(BackNav.take_records_return())
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_close()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
+	if BackNav.is_back_event(event):
 		_close()
 		get_viewport().set_input_as_handled()
 
