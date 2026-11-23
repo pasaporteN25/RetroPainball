@@ -41,7 +41,6 @@ func _run() -> void:
 	_check(stats["games"] == 2 and stats["best_ball"] == 4000 and stats["jackpots"] == 3, "la segunda partida no baja el máximo ni repite jackpots")
 
 	_check(state.table_stats("dracula")["games"] == 0, "cada mesa tiene sus estadísticas")
-	state.commit_pending_record()
 	_check(Records.load_top(path, "nautilus").size() >= 1 and state.table_stats("nautilus")["games"] == 2, "las estadísticas conviven con el top de récords")
 
 	var cfg := ConfigFile.new()

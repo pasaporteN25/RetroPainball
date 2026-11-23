@@ -58,13 +58,11 @@ Cada mesa guarda automáticamente su partida en curso. Si volvés al selector o 
 juego, elegí la mesa marcada **Continuar**. Se recuperan el puntaje, las bolas en juego, el tiempo
 del salvavidas y el progreso de 20.000 Leguas. La opción **Reiniciar** de la pausa empieza otra partida.
 
-Cada mesa guarda su top 10 con tres iniciales estilo arcade. Al terminar la partida se ve el puntaje, el bonus
-cobrado y el puesto logrado; si entra al top, se eligen las iniciales con las flechas (o el teclado) y se
-elige **Otra partida** o **Mesas**. El botón **Récords** del selector abre la lista de cada mesa.
+Cada mesa guarda su top 10 de puntajes, sin nombres: al terminar la partida el puntaje se guarda solo. Se ve el
+puntaje, el bonus cobrado y el puesto logrado (o "NUEVO RÉCORD"), y se elige **Otra partida** o **Mesas**. El botón
+**Récords** del selector abre la lista de cada mesa. Los récords viejos con iniciales se leen igual y se muestran sin nombre.
 
-Opciones, Récords e iniciales usan paneles neón con la paleta de cada mesa y foco visible al navegar.
-En las iniciales, elegí el casillero con ←/→ y la letra con ↑/↓. Enter o A lleva el foco a **Guardar iniciales**.
-También podés escribir las letras o tocar las flechas en pantalla.
+Opciones y Récords usan paneles neón con la paleta de cada mesa y foco visible al navegar.
 
 Cada mesa también lleva estadísticas (U-09): partidas jugadas, mejor bola (los puntos más altos de una sola bola) y
 jackpots cobrados (20.000 Leguas, Drácula y Alicia). Se guardan en el mismo archivo de récords, en la sección
@@ -207,7 +205,7 @@ calidad), está en [docs/BACKLOG.md](docs/BACKLOG.md).
 2. HUD final, zonas seguras finas, vibración, menú de pausa completo.
 3. Reglas (blancos abatibles, multiplicador, multibola, combos) y efectos visuales.
 4. Sistema de skins (`TableTheme` como Resource) + primera skin completa: **Kernel Panic**.
-5. Menú carrusel de mesas + top 10 de récords por mesa con iniciales.
+5. Menú carrusel de mesas + top 10 de récords por mesa (sin nombres).
 6. Música: OST abierta con créditos, modo "mi música" y plugin Android en Kotlin.
 7. Las otras 4 skins: 20.000 Leguas, Drácula, Baker Street, Alicia.
 8. Modo de pruebas, idiomas es/en, CI y Play Store.

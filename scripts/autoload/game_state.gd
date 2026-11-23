@@ -87,11 +87,9 @@ var best_ball := 0
 var jackpots := 0
 ## Bonus cobrado en total durante la partida (se muestra al terminar).
 var bonus_total := 0
-## Resultado de la última partida terminada y si aún espera iniciales (U-05, U-06).
+## Resultado de la última partida terminada (U-05, U-06).
 ## Claves: score, bonus_total, rank (0 = no entra al top), key, table_id.
 var last_result := {}
-var pending_record := false
-var pending_initials := Records.DEFAULT_INITIALS
 var tilted: bool:
 	get:
 		return tilt.tilted
@@ -139,7 +137,6 @@ func _set_active_run(new_score: int, new_balls_left: int) -> void:
 	ball_points = 0
 	best_ball = 0
 	jackpots = 0
-	commit_pending_record()
 	extra_balls = 0
 	extra_awarded = 0
 	last_ball_replayed = false
@@ -169,7 +166,6 @@ func select_table(id: String) -> void:
 
 
 func leave_game() -> void:
-	commit_pending_record()
 	playing = false
 	_reset_tilt()
 	ball_in_lane = false
@@ -304,10 +300,9 @@ func end_game() -> void:
 		high_score = score
 		_save_record()
 	var key := records_key()
-	var rank := Records.rank_for(Records.load_top(record_path, key), score)
+	# El puntaje se guarda solo, sin nombre ni pasos extra (U-05).
+	var rank := Records.add(record_path, key, score)
 	last_result = {"score": score, "bonus_total": bonus_total, "rank": rank, "key": key, "table_id": table_id}
-	pending_record = rank > 0
-	pending_initials = Records.load_last_initials(record_path)
 	game_ended.emit(score, is_record)
 
 
@@ -328,19 +323,6 @@ func records_key() -> String:
 
 func top_scores(key := "") -> Array[Dictionary]:
 	return Records.load_top(record_path, key if not key.is_empty() else records_key())
-
-
-## Guarda la partida terminada en el top con las iniciales elegidas. Devuelve la posición
-## (0 si no hay nada pendiente). Se llama al confirmar, o sola al empezar otra partida o salir.
-func commit_pending_record() -> int:
-	if not pending_record:
-		return 0
-	pending_record = false
-	var initials := Records.clean_initials(pending_initials)
-	Records.save_last_initials(record_path, initials)
-	var rank := Records.add(record_path, str(last_result["key"]), initials, int(last_result["score"]))
-	last_result["rank"] = rank
-	return rank
 
 
 func say(text: String) -> void:

@@ -91,8 +91,8 @@ modos con nombres, playlist (M-03), entrada en el carrusel y su test (Q-04).
 | U-02 | Menú de pausa completo: continuar, reiniciar, opciones, volver al carrusel | 2 |
 | U-03 | Pantalla de título | 5 |
 | U-04 | Carrusel de mesas estilo Guitar Hero 3: mesa inclinada en perspectiva que se balancea, deslizar para cambiar, preview de música y récord | 5 |
-| U-05 | Récords: top 10 por mesa con 3 iniciales al estilo arcade, más una pantalla de récords | 5 |
-| U-06 | Fin de partida mejorado: bonus, posición en el top 10, "otra" | 5 |
+| U-05 | Récords: top 10 por mesa, más una pantalla de récords (las iniciales se quitaron: el puntaje se guarda solo, sin nombre) | 5 |
+| U-06 | Fin de partida mejorado: bonus, posición en el top 10, "otra" (sin ingreso de iniciales) | 5 |
 | U-07 | Opciones: volúmenes, vibración, altura de las zonas táctiles (o media pantalla completa), idioma | 5 |
 | U-08 | Primera partida: indicación de cómo se juega con los dos pulgares | 5 |
 | U-09 | Estadísticas por mesa (partidas, mejor bola, jackpots) | 8 |
