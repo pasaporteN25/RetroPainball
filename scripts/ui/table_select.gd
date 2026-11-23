@@ -101,7 +101,7 @@ func _layout() -> void:
 	var remaining: float = size.y - _safe_top - safe.bottom
 	# Cuatro tarjetas apiladas: 202 de encabezado, las alturas y 26 de separación entre cada una.
 	var content := 202.0 + _kernel.size.y + _nautilus.size.y + _dracula.size.y + _alicia.size.y + 3.0 * 26.0 + 20.0
-	var zoom := clampf(remaining / content, 0.45, 1.0)
+	var zoom := clampf(remaining / content, 0.35, 1.0)
 	for card in [_kernel, _nautilus, _dracula, _alicia]:
 		card.scale = Vector2.ONE * zoom
 	var left := (size.x - _kernel.size.x * zoom) * 0.5
