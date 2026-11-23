@@ -48,6 +48,10 @@ Test: `tests/headless/saucer_spinner.gd`.
    En el selector, deslizá horizontalmente o usá las flechas del teclado, mando o pantalla para elegir una mesa; tocá la tarjeta central para jugar. Se muestra su récord y la marca **Continuar** si tiene una partida guardada.
    Para cambiar de mesa, elegí **Mesas** en la pausa o al terminar la partida.
 
+El título tiene un cartel de neón vectorial, una bola con estela e insertos que se encienden
+en secuencia con los colores de las mesas. Tocá el fondo o **Tocá para jugar** para pasar
+al selector con un fundido breve. **Opciones** y **Récords** están debajo del botón principal.
+
 En Linux también podés jugar desde la raíz del proyecto con `godot --path .`.
 
 Cada mesa guarda automáticamente su partida en curso. Si volvés al selector o Android cierra el
