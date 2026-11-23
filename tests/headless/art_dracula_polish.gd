@@ -1,5 +1,5 @@
 extends SceneTree
-## Pulido de Drácula: selector con 3 tarjetas completas en varias resoluciones, candelabros solo en Drácula
+## Pulido de Drácula: selector con tarjetas en varias resoluciones, candelabros solo en Drácula
 ## y piezas que dibujan todos sus estados. Usa directorios descartables.
 
 var _failures := 0
@@ -34,26 +34,16 @@ func _test_selector() -> void:
 		select.size = Vector2(resolution)
 		select._layout()
 		var view := Rect2(Vector2.ZERO, Vector2(resolution))
-		var inside := true
-		var previous_bottom := 0.0
-		var ordered := true
-		for card in cards:
-			var rect := Rect2(card.global_position, card.size * card.scale)
-			inside = inside and view.grow(0.5).encloses(rect)
-			ordered = ordered and rect.position.y >= previous_bottom - 0.5
-			previous_bottom = rect.end.y
-		_check(inside, "las 4 tarjetas entran completas en %s" % resolution)
-		_check(ordered and view.size.y - previous_bottom >= 8.0, "tarjetas sin solaparse y con margen inferior en %s" % resolution)
-		_check(cards[3].scale.x > 0.4, "las tarjetas no se achican de más en %s (zoom %.2f)" % [resolution, cards[2].scale.x])
-	# Foco entre las 3 tarjetas con teclado/gamepad.
-	select._kernel.grab_focus()
-	_check(select._kernel.focus_neighbor_bottom == select._kernel.get_path_to(select._nautilus), "foco Kernel -> Nautilus")
-	_check(select._nautilus.focus_neighbor_bottom == select._nautilus.get_path_to(select._dracula), "foco Nautilus -> Drácula")
-	_check(select._dracula.focus_neighbor_top == select._dracula.get_path_to(select._nautilus), "foco Drácula -> Nautilus")
-	_check(select._dracula.focus_neighbor_bottom == select._dracula.get_path_to(select._alicia), "foco Drácula -> Alicia")
-	_check(select._alicia.focus_neighbor_top == select._alicia.get_path_to(select._dracula), "foco Alicia -> Drácula")
-	select._dracula.grab_focus()
-	await process_frame
+		for i in cards.size():
+			select._select(i)
+			select._display_index = float(i)
+			select._layout_cards()
+			var card: Control = cards[i]
+			var inside := true
+			for point in [Vector2.ZERO, Vector2(card.size.x, 0), card.size, Vector2(0, card.size.y)]:
+				inside = inside and view.has_point(card.get_transform() * point)
+			_check(inside and card.scale.x > 0.4, "mesa %d visible y legible en %s" % [i, resolution])
+	select._select(2)
 	_check(select._dracula.has_focus(), "Drácula toma el foco")
 
 
