@@ -89,11 +89,16 @@ func _ready() -> void:
 		test_mode.name = "TestMode"
 		add_child(test_mode)
 	GameState.select_table(table_id)
+	Music.play_table(table_id)
 	var saved := GameSave.load_run(table_id, GameState.save_directory) if not GameState.save_directory.is_empty() else {}
 	if saved.is_empty():
 		GameState.start_game()
 	else:
 		_restore_run(saved)
+
+
+func _exit_tree() -> void:
+	Music.stop()
 
 
 func _process(delta: float) -> void:

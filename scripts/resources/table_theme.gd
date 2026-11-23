@@ -54,6 +54,10 @@ const DIR := "res://resources/themes/"
 @export var popup_color := Color("#83ff91")
 @export var popup_plate_color := Color("#071b0d")
 @export var popup_border_color := Color("#83ff91")
+@export_group("Música")
+## Playlist de la mesa (M-04): rutas `res://...` de audio, registradas en `resources/credits.json`.
+## Vacía = la mesa queda en silencio (no hay música real todavía).
+@export var playlist := PackedStringArray()
 @export_group("Mesa")
 ## Color de las lamparitas del multiplicador de bonus.
 @export var lamp_tint := Color("#83ff91")
