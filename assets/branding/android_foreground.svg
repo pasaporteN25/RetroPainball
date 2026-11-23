@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="432" viewBox="0 0 108 108">
+<!-- Generado por tools/generate_app_branding.gd -->
+<g transform="translate(5.4 5.4) scale(.9)">
+<defs>
+  <radialGradient id="halo" cx=".5" cy=".5" r=".5">
+    <stop stop-color="#8cead2" stop-opacity=".47"/><stop offset=".55" stop-color="#8cead2" stop-opacity=".12"/>
+    <stop offset="1" stop-color="#8cead2" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="steel" cx=".36" cy=".26" r=".84">
+    <stop stop-color="#ffffff"/><stop offset=".3" stop-color="#e5eef2"/><stop offset=".54" stop-color="#a7bdcb"/>
+    <stop offset=".77" stop-color="#506879"/><stop offset=".91" stop-color="#7697a7"/><stop offset="1" stop-color="#d3eced"/>
+  </radialGradient>
+  <linearGradient id="flipper" x1=".3" y1="0" x2=".62" y2="1">
+    <stop stop-color="#8cead2"/><stop offset=".5" stop-color="#29817d"/><stop offset="1" stop-color="#102b39"/>
+  </linearGradient>
+</defs>
+<circle cx="62" cy="39" r="25" fill="url(#halo)"/>
+<g fill="none" stroke="#8cead2" stroke-linecap="round">
+  <path d="M29 51 Q36 43 43 41" stroke-width="4" opacity=".13"/>
+  <path d="M29 51 Q36 43 43 41 M32 40 L39 34" stroke-width="1.5" opacity=".75"/>
+  <path d="M28 64 C30 60 34 58 39 58 L73 55 C78 55 80 58 79 62 C79 65 77 67 74 68 L42 79 C31 83 23 74 28 64 Z" stroke-width="9" opacity=".08"/>
+  <path d="M28 64 C30 60 34 58 39 58 L73 55 C78 55 80 58 79 62 C79 65 77 67 74 68 L42 79 C31 83 23 74 28 64 Z" stroke-width="5" opacity=".19"/>
+</g>
+<path d="M28 64 C30 60 34 58 39 58 L73 55 C78 55 80 58 79 62 C79 65 77 67 74 68 L42 79 C31 83 23 74 28 64 Z" fill="url(#flipper)" stroke="#8cead2" stroke-width="1.85"/>
+<path d="M40 61 L73 58.5 Q76 58.5 76 61" fill="none" stroke="#dcfff6" stroke-width="1.25" stroke-linecap="round" opacity=".85"/>
+<circle cx="38" cy="69" r="5.6" fill="#132d3a" stroke="#8cead2" stroke-width="1.1"/>
+<circle cx="38" cy="69" r="1.7" fill="#d4fbf0"/>
+<circle cx="62" cy="39" r="14.5" fill="url(#steel)" stroke="#d4e8ed" stroke-width=".8"/>
+<path d="M52 37 Q54 30 61 29 M67 49 Q73 46 73.5 42" fill="none" stroke="#f5ffff" stroke-width="1.5" stroke-linecap="round" opacity=".9"/>
+</g>
+
+</svg>

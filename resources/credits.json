@@ -15,8 +15,44 @@
       "title": "Ícono de la aplicación",
       "author": "Proyecto RetroPainball",
       "license": "original",
-      "source": "icon.svg (en el repo desde el commit c779267)",
+      "source": "tools/generate_app_branding.gd",
       "path": "res://icon.svg"
+    },
+    {
+      "id": "app_icon_foreground",
+      "kind": "art",
+      "title": "Ícono adaptativo de Android (frente)",
+      "author": "Proyecto RetroPainball",
+      "license": "original",
+      "source": "tools/generate_app_branding.gd",
+      "path": "res://assets/branding/android_foreground.svg"
+    },
+    {
+      "id": "app_icon_background",
+      "kind": "art",
+      "title": "Ícono adaptativo de Android (fondo)",
+      "author": "Proyecto RetroPainball",
+      "license": "original",
+      "source": "tools/generate_app_branding.gd",
+      "path": "res://assets/branding/android_background.svg"
+    },
+    {
+      "id": "app_icon_monochrome",
+      "kind": "art",
+      "title": "Ícono temático de Android (monocromo)",
+      "author": "Proyecto RetroPainball",
+      "license": "original",
+      "source": "tools/generate_app_branding.gd",
+      "path": "res://assets/branding/android_monochrome.svg"
+    },
+    {
+      "id": "app_boot_splash",
+      "kind": "art",
+      "title": "Logo de arranque de Pinball Temático",
+      "author": "Proyecto RetroPainball",
+      "license": "original",
+      "source": "tools/generate_app_branding.gd",
+      "path": "res://assets/branding/boot_splash.png"
     }
   ]
 }

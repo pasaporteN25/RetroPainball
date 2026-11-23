@@ -117,6 +117,13 @@ adb install -r build/pinball-debug.apk
 
 O desde el editor, con el teléfono conectado por USB y la depuración activada: el ícono de Android arriba a la derecha (*Remote Debug*).
 
+### Ícono y logo de arranque (A-09)
+
+El preset usa `icon.svg` y las tres capas adaptativas de 432 × 432 en `assets/branding/`.
+El splash vertical usa los acentos de las mesas y se guarda como PNG para el arranque de Godot.
+Con el proyecto ya importado, regenerá ambos desde el dibujo vectorial con
+`godot --headless --path . -s tools/generate_app_branding.gd`.
+
 ## Licencias y créditos
 
 Todo asset de terceros (música, fuentes, arte) se registra en `resources/credits.json`; el test `tests/headless/credits.gd` lo valida. Cada entrada lleva:
