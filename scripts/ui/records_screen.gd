@@ -9,7 +9,7 @@ const AMBER := Color("#ffbc6b")
 const IVORY := Color("#f3ead8")
 const STEEL := Color("#a7b5b9")
 const FRAME := Color("#435052")
-const TABLE_IDS := [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA]
+const TABLE_IDS := [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA, GameState.ALICIA]
 
 var table_id := GameState.KERNEL_PANIC
 ## [id, nombre, acento] de cada mesa, tomados de su TableTheme (S-01).

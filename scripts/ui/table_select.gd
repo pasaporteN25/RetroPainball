@@ -4,6 +4,7 @@ extends Control
 const Screen := preload("res://scripts/util/screen.gd")
 const GameSave := preload("res://scripts/util/game_save.gd")
 const DraculaCard := preload("res://scripts/ui/dracula_card.gd")
+const AliceCard := preload("res://scripts/ui/alice_card.gd")
 const NAUTILUS_PRINT := preload("res://assets/nautilus_playfield.webp")
 const INK := Color("#071119")
 const MINT := Color("#8cead2")
@@ -13,6 +14,7 @@ const IVORY := Color("#edf2df")
 var _kernel: Button
 var _nautilus: Button
 var _dracula: Button
+var _alicia: Button
 var _records: Button
 var _heading: FontVariation
 var _serif: SystemFont
@@ -30,10 +32,13 @@ func _ready() -> void:
 	_kernel = _make_card(GameState.active_theme(GameState.KERNEL_PANIC).display_name, GameState.KERNEL_PANIC, 432.0, "res://scenes/main.tscn")
 	_nautilus = _make_card(GameState.active_theme(GameState.NAUTILUS).display_name, GameState.NAUTILUS, 646.0, "res://scenes/nautilus.tscn")
 	_dracula = _make_card(GameState.active_theme(GameState.DRACULA).display_name, GameState.DRACULA, 444.0, "res://scenes/dracula.tscn")
+	_alicia = _make_card(GameState.active_theme(GameState.ALICIA).display_name, GameState.ALICIA, 444.0, "res://scenes/alicia.tscn")
 	_kernel.focus_neighbor_bottom = _kernel.get_path_to(_nautilus)
 	_nautilus.focus_neighbor_top = _nautilus.get_path_to(_kernel)
 	_nautilus.focus_neighbor_bottom = _nautilus.get_path_to(_dracula)
 	_dracula.focus_neighbor_top = _dracula.get_path_to(_nautilus)
+	_dracula.focus_neighbor_bottom = _dracula.get_path_to(_alicia)
+	_alicia.focus_neighbor_top = _alicia.get_path_to(_dracula)
 	_records = _make_records_button()
 	_kernel.focus_neighbor_top = _kernel.get_path_to(_records)
 	_records.focus_neighbor_bottom = _records.get_path_to(_kernel)
@@ -73,7 +78,7 @@ func _make_card(title: String, table_id: String, height: float, scene_path: Stri
 	if not GameState.save_directory.is_empty():
 		has_save = not GameSave.load_run(table_id, GameState.save_directory).is_empty()
 	var card := Button.new()
-	card.name = {GameState.NAUTILUS: "Nautilus", GameState.DRACULA: "Dracula"}.get(table_id, "KernelPanic")
+	card.name = {GameState.NAUTILUS: "Nautilus", GameState.DRACULA: "Dracula", GameState.ALICIA: "Alicia"}.get(table_id, "KernelPanic")
 	card.text = title
 	card.tooltip_text = "Continuar " + title if has_save else title
 	card.size = Vector2(624, height)
@@ -94,16 +99,17 @@ func _layout() -> void:
 	var safe := Screen.safe_insets(get_viewport())
 	_safe_top = safe.top
 	var remaining: float = size.y - _safe_top - safe.bottom
-	# Tres tarjetas apiladas: 202 de encabezado, las alturas y 26 de separación entre cada una.
-	var content := 202.0 + _kernel.size.y + _nautilus.size.y + _dracula.size.y + 2.0 * 26.0 + 20.0
+	# Cuatro tarjetas apiladas: 202 de encabezado, las alturas y 26 de separación entre cada una.
+	var content := 202.0 + _kernel.size.y + _nautilus.size.y + _dracula.size.y + _alicia.size.y + 3.0 * 26.0 + 20.0
 	var zoom := clampf(remaining / content, 0.45, 1.0)
-	for card in [_kernel, _nautilus, _dracula]:
+	for card in [_kernel, _nautilus, _dracula, _alicia]:
 		card.scale = Vector2.ONE * zoom
 	var left := (size.x - _kernel.size.x * zoom) * 0.5
 	_records.position = Vector2(size.x - _records.size.x - 24.0, _safe_top + 6.0)
 	_kernel.position = Vector2(left, _safe_top + 202.0 * zoom)
 	_nautilus.position = _kernel.position + Vector2(0, (_kernel.size.y + 26.0) * zoom)
 	_dracula.position = _nautilus.position + Vector2(0, (_nautilus.size.y + 26.0) * zoom)
+	_alicia.position = _dracula.position + Vector2(0, (_dracula.size.y + 26.0) * zoom)
 	queue_redraw()
 
 
@@ -124,18 +130,21 @@ func _draw() -> void:
 func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
 	var nautical := table_id == GameState.NAUTILUS
 	var vampiric := table_id == GameState.DRACULA
+	var wonderland := table_id == GameState.ALICIA
 	var bounds := Rect2(Vector2.ZERO, card.size)
 	var theme := GameState.active_theme(table_id)
 	var accent := theme.select_accent
 	var active := card.has_focus() or card.is_hovered()
 	card.draw_rect(bounds, Color("#12232a") if active else Color("#101d24"))
-	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else (214 if vampiric else 242))
+	var illustration := Rect2(7, 7, bounds.size.x - 14, 416 if nautical else (214 if (vampiric or wonderland) else 242))
 	if nautical:
 		var texture_size := NAUTILUS_PRINT.get_size()
 		var crop := Rect2(0, 42, texture_size.x, texture_size.x * illustration.size.y / illustration.size.x)
 		card.draw_texture_rect_region(NAUTILUS_PRINT, illustration, crop, Color("#f0eee4"))
 	elif vampiric:
 		DraculaCard.draw(card, illustration)
+	elif wonderland:
+		AliceCard.draw(card, illustration)
 	else:
 		_draw_kernel(card, illustration)
 	if has_save:
@@ -150,8 +159,8 @@ func _draw_card(card: Button, table_id: String, has_save: bool) -> void:
 	var summary := theme.summary
 	var left := 29.0
 	var font := ThemeDB.fallback_font
-	card.draw_string(_serif if (nautical or vampiric) else _heading, Vector2(left, text_start + 64),
-		headline, HORIZONTAL_ALIGNMENT_LEFT, -1, 50 if (nautical or vampiric) else 46, accent)
+	card.draw_string(_serif if (nautical or vampiric or wonderland) else _heading, Vector2(left, text_start + 64),
+		headline, HORIZONTAL_ALIGNMENT_LEFT, -1, 50 if (nautical or vampiric or wonderland) else 46, accent)
 	card.draw_string(_heading, Vector2(left, text_start + 103),
 		subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, 27, IVORY)
 	card.draw_string(font, Vector2(left, text_start + 143),

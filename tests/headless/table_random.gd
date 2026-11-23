@@ -2,7 +2,7 @@ extends SceneTree
 ## Q-04: juega al azar en cada mesa (semilla fija) y comprueba que ninguna bola se escapa del
 ## campo, se queda quieta, vuelve al carril de saque o pasa mucho tiempo sin bajar a los flippers.
 
-const MESAS := ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn"]
+const MESAS := ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn", "res://scenes/alicia.tscn"]
 const SIM_SECONDS := 60.0
 const STEP := 0.1
 const LANE_X := 670.0

@@ -16,10 +16,10 @@ func _run() -> void:
 	state.save_directory = ""
 	state.record_path = "user://test_table_theme_%d_records.cfg" % OS.get_process_id()
 	# Valores que hoy salen del código: el aspecto no puede cambiar.
-	var ids := ["kernel_panic", "nautilus", "dracula"]
-	var names := {"kernel_panic": "Kernel Panic", "nautilus": "20.000 Leguas", "dracula": "Drácula"}
-	var menu := {"kernel_panic": Color("#75e6c6"), "nautilus": Color("#ffbc6b"), "dracula": Color("#75e6c6")}
-	var select := {"kernel_panic": Color("#8cead2"), "nautilus": Color("#ffd397"), "dracula": Color("#c0314d")}
+	var ids := ["kernel_panic", "nautilus", "dracula", "alicia"]
+	var names := {"kernel_panic": "Kernel Panic", "nautilus": "20.000 Leguas", "dracula": "Drácula", "alicia": "Alicia"}
+	var menu := {"kernel_panic": Color("#75e6c6"), "nautilus": Color("#ffbc6b"), "dracula": Color("#75e6c6"), "alicia": Color("#b3262e")}
+	var select := {"kernel_panic": Color("#8cead2"), "nautilus": Color("#ffd397"), "dracula": Color("#c0314d"), "alicia": Color("#b3262e")}
 	for id: String in ids:
 		check(ResourceLoader.exists("res://resources/themes/%s.tres" % id), "existe el .tres de " + id)
 		var theme: TableTheme = state.active_theme(id)
@@ -68,7 +68,7 @@ func _run() -> void:
 
 	var records = load("res://scripts/ui/records_screen.gd").new()
 	root.add_child(records)
-	check(records._tables.size() == 3 and records._tables[2][1] == "Drácula" and records._tables[1][2] == Color("#ffbc6b"), "récords lee nombres y acentos del tema")
+	check(records._tables.size() == 4 and records._tables[3][1] == "Alicia" and records._tables[2][1] == "Drácula" and records._tables[1][2] == Color("#ffbc6b"), "récords lee nombres y acentos del tema")
 	records.free()
 	print("TableTheme: %d fallos" % failures)
 	quit(1 if failures else 0)

@@ -22,7 +22,7 @@ func _run() -> void:
 	_check(current_scene.get_node_or_null("TestMode") == null, "no se crea sin el flag")
 	current_scene.free()
 	TestMode.force_enabled = true
-	for path in ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn"]:
+	for path in ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn", "res://scenes/alicia.tscn"]:
 		await _table(path)
 	Engine.time_scale = 1.0
 	quit(1 if failures else 0)
@@ -60,6 +60,9 @@ func _table(path: String) -> void:
 	var rules := main.get_node_or_null("Table/DraculaRules")
 	if rules:
 		_check(rules.midnight, "Drácula: Medianoche activa")
+	var alice := main.get_node_or_null("Table/AliceRules")
+	if alice:
+		_check(alice.tea_party, "Alicia: Té Loco activo")
 	# Bola infinita: drenar todo no gasta bolas
 	mode.handle_key(KEY_F2)
 	_check(main.infinite_balls, "%s: F2 activa bola infinita" % path)

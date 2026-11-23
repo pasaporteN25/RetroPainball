@@ -2,7 +2,7 @@ extends SceneTree
 ## G-12: el kickback devuelve la bola del outlane izquierdo una vez por bola y se rearma al perderla.
 
 const Ball := preload("res://scripts/table/ball.gd")
-const TABLES := ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn"]
+const TABLES := ["res://scenes/main.tscn", "res://scenes/nautilus.tscn", "res://scenes/dracula.tscn", "res://scenes/alicia.tscn"]
 
 var _state: Node
 var _table: Node2D

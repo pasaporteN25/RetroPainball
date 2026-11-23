@@ -2,7 +2,7 @@ extends SceneTree
 ## S-03 / G-13: cada mesa tiene su TableRules válido, los valores por defecto son los de siempre y
 ## cambiar un valor del Resource cambia el puntaje o el mensaje real (Drácula y Nautilus con piezas reales).
 
-const IDS := ["kernel_panic", "nautilus", "dracula"]
+const IDS := ["kernel_panic", "nautilus", "dracula", "alicia"]
 var _game: Node
 var _checks := 0
 var _errors := 0
@@ -22,6 +22,7 @@ func _run() -> void:
 	_test_resources()
 	_test_stages_and_text()
 	await _test_dracula()
+	await _test_alicia()
 	await _test_nautilus_mission()
 	_finish()
 
@@ -105,6 +106,43 @@ func _test_dracula() -> void:
 	_check(_game.score == before + 1234, "el jackpot de la Medianoche sale de TableRules")
 	rules.midnight_jackpot_points = 5000
 	_check(portrait != null, "el retrato existe")
+
+
+func _test_alicia() -> void:
+	if not _check(change_scene_to_file("res://scenes/alicia.tscn") == OK, "abre Alicia"):
+		return
+	await scene_changed
+	await process_frame
+	_game.start_game()
+	var rules: TableRules = _game.active_rules()
+	_check(rules.table_id == "alicia" and rules.card_bank != null and rules.tea_jackpot != null, "Alicia carga sus reglas y etapas")
+	var table := current_scene.get_node("Table")
+	var alice := table.get_node("AliceRules")
+	var card := table.get_node("Cards").get_child(0)
+	var before: int = _game.score
+	card.strike()
+	_check(_game.score == before + rules.card_points, "el naipe paga lo que dice TableRules")
+	rules.card_points = 321
+	before = _game.score
+	table.get_node("Cards").get_child(1).strike()
+	_check(_game.score == before + 321, "cambiar card_points cambia el puntaje real")
+	rules.card_points = 150
+	var old_award := rules.tea_jackpot.award
+	rules.tea_jackpot.award = 4321
+	rules.messages = {"tea_start": "TE LOCO X"}
+	_messages.clear()
+	alice.start_tea_party()
+	_check(_messages.back() == "TE LOCO X", "el nombre del modo sale de TableRules.messages")
+	before = _game.score
+	alice._on_teapot_struck(Vector2.ZERO)
+	_check(_game.score == before + 4321, "el jackpot de la tetera sale de la etapa de TableRules")
+	rules.tea_jackpot.award = old_award
+	rules.messages = {}
+	rules.cheshire_points = 99
+	before = _game.score
+	alice._on_cheshire_struck(Vector2.ZERO)
+	_check(_game.score == before + 99, "los puntos del gato salen de TableRules")
+	rules.cheshire_points = 1500
 
 
 func _test_nautilus_mission() -> void:

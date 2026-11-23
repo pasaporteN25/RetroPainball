@@ -14,10 +14,10 @@ Las coordenadas son una propuesta: ajustar al medir la física, sin tapar el pas
 
 | Pieza | Nodo (hijo de `Table`) | Posición | Qué es |
 |---|---|---|---|
-| Madriguera | `Rabbithole` | (336,300) | Plato que retiene la bola (como el ataúd de Drácula) |
+| Madriguera | `Rabbithole` | (336,250) | Plato que retiene la bola (como el ataúd de Drácula) |
 | Banco de naipes | `Cards/Card0..Card3` | (200,440) (290,410) (382,410) (472,440) | 4 blancos fijos con forma de naipe (♠ ♥ ♦ ♣) |
-| BEBÉ-ME | `Size/DrinkMe` | (46,760) | Blanco en la pared izquierda: achica |
-| CÓMEME | `Size/EatMe` | (626,760) | Blanco en la pared derecha: agranda |
+| BEBÉ-ME | `Size/DrinkMe` | (84,640) | Blanco circular r=20 junto a la pared izquierda: achica |
+| CÓMEME | `Size/EatMe` | (588,640) | Blanco circular r=20 junto a la pared derecha: agranda |
 | Gato de Cheshire | `Cheshire` | (545,330) | Blanco circular (la sonrisa) que aparece y desaparece |
 | Hongos | `BumperLeft/Right/Bottom` | (210,610) (462,610) (336,530) | Los 3 bumpers de la base, con forma de hongo (puntaje 100) |
 | Tetera | `Teapot` | (336,830) | Blanco circular grande (r≈55); jackpot en Té Loco |
@@ -47,3 +47,12 @@ Arte a resolver: el cambio de tamaño debe leerse a primera vista (por ejemplo, 
 - `scenes/alicia.tscn`.
 - Vibración siempre con `Settings.vibrate(...)`, nunca `Input.vibrate_handheld` directo (lo valida `tests/headless/vibrate_calls.gd`).
 - Tests: `alice_rules`, `art_alicia`, `alicia_resume`, y que `table_random` (Q-04) y `table_rules` cubran la mesa nueva.
+
+## Notas de implementación (lógica)
+Coordenadas ajustadas al medir con física real (tiros desde los flippers a 1700-2800 px/s, ver `tests/headless/alice_rules.gd`):
+- **Madriguera** (336,250), colisión r=26 (antes (336,300)): más arriba y más ancha para que los tiros rápidos y las bolas que caen del arco la alcancen; devuelve la bola hacia abajo (dirección (-0.3,0.95), 760 px/s) y no la recaptura hasta que baja de y=700.
+- **BEBÉ-ME / CÓMEME** (84,640) y (588,640), r=20 (antes (46,760) y (626,760), que quedaban sobre los deflectores): sobre la pared la bola de saque, que baja siempre por el costado izquierdo, los golpeaba cuatro veces por bola. Además cada blanco ignora golpes durante 0,8 s tras uno contado.
+- Los naipes son `scripts/table/alice_playing_card.gd` (el nombre `alice_card.gd` es de la tarjeta del selector). Premio del banco y jackpot de la Tetera son `RuleStage` (`card_bank`, `tea_jackpot`).
+- Se agregó `GameState.ball_lost` (al perder la bola): reinicia el tamaño. Los hongos leen `size_state` para su escala de dibujo (`TableRules.mushroom_draw_scale`); la física no cambia.
+- El gato anima `visibility` 0..1 en 0,6 s (sin saltos 0/1) y desactiva su colisión al apagarse. No existe un "reloj de bonus" en el proyecto: la regla 5 solo afecta al jackpot.
+- Tras `cards_completed`, `cards_mask` vale 0 (no hay un `card_flipped` extra). Modo de pruebas: `AliceRules.start_tea_party()`.

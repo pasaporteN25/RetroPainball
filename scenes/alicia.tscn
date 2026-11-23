@@ -1,0 +1,165 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/table_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/table/alice_art.gd" id="2_art"]
+[ext_resource type="Script" path="res://scripts/table/alice_rules.gd" id="3_rules"]
+[ext_resource type="Script" path="res://scripts/table/alice_playing_card.gd" id="4_card"]
+[ext_resource type="Script" path="res://scripts/table/alice_size_target.gd" id="5_size"]
+[ext_resource type="Script" path="res://scripts/table/alice_cheshire.gd" id="6_cheshire"]
+[ext_resource type="Script" path="res://scripts/table/alice_rabbithole.gd" id="7_hole"]
+[ext_resource type="Script" path="res://scripts/table/alice_teapot.gd" id="8_teapot"]
+
+[sub_resource type="RectangleShape2D" id="Rectangle_card"]
+size = Vector2(44, 62)
+
+[sub_resource type="CircleShape2D" id="Circle_size"]
+radius = 20.0
+
+[sub_resource type="CircleShape2D" id="Circle_cheshire"]
+radius = 32.0
+
+[sub_resource type="CircleShape2D" id="Circle_hole"]
+radius = 26.0
+
+[sub_resource type="CircleShape2D" id="Circle_teapot"]
+radius = 55.0
+
+[node name="Alicia" instance=ExtResource("1_base")]
+table_id = "alicia"
+
+[node name="PlayfieldArt" parent="Table" index="0"]
+script = ExtResource("2_art")
+
+[node name="OuterWall" parent="Table" index="1"]
+fill_color = Color(0.071, 0.125, 0.122, 1)
+line_color = Color(0.925, 0.886, 0.784, 1)
+line_width = 6.0
+
+[node name="ShooterWall" parent="Table" index="2"]
+fill_color = Color(0.078, 0.067, 0.059, 1)
+line_color = Color(0.788, 0.635, 0.29, 1)
+
+[node name="LeftDeflector" parent="Table" index="3"]
+fill_color = Color(0.078, 0.067, 0.059, 1)
+line_color = Color(0.788, 0.635, 0.29, 1)
+
+[node name="RightDeflector" parent="Table" index="4"]
+fill_color = Color(0.078, 0.067, 0.059, 1)
+line_color = Color(0.788, 0.635, 0.29, 1)
+
+[node name="LeftInlane" parent="Table" index="5"]
+fill_color = Color(0.078, 0.067, 0.059, 1)
+line_color = Color(0.925, 0.886, 0.784, 1)
+
+[node name="RightInlane" parent="Table" index="6"]
+fill_color = Color(0.078, 0.067, 0.059, 1)
+line_color = Color(0.925, 0.886, 0.784, 1)
+
+[node name="LeftSlingshot" parent="Table" index="7"]
+color = Color(0.42, 0.329, 0.212, 1)
+rubber_color = Color(0.702, 0.149, 0.18, 1)
+
+[node name="RightSlingshot" parent="Table" index="8"]
+color = Color(0.42, 0.329, 0.212, 1)
+rubber_color = Color(0.702, 0.149, 0.18, 1)
+
+[node name="BumperLeft" parent="Table" index="9"]
+position = Vector2(210, 610)
+color = Color(0.702, 0.149, 0.18, 1)
+cap_color = Color(0.078, 0.067, 0.059, 1)
+
+[node name="BumperRight" parent="Table" index="10"]
+position = Vector2(462, 610)
+color = Color(0.184, 0.498, 0.525, 1)
+cap_color = Color(0.078, 0.067, 0.059, 1)
+
+[node name="BumperBottom" parent="Table" index="11"]
+position = Vector2(336, 530)
+color = Color(0.788, 0.635, 0.29, 1)
+cap_color = Color(0.078, 0.067, 0.059, 1)
+
+[node name="LeftFlipper" parent="Table" index="12"]
+color = Color(0.925, 0.886, 0.784, 1)
+rubber_color = Color(0.702, 0.149, 0.18, 1)
+
+[node name="RightFlipper" parent="Table" index="13"]
+color = Color(0.925, 0.886, 0.784, 1)
+rubber_color = Color(0.702, 0.149, 0.18, 1)
+
+[node name="AliceRules" type="Node" parent="Table"]
+script = ExtResource("3_rules")
+
+[node name="Cards" type="Node2D" parent="Table"]
+
+[node name="Card0" type="StaticBody2D" parent="Table/Cards"]
+position = Vector2(200, 440)
+script = ExtResource("4_card")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Cards/Card0"]
+shape = SubResource("Rectangle_card")
+
+[node name="Card1" type="StaticBody2D" parent="Table/Cards"]
+position = Vector2(290, 410)
+script = ExtResource("4_card")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Cards/Card1"]
+shape = SubResource("Rectangle_card")
+
+[node name="Card2" type="StaticBody2D" parent="Table/Cards"]
+position = Vector2(382, 410)
+script = ExtResource("4_card")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Cards/Card2"]
+shape = SubResource("Rectangle_card")
+
+[node name="Card3" type="StaticBody2D" parent="Table/Cards"]
+position = Vector2(472, 440)
+script = ExtResource("4_card")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Cards/Card3"]
+shape = SubResource("Rectangle_card")
+
+[node name="Size" type="Node2D" parent="Table"]
+
+[node name="DrinkMe" type="StaticBody2D" parent="Table/Size"]
+position = Vector2(84, 640)
+script = ExtResource("5_size")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Size/DrinkMe"]
+shape = SubResource("Circle_size")
+
+[node name="EatMe" type="StaticBody2D" parent="Table/Size"]
+position = Vector2(588, 640)
+script = ExtResource("5_size")
+kind = 1
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Size/EatMe"]
+shape = SubResource("Circle_size")
+
+[node name="Cheshire" type="StaticBody2D" parent="Table"]
+position = Vector2(545, 330)
+script = ExtResource("6_cheshire")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Cheshire"]
+shape = SubResource("Circle_cheshire")
+
+[node name="Rabbithole" type="Area2D" parent="Table"]
+z_index = -1
+position = Vector2(336, 250)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("7_hole")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Rabbithole"]
+shape = SubResource("Circle_hole")
+
+[node name="ReleaseTimer" type="Timer" parent="Table/Rabbithole"]
+one_shot = true
+
+[node name="Teapot" type="StaticBody2D" parent="Table"]
+position = Vector2(336, 830)
+script = ExtResource("8_teapot")
+
+[node name="Shape" type="CollisionShape2D" parent="Table/Teapot"]
+shape = SubResource("Circle_teapot")

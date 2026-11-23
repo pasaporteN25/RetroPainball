@@ -83,7 +83,7 @@ static func _run_path(table_id: String, directory: String) -> String:
 
 
 static func _valid_table(table_id: String) -> bool:
-	return table_id == "kernel_panic" or table_id == "nautilus" or table_id == "dracula"
+	return table_id == "kernel_panic" or table_id == "nautilus" or table_id == "dracula" or table_id == "alicia"
 
 
 static func _valid_state(state: Dictionary, table_id: String) -> bool:
@@ -119,7 +119,7 @@ static func _valid_state(state: Dictionary, table_id: String) -> bool:
 		return false
 	if state.sonar_mask < 0 or state.sonar_mask > 7 or state.depth < 0:
 		return false
-	if (table_id == "kernel_panic" or table_id == "dracula") and (state.sonar_mask != 0 or state.depth != 0):
+	if (table_id == "kernel_panic" or table_id == "dracula" or table_id == "alicia") and (state.sonar_mask != 0 or state.depth != 0):
 		return false
 	if not state.balls is Array or state.balls.size() > MAX_BALLS:
 		return false

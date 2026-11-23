@@ -41,6 +41,9 @@ func _ready() -> void:
 		_tangent_keep = phys.bumper_tangent_keep
 		physics_material_override = mat
 	_rebuild()
+	var alice_rules := get_node_or_null("../AliceRules")
+	if alice_rules and not Engine.is_editor_hint():
+		alice_rules.size_changed.connect(func(_state: int) -> void: queue_redraw())
 
 
 func _rebuild() -> void:
@@ -85,6 +88,9 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if not Engine.is_editor_hint() and GameState.table_id == GameState.ALICIA:
+		AliceVisuals.draw_mushroom(self, radius * _alice_scale(), _flash)
+		return
 	var light := color.lightened(0.14 + 0.64 * _flash)
 	var bright_radius := radius * 0.85
 	draw_circle(Vector2(4, 7), radius + 6.0, Color(0.01, 0.02, 0.03, 0.43), true, -1.0, true)
@@ -123,6 +129,15 @@ func _draw() -> void:
 	var baseline := Vector2(-width * 0.5, (font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5 - 1.0)
 	draw_string(font, baseline, label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, light)
 	draw_line(Vector2(-5.0, radius * 0.32), Vector2(5.0, radius * 0.32), Color(light, 0.7), 1.0, true)
+
+
+## Alicia: tamaño de dibujo del hongo según el tamaño de la regla. Solo es aspecto, la colisión no cambia.
+func _alice_scale() -> float:
+	var rules := get_node_or_null("../AliceRules")
+	if rules == null:
+		return 1.0
+	var scales := GameState.active_rules().mushroom_draw_scale
+	return scales[rules.size_state] if rules.size_state < scales.size() else 1.0
 
 
 func _draw_daemon(light: Color) -> void:
