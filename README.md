@@ -37,6 +37,10 @@ Cada mesa guarda su top 10 con tres iniciales estilo arcade. Al terminar la part
 cobrado y el puesto logrado; si entra al top, se eligen las iniciales con las flechas (o el teclado) y se
 elige **Otra partida** o **Mesas**. El botón **Récords** del selector abre la lista de cada mesa.
 
+Cada mesa también lleva estadísticas (U-09): partidas jugadas, mejor bola (los puntos más altos de una sola bola) y
+jackpots cobrados (20.000 Leguas, Drácula y Alicia). Se guardan en el mismo archivo de récords, en la sección
+`stats/<mesa>` (`scripts/util/table_stats.gd`), se suman al terminar cada partida y se ven bajo el top 10 de la pantalla de récords.
+
 | Acción | Touch | Teclado | Mando |
 |---|---|---|---|
 | Flipper izquierdo | mitad izquierda de la parte baja | `Z` `A` `←` | L1 |
