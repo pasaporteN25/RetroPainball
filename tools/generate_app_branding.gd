@@ -2,6 +2,7 @@ extends SceneTree
 ## Regenera el ícono, las capas Android y el splash desde el mismo dibujo vectorial.
 
 const ASSET_DIR := "res://assets/branding/"
+const STORE_DIR := "res://docs/play/"
 const INK := "#071119"
 const IVORY := "#f3ead8"
 const FLIPPER := "M28 64 C30 60 34 58 39 58 L73 55 C78 55 80 58 79 62 C79 65 77 67 74 68 L42 79 C31 83 23 74 28 64 Z"
@@ -9,7 +10,7 @@ const BALL := 'cx="62" cy="39" r="14.5"'
 const PALETTE_IDS := ["kernel_panic", "nautilus", "dracula", "alicia"]
 const LETTERS := {
 	"A": "M0 32 L11 0 L22 32 M4 21 H18",
-	"B": "M0 32 V0 H15 L21 5 V11 L16 16 H0 M16 16 L22 21 V27 L16 32 Z",
+	"B": "M0 32 V0 H15 L21 5 V11 L16 16 H0 M16 16 L22 21 V27 L16 32 H0",
 	"C": "M22 3 L18 0 H6 L0 6 V26 L6 32 H18 L22 29",
 	"E": "M21 0 H0 V32 H21 M0 16 H16",
 	"I": "M4 0 H18 M11 0 V32 M4 32 H18",
@@ -18,6 +19,7 @@ const LETTERS := {
 	"N": "M0 32 V0 L22 32 V0",
 	"O": "M6 0 H16 L22 6 V26 L16 32 H6 L0 26 V6 Z",
 	"P": "M0 32 V0 H16 L22 6 V12 L16 18 H0",
+	"R": "M0 32 V0 H16 L22 6 V12 L16 18 H0 M12 18 L22 32",
 	"T": "M0 0 H22 M11 0 V32",
 	"Á": "M0 32 L11 0 L22 32 M4 21 H18 M11 -8 L17 -13",
 }
@@ -69,7 +71,30 @@ func _generate() -> Error:
 	status = splash.load_svg_from_string(_splash(full_mark, accents))
 	if status != OK:
 		return status
-	return splash.save_png(ASSET_DIR + "boot_splash.png")
+	status = splash.save_png(ASSET_DIR + "boot_splash.png")
+	if status != OK:
+		return status
+	# Ficha de Play (P-07): ícono de 512 sin esquinas (Play aplica su máscara) y feature graphic.
+	# Van a docs/play/, que tiene .gdignore: no se importan ni entran en el AAB.
+	var store := {
+		STORE_DIR + "icon_512.png": _svg(512, 512, "0 0 108 108", plate[0]
+			+ '<rect width="108" height="108" fill="url(#plate)"/>' + plate[1]
+			+ _transform(full_mark, "translate(-16.2 -16.2) scale(1.3)")),
+		STORE_DIR + "feature_graphic.png": _feature_graphic(full_mark, accents),
+	}
+	status = DirAccess.make_dir_recursive_absolute(STORE_DIR)
+	if status != OK:
+		return status
+	for path: String in store:
+		var image := Image.new()
+		status = image.load_svg_from_string(store[path])
+		if status != OK:
+			return status
+		image.convert(Image.FORMAT_RGB8)
+		status = image.save_png(path)
+		if status != OK:
+			return status
+	return OK
 
 
 func _svg(width: int, height: int, view_box: String, body: String) -> String:
@@ -130,8 +155,8 @@ func _mark(accent: String) -> String:
 func _splash(mark: String, accents: Array[String]) -> String:
 	var body := '<rect width="720" height="1200" fill="%s"/>' % INK
 	body += _transform(mark, "translate(90 223) scale(5)")
-	body += _wordmark("PINBALL", 681, IVORY)
-	body += _wordmark("TEMÁTICO", 807, accents[0])
+	body += _wordmark("RETRO", 681, accents[0])
+	body += _wordmark("PINBALL", 807, IVORY)
 	for i in accents.size():
 		body += '<rect x="%d" y="914" width="70" height="5" rx="2.5" fill="%s"/>' % [
 			202 + i * 82, accents[i],
@@ -139,9 +164,32 @@ func _splash(mark: String, accents: Array[String]) -> String:
 	return _svg(720, 1200, "0 0 720 1200", body)
 
 
+func _feature_graphic(mark: String, accents: Array[String]) -> String:
+	var body := """
+<defs>
+  <radialGradient id="glow" cx=".3" cy=".5" r=".7">
+    <stop stop-color="#16343a"/><stop offset="1" stop-color="%s"/>
+  </radialGradient>
+</defs>
+<rect width="1024" height="500" fill="url(#glow)"/>
+""" % INK
+	for y in range(0, 500, 10):
+		body += '<rect y="%d" width="1024" height="1" fill="%s" fill-opacity=".05"/>' % [y, accents[0]]
+	body += _transform(mark, "translate(20 45) scale(3.8)")
+	body += _wordmark_at("RETRO", 470, 120, accents[0], 2.2)
+	body += _wordmark_at("PINBALL", 470, 225, IVORY, 2.6)
+	for i in accents.size():
+		body += '<rect x="%d" y="350" width="96" height="7" rx="3.5" fill="%s"/>' % [470 + i * 112, accents[i]]
+	return _svg(1024, 500, "0 0 1024 500", body)
+
+
 func _wordmark(word: String, y: int, tint: String) -> String:
+	var width := (word.length() * 29 - 7) * 2.2
+	return _wordmark_at(word, (720.0 - width) * 0.5, y, tint, 2.2)
+
+
+func _wordmark_at(word: String, x: float, y: int, tint: String, scale: float) -> String:
 	var lettering := '<g fill="none" stroke="%s" stroke-width="5.5" stroke-linecap="square" stroke-linejoin="bevel">' % tint
 	for i in word.length():
 		lettering += '<path transform="translate(%d 0)" d="%s"/>' % [i * 29, LETTERS[word[i]]]
-	var width := (word.length() * 29 - 7) * 2.2
-	return _transform(lettering + "</g>", "translate(%s %d) scale(2.2)" % [(720.0 - width) * 0.5, y])
+	return _transform(lettering + "</g>", "translate(%s %d) scale(%s)" % [x, y, scale])

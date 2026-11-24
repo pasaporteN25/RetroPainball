@@ -44,6 +44,10 @@ func _run() -> void:
 	options._zone.pressed.emit()
 	var touch := current_scene.get_node("TouchControls")
 	_check(s.touch_zone == "baja" and is_equal_approx(touch.zone_top_ratio, 0.7), "zona táctil baja llega a TouchControls")
+	var translated: bool = options.has_translations()
+	var focusable: bool = options._buttons.has(options._language)
+	_check(options._language.visible == translated and focusable == translated,
+		"Idioma solo se ve (y recibe foco) si hay traducciones cargadas")
 	options._language.pressed.emit()
 	_check(s.language == "en", "idioma guarda preferencia")
 	options._back.pressed.emit()
