@@ -46,7 +46,9 @@ Test: `tests/headless/saucer_spinner.gd`.
 
 1. Abrí Godot 4.7.2 → *Importar* → elegí `project.godot`.
 2. **F5** para abrir la pantalla de título (de ahí al selector de mesas). En la PC, el mouse simula el touch.
-   En el selector, deslizá horizontalmente o usá las flechas del teclado, mando o pantalla para elegir una mesa; tocá la tarjeta central para jugar. Se muestra su récord y la marca **Continuar** si tiene una partida guardada.
+   El selector vertical muestra tres máquinas de 8 bits dibujadas en código, con un gabinete común y un póster por mesa.
+   Deslizá, usá las flechas o la cruceta del mando para recorrerlas con un rebote. Tocá la máquina central o confirmá para jugar.
+   El cartel muestra el nombre, el mejor puntaje y el botón **Continuar** cuando hay una partida guardada.
    Para cambiar de mesa, elegí **Mesas** en la pausa o al terminar la partida.
 
 El título tiene un cartel de neón vectorial, una bola con estela e insertos que se encienden
@@ -56,7 +58,7 @@ al selector con un fundido breve. **Opciones** y **Récords** están debajo del 
 En Linux también podés jugar desde la raíz del proyecto con `godot --path .`.
 
 Cada mesa guarda automáticamente su partida en curso. Si volvés al selector o Android cierra el
-juego, elegí la mesa marcada **Continuar**. Se recuperan el puntaje, las bolas en juego, el tiempo
+juego, elegí esa mesa y tocá **Continuar**. Se recuperan el puntaje, las bolas en juego, el tiempo
 del salvavidas y el progreso de 20.000 Leguas. La opción **Reiniciar** de la pausa empieza otra partida.
 
 Cada mesa guarda su top 10 de puntajes, sin nombres: al terminar la partida el puntaje se guarda solo. Se ve el
