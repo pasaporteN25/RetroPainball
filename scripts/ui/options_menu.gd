@@ -61,7 +61,9 @@ func _ready() -> void:
 	_back.add_theme_font_size_override("font_size", 27)
 	_back.pressed.connect(close)
 	column.add_child(_back)
-	_buttons = [_vibration, _zone, _language, _back]
+	# Sin traducciones cargadas (Q-05 pendiente) el botón no cambiaría nada: se oculta.
+	_language.visible = has_translations()
+	_buttons.assign([_vibration, _zone, _language, _back] if _language.visible else [_vibration, _zone, _back])
 	for button in _buttons:
 		Arcade.enable_pad_accept(button)
 	_focus_order.append_array(_buttons)
@@ -75,6 +77,14 @@ func _ready() -> void:
 		control.focus_neighbor_right = NodePath(".")
 	_apply_theme()
 	_shade.hide()
+
+
+## true si hay un idioma distinto del español con traducción cargada.
+static func has_translations() -> bool:
+	for locale: String in TranslationServer.get_loaded_locales():
+		if not locale.begins_with("es"):
+			return true
+	return false
 
 
 func is_open() -> bool:

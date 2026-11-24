@@ -80,7 +80,21 @@ func _activate_card(card: Button, scene_path: String) -> void:
 		get_tree().change_scene_to_file(scene_path)
 
 
+## P-04: atrás (Android) o Esc vuelve a la pantalla de título.
+func go_back() -> void:
+	get_tree().change_scene_to_file("res://scenes/title.tscn")
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_node_ready():
+		go_back()
+
+
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		go_back()
+		return
 	if event.is_action_pressed("ui_left"):
 		_select(_selected - 1)
 		get_viewport().set_input_as_handled()
@@ -216,7 +230,7 @@ func _draw() -> void:
 	for y in range(0, int(size.y), 6):
 		draw_line(Vector2(0, y), Vector2(size.x, y), Color(0.41, 0.61, 0.62, 0.05))
 	var at := Vector2(size.x * 0.5, _safe_top + 94)
-	_center_text(self, _heading, "PINBALL TEMÁTICO", at, 49, IVORY)
+	_center_text(self, _heading, "RETRO PINBALL", at, 49, IVORY)
 	_center_text(self, ThemeDB.fallback_font, "Elegí una mesa", at + Vector2(0, 49), 27, MINT)
 	var record := _selected_record()
 	var accent := GameState.active_theme(_ids[_selected]).select_accent

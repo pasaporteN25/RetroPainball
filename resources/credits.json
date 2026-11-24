@@ -48,7 +48,7 @@
     {
       "id": "app_boot_splash",
       "kind": "art",
-      "title": "Logo de arranque de Pinball Temático",
+      "title": "Logo de arranque de Retro Pinball",
       "author": "Proyecto RetroPainball",
       "license": "original",
       "source": "tools/generate_app_branding.gd",

@@ -216,6 +216,12 @@ func _close() -> void:
 	get_tree().change_scene_to_file("res://scenes/table_select.tscn")
 
 
+## P-04: el botón atrás de Android hace lo mismo que Esc.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_node_ready():
+		_close()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		_close()
