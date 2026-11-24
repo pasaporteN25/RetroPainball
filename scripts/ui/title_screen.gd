@@ -6,6 +6,7 @@ const BackNav := preload("res://scripts/util/back_nav.gd")
 ## Atrás en el título: el primer atrás avisa y el segundo (dentro de EXIT_WINDOW segundos) cierra la app.
 const EXIT_WINDOW := 2.0
 const OptionsMenu := preload("res://scripts/ui/options_menu.gd")
+const ABOUT_SCENE := preload("res://scenes/about.tscn")
 const SELECT_SCENE := "res://scenes/table_select.tscn"
 const RECORDS_SCENE := "res://scenes/records.tscn"
 const TABLE_IDS := [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA, GameState.ALICIA]
@@ -65,6 +66,8 @@ const GLYPHS := {
 var _play: Button
 var _options_button: Button
 var _records_button: Button
+var _about_button: Button
+var _about: CanvasLayer
 var _options: CanvasLayer
 var _accents: Array[Color] = []
 var _insert_colors: Array[Color] = []
@@ -113,15 +116,26 @@ func _ready() -> void:
 	_options_button.pressed.connect(open_options)
 	_records_button = _make_button("Records", "Récords", 27)
 	_records_button.pressed.connect(_show_records)
+	_about_button = _make_button("About", "Acerca de", 22)
+	_about_button.pressed.connect(open_about)
 	_play.focus_neighbor_bottom = _play.get_path_to(_options_button)
 	_options_button.focus_neighbor_top = _options_button.get_path_to(_play)
 	_records_button.focus_neighbor_top = _records_button.get_path_to(_play)
+	_about_button.focus_neighbor_top = _about_button.get_path_to(_play)
 	_options_button.focus_neighbor_right = _options_button.get_path_to(_records_button)
 	_records_button.focus_neighbor_left = _records_button.get_path_to(_options_button)
+	_records_button.focus_neighbor_right = _records_button.get_path_to(_about_button)
+	_about_button.focus_neighbor_left = _about_button.get_path_to(_records_button)
 	_options = OptionsMenu.new()
 	_options.name = "OptionsMenu"
 	_options.closed.connect(_close_options)
 	add_child(_options)
+	_about = ABOUT_SCENE.instantiate()
+	_about.name = "AboutScreen"
+	_about.closed.connect(func() -> void:
+		set_process(true)
+		_about_button.grab_focus())
+	add_child(_about)
 	_exit_hint = Label.new()
 	_exit_hint.name = "ExitHint"
 	_exit_hint.text = "Tocá atrás otra vez para salir"
@@ -140,7 +154,7 @@ func _ready() -> void:
 
 
 func start() -> void:
-	if _leaving or _options.is_open():
+	if _leaving or _options.is_open() or _about.is_open():
 		return
 	_leaving = true
 	_transition.modulate.a = 0.0
@@ -168,8 +182,15 @@ func _close_options() -> void:
 	_options_button.grab_focus()
 
 
+func open_about() -> void:
+	if _leaving or _options.is_open():
+		return
+	set_process(false)
+	_about.open()
+
+
 func _show_records() -> void:
-	if not _leaving and not _options.is_open():
+	if not _leaving and not _options.is_open() and not _about.is_open():
 		BackNav.records_return = BackNav.TITLE_SCENE
 		get_tree().change_scene_to_file(RECORDS_SCENE)
 
@@ -215,12 +236,14 @@ func _layout() -> void:
 	var width := minf(560.0, size.x - 80.0)
 	var gap := 20.0
 	_play.size = Vector2(width, 96)
-	_options_button.size = Vector2((width - gap) * 0.5, 68)
+	_options_button.size = Vector2((width - gap * 2.0) / 3.0, 68)
 	_records_button.size = _options_button.size
+	_about_button.size = _options_button.size
 	var row_x := (size.x - width) * 0.5
 	var row_y := bottom - clampf(available * 0.075, 38.0, 128.0) - _options_button.size.y
 	_options_button.position = Vector2(row_x, row_y)
 	_records_button.position = _options_button.position + Vector2(_options_button.size.x + gap, 0)
+	_about_button.position = _records_button.position + Vector2(_options_button.size.x + gap, 0)
 	_play.position = Vector2(row_x, row_y - 24.0 - _play.size.y)
 	var art_height := maxf(1.0, _play.position.y - top - 70.0)
 	_art_scale = minf(size.x / ART_SIZE.x, art_height / ART_SIZE.y)
@@ -258,10 +281,10 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept") and not _options.is_open():
+	if event.is_action_pressed("ui_accept") and not _options.is_open() and not _about.is_open():
 		get_viewport().set_input_as_handled()
 		start()
-	elif BackNav.is_back_event(event) and not _options.is_open():
+	elif BackNav.is_back_event(event) and not _options.is_open() and not _about.is_open():
 		get_viewport().set_input_as_handled()
 		go_back()
 
@@ -277,7 +300,7 @@ func exit_armed() -> bool:
 
 ## Atrás en el título: doble atrás para salir de la app (con las opciones abiertas, ellas lo atienden).
 func go_back() -> void:
-	if _leaving or _options.is_open() or not BackNav.claim():
+	if _leaving or _options.is_open() or _about.is_open() or not BackNav.claim():
 		return
 	if exit_armed():
 		quit_app.call()

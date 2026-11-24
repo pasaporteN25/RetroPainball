@@ -5,6 +5,7 @@ signal closed
 
 const BackNav := preload("res://scripts/util/back_nav.gd")
 const Arcade := preload("res://scripts/ui/arcade_style.gd")
+const ABOUT_SCENE := preload("res://scenes/about.tscn")
 const ZONE_LABELS := {"media": "Mitad de pantalla", "baja": "Zona baja"}
 const LANGUAGE_LABELS := {"es": "Español", "en": "English"}
 
@@ -20,6 +21,8 @@ var _focus_order: Array[Control] = []
 var _vibration: Button
 var _zone: Button
 var _language: Button
+var _about_button: Button
+var _about: CanvasLayer
 var _back: Button
 var _buttons: Array[Button] = []
 
@@ -55,6 +58,8 @@ func _ready() -> void:
 	_vibration = _toggle(column, "Vibración", _on_vibration)
 	_zone = _toggle(column, "Zonas táctiles", _on_zone)
 	_language = _toggle(column, "Idioma", _on_language)
+	_about_button = _toggle(column, "Acerca de", open_about)
+	_about_button.text = "Acerca de"
 	_back = Button.new()
 	_back.name = "Volver"
 	_back.text = "Volver"
@@ -64,7 +69,7 @@ func _ready() -> void:
 	column.add_child(_back)
 	# Sin traducciones cargadas (Q-05 pendiente) el botón no cambiaría nada: se oculta.
 	_language.visible = has_translations()
-	_buttons.assign([_vibration, _zone, _language, _back] if _language.visible else [_vibration, _zone, _back])
+	_buttons.assign([_vibration, _zone, _language, _about_button, _back] if _language.visible else [_vibration, _zone, _about_button, _back])
 	for button in _buttons:
 		Arcade.enable_pad_accept(button)
 	_focus_order.append_array(_buttons)
@@ -76,6 +81,10 @@ func _ready() -> void:
 		control.focus_neighbor_bottom = control.focus_next
 		control.focus_neighbor_left = NodePath(".")
 		control.focus_neighbor_right = NodePath(".")
+	_about = ABOUT_SCENE.instantiate()
+	_about.name = "AboutScreen"
+	_about.closed.connect(func() -> void: _about_button.grab_focus())
+	add_child(_about)
 	_apply_theme()
 	_shade.hide()
 
@@ -92,6 +101,12 @@ func is_open() -> bool:
 	return _shade.visible
 
 
+## Abre Acerca de encima de las opciones.
+func open_about() -> void:
+	if _shade.visible:
+		_about.open()
+
+
 func open() -> void:
 	_apply_theme()
 	_refresh()
@@ -103,12 +118,13 @@ func close() -> void:
 	if not _shade.visible:
 		return
 	Settings.save_settings()
+	_about.close()
 	_shade.hide()
 	closed.emit()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _shade.visible and BackNav.is_back_event(event):
+	if _shade.visible and not _about.is_open() and BackNav.is_back_event(event):
 		get_viewport().set_input_as_handled()
 		go_back()
 
@@ -120,7 +136,7 @@ func _notification(what: int) -> void:
 
 ## Atrás: cierra las opciones y vuelve a la pantalla anterior.
 func go_back() -> void:
-	if _shade.visible and BackNav.claim():
+	if _shade.visible and not _about.is_open() and BackNav.claim():
 		close()
 
 
