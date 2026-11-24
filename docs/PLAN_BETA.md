@@ -346,3 +346,16 @@ Baker Street (S-08), callouts y voces (M-11) y el modelo de negocio (P-09).
 | 4 | Música: una opción por mesa de `docs/MUSICA.md` | F5b |
 | 5 | Dificultad: por mesa, selector Normal/Experto o modo Torneo | F1d |
 | 6 | Si la asignación de agentes de arriba te sirve o la cambiás | todo |
+
+## En espera (actualizado el 24 de noviembre de 2026)
+
+- **Música (F5): en espera.** Lucas la ve más tarde. **Antes de subir una versión a Play hay que elegir
+  algunos temas libres (CC0 o CC-BY, sin NC)**: hoy las listas de música de las cuatro mesas están vacías.
+  Hasta entonces no se publica una beta que prometa música. Lo que sigue pendiente es F5a (`docs/MUSICA.md`)
+  y F5b.
+- **Fondo de 20.000 Leguas (F4): en espera.** `assets/nautilus_playfield.webp` no tiene procedencia
+  registrada (ver `resources/credits.json`). Hay que saber de dónde salió o reemplazarlo antes de abrir
+  la prueba cerrada.
+- **Resueltas:** nombre en "Acerca de" (Lucas Felici, pasaporteN25) y licencia del código (GPL-3.0).
+- **Descartado:** F1d no incluye selector de dificultad; el juego no tiene niveles y la complejidad crece
+  de mesa en mesa.
