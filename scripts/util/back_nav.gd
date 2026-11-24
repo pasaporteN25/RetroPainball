@@ -11,6 +11,9 @@ const SELECT_SCENE := "res://scenes/table_select.tscn"
 ## Pantalla a la que vuelve Récords (la configura quien la abre; por defecto, el selector).
 static var records_return := ""
 
+## Pantalla a la que vuelve Acerca de cuando se abre como escena (la configura quien la abre; por defecto, el título).
+static var about_return := ""
+
 static var _last_frame := -1
 
 
@@ -37,4 +40,11 @@ static func reset() -> void:
 static func take_records_return() -> String:
 	var path := records_return if not records_return.is_empty() else SELECT_SCENE
 	records_return = ""
+	return path
+
+
+## Destino de Acerca de: se consume al usarlo.
+static func take_about_return() -> String:
+	var path := about_return if not about_return.is_empty() else TITLE_SCENE
+	about_return = ""
 	return path
