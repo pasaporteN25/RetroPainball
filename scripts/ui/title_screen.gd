@@ -28,6 +28,11 @@ const GLYPHS := {
 		[Vector2(0, 10), Vector2(0, 0), Vector2(4.8, 0), Vector2(6, 1.2),
 			Vector2(6, 3.8), Vector2(4.8, 5), Vector2(0, 5)],
 	],
+	"R": [
+		[Vector2(0, 10), Vector2(0, 0), Vector2(4.8, 0), Vector2(6, 1.2),
+			Vector2(6, 3.8), Vector2(4.8, 5), Vector2(0, 5)],
+		[Vector2(3.4, 5), Vector2(6, 10)],
+	],
 	"I": [[Vector2(1, 0), Vector2(5, 0)], [Vector2(3, 0), Vector2(3, 10)], [Vector2(1, 10), Vector2(5, 10)]],
 	"N": [[Vector2(0, 10), Vector2(0, 0), Vector2(6, 10), Vector2(6, 0)]],
 	"B": [
@@ -95,8 +100,8 @@ func _ready() -> void:
 		var theme := GameState.active_theme(id)
 		_accents.append(theme.select_accent)
 		_insert_colors.append(theme.lamp_tint)
-	_logo_top = _word_paths("PINBALL", Vector2(0, 159), Vector2(9.5, 10.0), 23.0)
-	_logo_bottom = _word_paths("TEMÁTICO", Vector2(0, 304), Vector2(8.0, 7.5), 18.0)
+	_logo_top = _word_paths("RETRO", Vector2(0, 159), Vector2(8.0, 7.5), 18.0)
+	_logo_bottom = _word_paths("PINBALL", Vector2(0, 279), Vector2(9.5, 10.0), 23.0)
 	for point: Vector2 in BALL_ROUTE:
 		_ball_path.add_point(point)
 	_route_length = _ball_path.get_baked_length()

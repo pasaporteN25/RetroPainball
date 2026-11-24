@@ -1,9 +1,10 @@
-# Pinball Temático
+# Retro Pinball
 
 Pinball para Android (vertical, a pantalla casi completa) con mesas temáticas.
 Motor: **Godot 4.7.2** (GDScript), renderer *Compatibility* para cubrir la mayor cantidad de teléfonos.
 
-Hay dos mesas, cada una con tres bolas, salvavidas y su propio récord local.
+Hay cuatro mesas, cada una con tres bolas, salvavidas y su propio récord local. Drácula y Alicia se
+describen en [docs/mesas/](docs/mesas/).
 
 - **Kernel Panic** es el pinball clásico. Tiene tres carriles de puntaje (BOOT, BUS A y BUS B),
   dos blancos IRQ y bumpers sobre un circuito impreso.
@@ -90,6 +91,8 @@ con el helper `scripts/util/back_nav.gd`, que evita atender dos veces un mismo a
 | Récords | Vuelve a la pantalla desde donde se abrió (título o selector) |
 | Fin de partida | Vuelve al selector (como **Mesas**) |
 
+Tests: `tests/headless/back_navigation.gd` y `tests/headless/back_button.gd`.
+
 ## Tests (definición de hecho)
 
 Un solo comando corre todos los tests de `tests/headless/`. Cada uno corre en su propio proceso, y un test nuevo entra solo:
@@ -125,8 +128,14 @@ Abre la mesa (por el selector) y aparece un cartelito amarillo en el borde izqui
 
 ## Exportar a Android
 
-El preset `Android` ya está en `export_presets.cfg` (arm64, inmersivo, permiso de vibración).
-El SDK y la clave de debug se toman de la configuración del editor.
+Hay dos presets en `export_presets.cfg`, los dos con el paquete `com.pasaporten25.retropinball`, inmersivos y
+con permiso de vibración (nada más: sin Internet):
+
+- **Android**: APK debug (arm64) para instalar con `adb`. El SDK y la clave de debug se toman de la configuración del editor.
+- **Android Play (AAB)**: AAB release firmado con Gradle (arm64 + armv7) para Google Play. Se arma con
+  `.\tools\release.ps1`; la clave de subida llega por variables de entorno y nunca va al repo.
+  Paso a paso de la clave, la ficha y las pistas de prueba en [docs/PLAY_STORE.md](docs/PLAY_STORE.md);
+  política de privacidad en [docs/PRIVACY.md](docs/PRIVACY.md). Test: `tests/headless/release_preset.gd`.
 
 ```powershell
 C:\Tools\Godot\Godot_v4.7.2-stable_win64_console.exe --headless --path . --export-debug "Android" build/pinball-debug.apk
@@ -143,7 +152,9 @@ O desde el editor, con el teléfono conectado por USB y la depuración activada:
 El preset usa `icon.svg` y las tres capas adaptativas de 432 × 432 en `assets/branding/`.
 El splash vertical usa los acentos de las mesas y se guarda como PNG para el arranque de Godot.
 Con el proyecto ya importado, regenerá ambos desde el dibujo vectorial con
-`godot --headless --path . -s tools/generate_app_branding.gd`.
+`godot --headless --path . -s tools/generate_app_branding.gd`. El mismo script genera el ícono de 512 y el
+gráfico de funciones de la ficha de Play en `docs/play/`. Las capturas de la ficha salen de
+`godot --path . -s tools/capture_screenshots.gd` (necesita ventana, no headless).
 
 ## Licencias y créditos
 

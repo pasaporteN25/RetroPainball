@@ -234,7 +234,7 @@ func _draw() -> void:
 	for y in range(0, int(size.y), 6):
 		draw_line(Vector2(0, y), Vector2(size.x, y), Color(0.41, 0.61, 0.62, 0.05))
 	var at := Vector2(size.x * 0.5, _safe_top + 94)
-	_center_text(self, _heading, "PINBALL TEMÁTICO", at, 49, IVORY)
+	_center_text(self, _heading, "RETRO PINBALL", at, 49, IVORY)
 	_center_text(self, ThemeDB.fallback_font, "Elegí una mesa", at + Vector2(0, 49), 27, MINT)
 	var record := _selected_record()
 	var accent := GameState.active_theme(_ids[_selected]).select_accent
