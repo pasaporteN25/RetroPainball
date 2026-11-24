@@ -83,7 +83,7 @@ Gráficos en `docs/play/` (se regeneran con `tools/generate_app_branding.gd` y
 > • Alicia: naipes, hongos, la tetera del Sombrerero y una Alicia que cambia de tamaño.
 >
 > Lanzador con skill shot, salvabolas, kickback, multiplicador de bonus, bola extra, nudge y TILT.
-> Top 10 por mesa con iniciales estilo arcade y estadísticas de cada mesa.
+> Top 10 de puntajes por mesa y estadísticas de cada mesa.
 > La partida se guarda sola: si salís, la continuás donde quedó.
 >
 > Sin anuncios, sin conexión a Internet y sin recopilar datos.

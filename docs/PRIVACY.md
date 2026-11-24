@@ -14,7 +14,7 @@ dispositivo.
 
 Para funcionar, el juego guarda en el almacenamiento privado de la app, solo en tu dispositivo:
 
-- los récords de cada mesa (puntaje y las tres iniciales que elijas),
+- los récords de cada mesa (solo el puntaje, sin nombre ni iniciales),
 - estadísticas de juego por mesa (partidas, mejor bola, jackpots),
 - la partida en curso, para poder continuarla,
 - tus opciones (volúmenes, vibración, zonas táctiles).
@@ -52,7 +52,7 @@ Retro Pinball is an offline pinball game for Android.
 **Data collected: none.** The game has no accounts, ads, analytics or third-party services, and it does
 not request Internet access. It does not collect, transmit, sell or share personal or device data.
 
-The game stores high scores (score and the three initials you choose), per-table statistics, the game
+The game stores high scores (score only, with no name or initials), per-table statistics, the game
 in progress and your settings in the app's private storage on your device only. This data never leaves
 the device and is deleted when you uninstall the game or clear its data.
 
