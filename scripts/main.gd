@@ -56,6 +56,9 @@ var infinite_balls := false
 var escaped_balls := 0
 var _ball_save_left := 0.0
 var _save_armed := false
+## Verdadero si el próximo saque viene de una bola salvada: ese saque no vuelve a armar el salvabolas
+## (una salvada por bola; si no, una bola que se pierde enseguida se salvaba sin límite).
+var _serving_saved := false
 var _serve_timer: Timer
 var _checkpoint_left := CHECKPOINT_INTERVAL
 var _last_saved_run := {}
@@ -235,7 +238,8 @@ func serve_ball() -> void:
 	if not GameState.playing:
 		return
 	_spawn_ball(_plunger.position + Vector2(0.0, -TablePhysics.active().ball_radius - 1.0), Vector2.ZERO)
-	_save_armed = true
+	_save_armed = not _serving_saved
+	_serving_saved = false
 	save_run()
 
 
@@ -246,6 +250,7 @@ func _on_game_started() -> void:
 		effect.queue_free()
 	_ball_save_left = 0.0
 	_save_armed = false
+	_serving_saved = false
 	_serve_timer.stop()
 	_art.set_ball_save_fraction(0.0)
 	if _mission:
@@ -303,6 +308,7 @@ func _on_drain(body: Node2D) -> void:
 		_art.set_ball_save_fraction(0.0)
 		_burst(Vector2(336.0, 1368.0), MINT, 25.0, 12)
 		GameState.say("¡BOLA SALVADA!")
+		_serving_saved = true
 		Sfx.play(&"ball_saved")
 		_schedule_serve()
 		save_run.call_deferred()

@@ -140,6 +140,7 @@ func _test_ball_save(game_state: Node) -> void:
 	check(game_state.balls_left == 3, "con salvavidas, drenar no resta bola")
 	await _wait(0.8)
 	check(_balls().size() == 1 and game_state.ball_in_lane, "con salvavidas vuelve a salir bola al carril")
+	check(not main._save_armed, "la bola que vuelve de una salvada no rearma el salvavidas (una salvada por bola)")
 
 
 func _test_game_over(game_state: Node) -> void:
