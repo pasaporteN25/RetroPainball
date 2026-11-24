@@ -22,12 +22,11 @@ message = "¡CARFAX!  BONUS X{bonus}"
 [sub_resource type="Resource" id="Resource_qtyrp"]
 script = ExtResource("1_4h3sw")
 award = 5000
-raise_multiplier = true
-message = "¡JACKPOT!  {depth} m  BONUS X{bonus}"
+message = "¡SUDO!  JACKPOT {award}"
 
 [resource]
 script = ExtResource("2_g08ji")
-kraken_jackpot = SubResource("Resource_qtyrp")
+sudo_jackpot = SubResource("Resource_qtyrp")
 carfax_stages = Array[ExtResource("1_4h3sw")]([SubResource("Resource_2ei61"), SubResource("Resource_0ss6y"), SubResource("Resource_rwitg")])
 bumper_points = 100
 slingshot_points = 10
@@ -38,3 +37,6 @@ standup_points = 225
 bank_award = 1000
 rollover_points = 125
 rollover_award = 1500
+fork_processes_needed = 2
+fork_balls = 3
+sudo_laps = 12

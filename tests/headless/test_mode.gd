@@ -56,10 +56,13 @@ func _table(path: String) -> void:
 	await physics_frame
 	await physics_frame
 	_check(main.ball_count() >= 2, "%s: F1 deja varias bolas (%d)" % [path, main.ball_count()])
-	_check(own == (path != "res://scenes/main.tscn"), "%s: usa la multibola propia de la mesa" % path)
+	_check(own, "%s: usa la multibola propia de la mesa" % path)
 	var rules := main.get_node_or_null("Table/DraculaRules")
 	if rules:
 		_check(rules.midnight, "Drácula: Medianoche activa")
+	var kernel := main.get_node_or_null("Table/KernelRules")
+	if kernel:
+		_check(kernel.multiball, "Kernel Panic: fork() activo")
 	var alice := main.get_node_or_null("Table/AliceRules")
 	if alice:
 		_check(alice.tea_party, "Alicia: Té Loco activo")

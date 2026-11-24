@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/table/kernel_rollovers.gd" id="6"]
 
 [ext_resource type="Script" path="res://scripts/fx/table_celebration.gd" id="7_celebration"]
+[ext_resource type="Script" path="res://scripts/table/saucer.gd" id="8_saucer"]
+[ext_resource type="Script" path="res://scripts/table/spinner.gd" id="9_spinner"]
 
 [sub_resource type="RectangleShape2D" id="Rectangle_rollover"]
 size = Vector2(55, 20)
@@ -122,6 +124,22 @@ members = Array[NodePath]([NodePath("../StandupLeft"), NodePath("../StandupRight
 [node name="RolloverBank" type="Node" parent="."]
 script = ExtResource("6")
 members = Array[NodePath]([NodePath("../BusLeft"), NodePath("../Boot"), NodePath("../BusRight")])
+
+[node name="Fork" type="Area2D" parent="."]
+position = Vector2(336, 250)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("8_saucer")
+kick_direction = Vector2(0, 1)
+kick_speed = 520.0
+
+[node name="Sudo" type="Area2D" parent="."]
+position = Vector2(336, 345)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("9_spinner")
 
 [node name="Celebration" type="Node2D" parent="."]
 z_index = 24
