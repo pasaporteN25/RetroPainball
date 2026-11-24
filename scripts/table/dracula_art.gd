@@ -14,6 +14,12 @@ const FOG := Color("#3a4468")
 const STONE := Color("#0d0c1a")
 const ARCH_CENTER := Vector2(362, 472)
 const ARCH_RADIUS := 346.0
+const TITLE := "DRÁCULA"
+const TITLE_AT := Vector2(336, 216)
+const TITLE_SIZE := 34
+const SUBTITLE := "NOCHE EN TRANSILVANIA"
+const SUBTITLE_AT := TITLE_AT + Vector2(0, 20)
+const SUBTITLE_SIZE := 12
 const FIELD_BOTTOM := 1440.0
 const MOON_AT := Vector2(480, 296)
 const BAND_COUNT := 44
@@ -155,10 +161,11 @@ func _build_field() -> void:
 	_stars = PackedVector2Array()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1897
+	var title_area := Rect2(TITLE_AT - Vector2(116, 39), Vector2(232, 65))
 	while _stars.size() < 46:
 		var p := Vector2(rng.randf_range(40, 690), rng.randf_range(138, 330))
 		if Geometry2D.is_point_in_polygon(p, _field) and p.distance_to(MOON_AT) > 52.0 \
-				and not Rect2(220, 168, 232, 64).has_point(p):
+				and not title_area.has_point(p):
 			_stars.append(p)
 
 
@@ -314,11 +321,11 @@ func _draw_floor_marks() -> void:
 
 
 func _draw_title() -> void:
-	_draw_centered("DRÁCULA", Vector2(336, 204), 34, BONE)
-	_draw_centered("NOCHE EN TRANSILVANIA", Vector2(336, 224), 12, Color(GOLD, 0.92))
+	_draw_centered(TITLE, TITLE_AT, TITLE_SIZE, BONE)
+	_draw_centered(SUBTITLE, SUBTITLE_AT, SUBTITLE_SIZE, Color(GOLD, 0.92))
 	# Filetes dorados con rombos a los lados del subtítulo.
 	for side in [-1.0, 1.0]:
-		var base := Vector2(336 + side * 104, 219.5)
+		var base := SUBTITLE_AT + Vector2(side * 104, -4.5)
 		draw_line(base, base + Vector2(side * 30, 0), Color(GOLD, 0.5), 1.0, true)
 		draw_colored_polygon(PackedVector2Array([base + Vector2(0, -3), base + Vector2(side * 4, 0), base + Vector2(0, 3),
 			base + Vector2(-side * 4, 0)]), Color(RED, 0.9))

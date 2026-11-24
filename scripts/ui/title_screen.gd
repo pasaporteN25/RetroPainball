@@ -9,6 +9,7 @@ const OptionsMenu := preload("res://scripts/ui/options_menu.gd")
 const ABOUT_SCENE := preload("res://scenes/about.tscn")
 const SELECT_SCENE := "res://scenes/table_select.tscn"
 const RECORDS_SCENE := "res://scenes/records.tscn"
+const ABOUT_SCENE := "res://scenes/about.tscn"
 const TABLE_IDS := [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA, GameState.ALICIA]
 const INK := Color("#071119")
 const IVORY := Color("#f3ead8")
@@ -67,7 +68,6 @@ var _play: Button
 var _options_button: Button
 var _records_button: Button
 var _about_button: Button
-var _about: CanvasLayer
 var _options: CanvasLayer
 var _accents: Array[Color] = []
 var _insert_colors: Array[Color] = []
@@ -112,12 +112,15 @@ func _ready() -> void:
 	_transition.color = INK
 	_play = _make_button("Play", "Tocá para jugar", 34, true)
 	_play.pressed.connect(start)
-	_options_button = _make_button("Options", "Opciones", 27)
+	_options_button = _make_button("Options", "Opciones", 24)
 	_options_button.pressed.connect(open_options)
-	_records_button = _make_button("Records", "Récords", 27)
+	_records_button = _make_button("Records", "Récords", 24)
 	_records_button.pressed.connect(_show_records)
-	_about_button = _make_button("About", "Acerca de", 22)
-	_about_button.pressed.connect(open_about)
+	_about_button = _make_button("About", "Acerca de", 24)
+	_about_button.pressed.connect(_show_about)
+	_about_button.focus_neighbor_top = _about_button.get_path_to(_play)
+	_about_button.focus_neighbor_left = _about_button.get_path_to(_records_button)
+	_records_button.focus_neighbor_right = _records_button.get_path_to(_about_button)
 	_play.focus_neighbor_bottom = _play.get_path_to(_options_button)
 	_options_button.focus_neighbor_top = _options_button.get_path_to(_play)
 	_records_button.focus_neighbor_top = _records_button.get_path_to(_play)
@@ -193,6 +196,12 @@ func _show_records() -> void:
 	if not _leaving and not _options.is_open() and not _about.is_open():
 		BackNav.records_return = BackNav.TITLE_SCENE
 		get_tree().change_scene_to_file(RECORDS_SCENE)
+
+
+func _show_about() -> void:
+	if not _leaving and not _options.is_open():
+		BackNav.about_return = BackNav.TITLE_SCENE
+		get_tree().change_scene_to_file(ABOUT_SCENE)
 
 
 func _make_button(id: String, caption: String, font_size: int, primary := false) -> Button:

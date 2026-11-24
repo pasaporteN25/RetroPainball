@@ -1,5 +1,5 @@
 ﻿# Arma el AAB firmado para subir a Google Play (P-07).
-# Pasos: corre los tests, sube version/code en export_presets.cfg, instala la plantilla de Gradle
+# Pasos: corre los tests, sube version/code en export_presets.cfg (y copia el nombre a project.godot), instala la plantilla de Gradle
 # si falta y exporta el preset "Android Play (AAB)" a build/retro-pinball.aab.
 #
 # La clave de subida NUNCA va al repo. Se toma de estas variables de entorno (las lee Godot):
@@ -64,10 +64,14 @@ if ($VersionName -ne "") {
 }
 [IO.File]::WriteAllText($presets, $text, $utf8)
 $name = [regex]::Match($text, 'version/name="([^"]*)"').Groups[1].Value
-# Acerca de lee la versión de project.godot: se mantiene igual a version/name del preset.
+# La pantalla Acerca de lee la versión de project.godot: se mantiene igual al preset.
 $project = Join-Path $root "project.godot"
 $projectText = [IO.File]::ReadAllText($project, $utf8)
-$projectText = [regex]::Replace($projectText, 'config/version="[^"]*"', "config/version=`"$name`"")
+if ($projectText -match 'config/version="[^"]*"') {
+	$projectText = [regex]::Replace($projectText, 'config/version="[^"]*"', "config/version=`"$name`"")
+} else {
+	$projectText = [regex]::Replace($projectText, '(config/description="[^"]*"\r?\n)', "`$1config/version=`"$name`"`n", 1)
+}
 [IO.File]::WriteAllText($project, $projectText, $utf8)
 Write-Step "Versión $name (code $code)"
 

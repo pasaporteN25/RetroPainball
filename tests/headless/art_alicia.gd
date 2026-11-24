@@ -3,6 +3,7 @@ extends SceneTree
 
 const Art := preload("res://scripts/table/alice_art.gd")
 const Card := preload("res://scripts/ui/alice_card.gd")
+const TitleLayout := preload("res://tests/support/table_title_layout.gd")
 
 class FakeRules extends Node:
 	signal size_changed(state: int)
@@ -59,6 +60,7 @@ func _run() -> void:
 	root.add_child(parent)
 	var art := Art.new()
 	parent.add_child(art)
+	_test_title(art)
 	art.pulse_score()
 	art.flash_jackpot()
 	art.set_ball_save_fraction(2.0)
@@ -116,6 +118,18 @@ func _run() -> void:
 	_check(art_ref.get_ref() == null and card_ref.get_ref() == null, "arte y tarjeta liberados")
 	print("Arte Alicia: %d fallos" % failures)
 	quit(1 if failures else 0)
+
+func _test_title(art: Node2D) -> void:
+	var scene := (load("res://scenes/alicia.tscn") as PackedScene).instantiate()
+	var wall := scene.get_node("Table/OuterWall") as Node2D
+	var heading := TitleLayout.text_bounds(art._font, Art.TITLE, Art.TITLE_AT, Art.TITLE_SIZE, 5.0)
+	var subtitle := TitleLayout.text_bounds(art._font, Art.SUBTITLE, Art.SUBTITLE_AT, Art.SUBTITLE_SIZE, 5.0)
+	_check(TitleLayout.title_fits(art, wall, heading) and TitleLayout.title_fits(art, wall, subtitle),
+		"el título y el subtítulo entran en pantalla vertical por dentro del arco")
+	for label in ["CHICA", "GRANDE"]:
+		var size_label := TitleLayout.text_bounds(art._font, label, Art.SIZE_LABEL_AT, Art.SIZE_LABEL_SIZE, 4.0)
+		_check(TitleLayout.title_fits(art, wall, size_label), "%s entra por dentro del arco" % label)
+	scene.free()
 
 func _has_static(method: String) -> bool:
 	for entry in (AliceVisuals as Script).get_script_method_list():

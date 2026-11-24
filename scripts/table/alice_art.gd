@@ -16,6 +16,15 @@ const GOLD := Color("#c9a24a")
 const LILAC := Color("#7a5fa8")
 const ARCH_CENTER := Vector2(362, 472)
 const ARCH_RADIUS := 346.0
+# El cartel va entre las raíces de la Madriguera y el banco de naipes.
+const TITLE := "ALICIA"
+const TITLE_AT := Vector2(336, 329)
+const TITLE_SIZE := 37
+const SUBTITLE := "EN EL PAÍS DE LAS MARAVILLAS"
+const SUBTITLE_AT := TITLE_AT + Vector2(0, 22)
+const SUBTITLE_SIZE := 14
+const SIZE_LABEL_AT := SUBTITLE_AT + Vector2(0, 17)
+const SIZE_LABEL_SIZE := 11
 const FIELD_BOTTOM := 1440.0
 const BAND_TOP := 126.0
 const BAND_STEP := 40.0
@@ -181,9 +190,10 @@ func _build_field() -> void:
 	_stars = PackedVector2Array()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1865
+	var title_area := Rect2(TITLE_AT - Vector2(150, 42), Vector2(300, 88))
 	while _stars.size() < 34:
 		var p := Vector2(rng.randf_range(40, 690), rng.randf_range(150, 360))
-		if Geometry2D.is_point_in_polygon(p, _field) and not Rect2(190, 170, 292, 70).has_point(p) \
+		if Geometry2D.is_point_in_polygon(p, _field) and not title_area.has_point(p) \
 				and p.distance_to(Vector2(130, 270)) > 56.0:
 			_stars.append(p)
 	_hedge = PackedVector2Array()
@@ -363,11 +373,11 @@ func _draw_floor() -> void:
 
 
 func _draw_title() -> void:
-	_draw_centered("ALICIA", Vector2(336, 190), 30, PAPER)
-	_draw_centered("EN EL PAÍS DE LAS MARAVILLAS", Vector2(336, 207), 10, Color(GOLD, 0.92))
+	_draw_centered(TITLE, TITLE_AT, TITLE_SIZE, PAPER)
+	_draw_centered(SUBTITLE, SUBTITLE_AT, SUBTITLE_SIZE, Color(GOLD, 0.92))
 	for side in [-1.0, 1.0]:
-		var base := Vector2(336 + side * 108, 203.5)
-		draw_line(base, base + Vector2(side * 24, 0), Color(GOLD, 0.5), 1.0, true)
+		var base := SUBTITLE_AT + Vector2(side * 145, -5.5)
+		draw_line(base, base + Vector2(side * 12, 0), Color(GOLD, 0.5), 1.0, true)
 		draw_colored_polygon(PackedVector2Array([base + Vector2(0, -3), base + Vector2(side * 4, 0), base + Vector2(0, 3),
 			base + Vector2(-side * 4, 0)]), Color(QUEEN, 0.9))
 
@@ -437,9 +447,10 @@ class Ambient extends Node2D:
 			draw_polyline(closed, Color(art.GOLD, 0.35 * art._tea_mix * (0.8 + 0.2 * sin(art._time * 1.6))), frame_width + 4.0, true)
 		if amount > 0.3:
 			var label: String = "CHICA" if mix < 0.0 else "GRANDE"
-			var width: float = art._font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
-			draw_string_outline(art._font, Vector2(336 - width * 0.5, 246), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, 4, art.INK)
-			draw_string(art._font, Vector2(336 - width * 0.5, 246), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+			var width: float = art._font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE_LABEL_SIZE).x
+			var start := SIZE_LABEL_AT - Vector2(width * 0.5, 0)
+			draw_string_outline(art._font, start, label, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE_LABEL_SIZE, 4, art.INK)
+			draw_string(art._font, start, label, HORIZONTAL_ALIGNMENT_LEFT, -1, SIZE_LABEL_SIZE,
 				Color(accent.lightened(0.35), amount))
 
 	func _draw_fireflies() -> void:

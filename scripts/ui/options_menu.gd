@@ -22,7 +22,7 @@ var _vibration: Button
 var _zone: Button
 var _language: Button
 var _about_button: Button
-var _about: CanvasLayer
+var _about: Control
 var _back: Button
 var _buttons: Array[Button] = []
 
@@ -58,8 +58,13 @@ func _ready() -> void:
 	_vibration = _toggle(column, "Vibración", _on_vibration)
 	_zone = _toggle(column, "Zonas táctiles", _on_zone)
 	_language = _toggle(column, "Idioma", _on_language)
-	_about_button = _toggle(column, "Acerca de", open_about)
+	_about_button = Button.new()
+	_about_button.name = "AcercaDe"
 	_about_button.text = "Acerca de"
+	_about_button.custom_minimum_size = Vector2(0, 60)
+	_about_button.add_theme_font_size_override("font_size", 24)
+	_about_button.pressed.connect(open_about)
+	column.add_child(_about_button)
 	_back = Button.new()
 	_back.name = "Volver"
 	_back.text = "Volver"
@@ -124,7 +129,7 @@ func close() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _shade.visible and not _about.is_open() and BackNav.is_back_event(event):
+	if _shade.visible and not about_open() and BackNav.is_back_event(event):
 		get_viewport().set_input_as_handled()
 		go_back()
 
@@ -136,8 +141,27 @@ func _notification(what: int) -> void:
 
 ## Atrás: cierra las opciones y vuelve a la pantalla anterior.
 func go_back() -> void:
-	if _shade.visible and not _about.is_open() and BackNav.claim():
+	if _shade.visible and not about_open() and BackNav.claim():
 		close()
+
+
+func about_open() -> bool:
+	return is_instance_valid(_about)
+
+
+## Abre Acerca de encima de las opciones (sirve también con la partida en pausa); atrás vuelve acá.
+func open_about() -> void:
+	if about_open():
+		return
+	var layer_node := CanvasLayer.new()
+	layer_node.layer = 22
+	add_child(layer_node)
+	_about = ABOUT_SCENE.instantiate()
+	_about.embedded = true
+	_about.closed.connect(func() -> void:
+		layer_node.queue_free()
+		_about_button.grab_focus())
+	layer_node.add_child(_about)
 
 
 func _volume_row(bus: StringName) -> Control:
