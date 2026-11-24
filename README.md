@@ -106,6 +106,8 @@ Para correr solo algunos: `.\tools\test.ps1 -Solo physics`. Un test falla si sal
 sacar bola, flippers, lanzamiento, que la bola no atraviese paredes a velocidad máxima, bumpers, salvavidas,
 drenaje y fin de partida. Los tests escriben en `user://test_*` y nunca tocan el récord real.
 `nautilus.gd` verifica los sensores, el jackpot, la multibola, el progreso y los récords por mesa.
+`poster_art.gd` verifica los cuatro pósters de backglass del selector, dibujados en código
+en una grilla de 48 × 56 con hasta ocho colores y un detalle animado por mesa.
 
 En Linux, corré la misma suite con `godot --headless --path . -s tests/headless/all.gd`.
 
