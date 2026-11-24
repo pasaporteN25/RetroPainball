@@ -8,6 +8,11 @@ const MINT := Color("#69e4bc")
 const STEEL := Color("#637984")
 const TRACE := Color("#2a6c68")
 const BURNT_ORANGE := Color("#954637")
+const TITLE_LINES := [
+	["KERNEL", Vector2(226, 372), Color("#dff6ed")],
+	["PANIC", Vector2(491, 372), AMBER],
+]
+const TITLE_SIZE := 68
 
 var _light: GradientTexture2D
 var _grid: ImageTexture
@@ -249,9 +254,8 @@ func _draw_marquee() -> void:
 	draw_line(center + Vector2(-24, 43), center + Vector2(-7, 43), AMBER, 3.0, true)
 	draw_line(center + Vector2(7, 43), center + Vector2(24, 43), AMBER, 3.0, true)
 
-	var type_center := 360.0
-	_title("KERNEL", type_center - 134.0, 372.0, 68, Color("#dff6ed"))
-	_title("PANIC", type_center + 131.0, 372.0, 68, AMBER)
+	for line in TITLE_LINES:
+		_title(line[0], line[1], TITLE_SIZE, line[2])
 	var edge := PackedVector2Array([Vector2(100, 389), Vector2(191, 389), Vector2(208, 406),
 		Vector2(509, 406), Vector2(526, 389), Vector2(620, 389)])
 	draw_polyline(edge, Color("#325f5e"), 2.0, true)
@@ -376,9 +380,9 @@ func _save_panel(color: Color, tint: Color) -> StyleBoxFlat:
 	return panel
 
 
-func _title(line: String, center: float, y: float, size: int, tint: Color) -> void:
+func _title(line: String, at: Vector2, size: int, tint: Color) -> void:
 	var width := _title_font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	var baseline := Vector2(center - width * 0.5, y)
+	var baseline := at - Vector2(width * 0.5, 0)
 	draw_string_outline(_title_font, baseline + Vector2(0, 5), line,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, size, 10, Color("#081016"))
 	draw_string(_title_font, baseline + Vector2(0, 4), line,

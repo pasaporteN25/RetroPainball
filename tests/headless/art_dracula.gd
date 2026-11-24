@@ -3,6 +3,7 @@ extends SceneTree
 
 const Art := preload("res://scripts/table/dracula_art.gd")
 const Card := preload("res://scripts/ui/dracula_card.gd")
+const TitleLayout := preload("res://tests/support/table_title_layout.gd")
 
 class FakeRules extends Node:
 	signal bats_changed(hit: int)
@@ -31,6 +32,13 @@ func _run() -> void:
 	root.add_child(parent)
 	var art := Art.new()
 	parent.add_child(art)
+	var scene := (load("res://scenes/dracula.tscn") as PackedScene).instantiate()
+	var wall := scene.get_node("Table/OuterWall") as Node2D
+	var heading := TitleLayout.text_bounds(art._font, Art.TITLE, Art.TITLE_AT, Art.TITLE_SIZE, 5.0)
+	var subtitle := TitleLayout.text_bounds(art._font, Art.SUBTITLE, Art.SUBTITLE_AT, Art.SUBTITLE_SIZE, 5.0)
+	_check(TitleLayout.title_fits(art, wall, heading) and TitleLayout.title_fits(art, wall, subtitle),
+		"el título y el subtítulo entran en pantalla vertical por dentro del arco")
+	scene.free()
 	art.pulse_score()
 	art.flash_jackpot()
 	art.set_ball_save_fraction(2.0)

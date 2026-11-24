@@ -13,6 +13,12 @@ const INK := Color("#071720")
 const ART_RECT := Rect2(16, 126, 692, 1375)
 const BRIDGE := Rect2(224, 996, 224, 132)
 const SAVE := Rect2(264, 1335, 144, 47)
+const TITLE := "20.000 LEGUAS"
+const TITLE_AT := Vector2(360, 289)
+const TITLE_SIZE := 49
+const SUBTITLE := "BAJO EL MAR"
+const SUBTITLE_AT := TITLE_AT + Vector2(0, 31)
+const SUBTITLE_SIZE := 20
 
 @export var illustration: Texture2D
 var _instruments: Node2D
@@ -108,25 +114,22 @@ func _draw_illustration() -> void:
 
 
 func _draw_crest() -> void:
-	var heading := "20.000 LEGUAS"
-	var center := Vector2(360, 234)
-	var font_size := 46
-	var width := _title_font.get_string_size(heading, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
-	var baseline := center - Vector2(width * 0.5, 0)
-	draw_string_outline(_title_font, baseline + Vector2(0, 4), heading,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 11, Color("#092128"))
-	draw_string_outline(_title_font, baseline, heading,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 4, Color("#2b271e"))
-	draw_string(_title_font, baseline, heading, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, GOLD)
-	var tag := "BAJO EL MAR"
+	var width := _title_font.get_string_size(TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE).x
+	var baseline := TITLE_AT - Vector2(width * 0.5, 0)
+	draw_string_outline(_title_font, baseline + Vector2(0, 4), TITLE,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, 11, Color("#092128"))
+	draw_string_outline(_title_font, baseline, TITLE,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, 4, Color("#2b271e"))
+	draw_string(_title_font, baseline, TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, GOLD)
 	var font := ThemeDB.fallback_font
-	var tag_width := font.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x
-	var tag_at := Vector2(360 - tag_width * 0.5, 260)
-	draw_string_outline(font, tag_at, tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 19, 5, INK)
-	draw_string(font, tag_at, tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#deece0"))
+	var tag_width := font.get_string_size(SUBTITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, SUBTITLE_SIZE).x
+	var tag_at := SUBTITLE_AT - Vector2(tag_width * 0.5, 0)
+	draw_string_outline(font, tag_at, SUBTITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, SUBTITLE_SIZE, 5, INK)
+	draw_string(font, tag_at, SUBTITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, SUBTITLE_SIZE, Color("#deece0"))
 	for side in [-1.0, 1.0]:
 		var v := Vector2(side, 0)
-		draw_line(Vector2(360, 253) + v * 70, Vector2(360, 253) + v * 96, GOLD, 1.3, true)
+		var at := SUBTITLE_AT - Vector2(0, 7)
+		draw_line(at + v * 81, at + v * 116, GOLD, 1.3, true)
 
 
 func _draw_hardware() -> void:

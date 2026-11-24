@@ -91,9 +91,20 @@ con el helper `scripts/util/back_nav.gd`, que evita atender dos veces un mismo a
 | Pausa | Cierra la pausa y sigue jugando; el botón **Mesas** vuelve al selector |
 | Opciones (título o pausa) | Cierra y vuelve a la pantalla anterior (título o pausa) |
 | Récords | Vuelve a la pantalla desde donde se abrió (título o selector) |
+| Acerca de (título u Opciones) | Vuelve a la pantalla desde donde se abrió (título u Opciones) |
 | Fin de partida | Vuelve al selector (como **Mesas**) |
 
-Tests: `tests/headless/back_navigation.gd` y `tests/headless/back_button.gd`.
+Tests: `tests/headless/back_navigation.gd`, `tests/headless/back_button.gd` y `tests/headless/about_screen.gd`.
+
+## Acerca de y licencia
+
+**Acerca de** se abre desde el título y desde Opciones. Muestra la versión (`application/config/version` de
+`project.godot`, que `tools/release.ps1` actualiza junto con el preset de exportación), la autoría, los links al código,
+a los problemas y a la política de privacidad, los créditos de arte y música leídos de `resources/credits.json` y el aviso
+de copyright de Godot Engine (plegable, exigido por su licencia MIT).
+
+El código de Retro Pinball se publica bajo la **GNU GPL-3.0** (texto completo en [LICENSE](LICENSE)). El arte y la música
+pueden tener otra licencia, indicada en los créditos.
 
 ## Tests (definición de hecho)
 

@@ -34,6 +34,8 @@ func _initialize() -> void:
 	_check(typeof(code) == TYPE_INT and code > 0, "version/code es un entero positivo")
 	_check(code == cfg.get_value(d, "version/code") and cfg.get_value(o, "version/name") == cfg.get_value(d, "version/name"),
 		"debug y Play tienen la misma versión")
+	_check(ProjectSettings.get_setting("application/config/version", "") == cfg.get_value(o, "version/name"),
+		"application/config/version coincide con la versión del preset (la muestra Acerca de)")
 	for preset in [play, debug]:
 		var excluded := String(cfg.get_value(preset, "exclude_filter", ""))
 		_check(excluded.contains("tests/*") and excluded.contains("tools/*") and excluded.contains("docs/*"),
