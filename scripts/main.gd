@@ -162,6 +162,9 @@ func save_run() -> void:
 		"extra_awarded": GameState.extra_awarded,
 		"kickback_ready": GameState.kickback_ready,
 	}
+	var kernel := _table.get_node_or_null("KernelRules")
+	if kernel and table_id == GameState.KERNEL_PANIC:
+		saved.merge(kernel.save_state())
 	if saved == _last_saved_run:
 		return
 	var result := GameSave.save_run(saved, GameState.save_directory)
@@ -192,6 +195,9 @@ func _restore_run(saved: Dictionary) -> void:
 		_serve_timer.start(maxf(0.001, saved.serve_remaining))
 	GameState.resume_game(saved.score, saved.balls_left, saved.get("bonus", 0), saved.get("bonus_multiplier", 1),
 			saved.get("extra_balls", 0), saved.get("extra_awarded", 0), saved.get("kickback_ready", true))
+	var kernel := _table.get_node_or_null("KernelRules")
+	if kernel and table_id == GameState.KERNEL_PANIC:
+		kernel.restore_state(saved)
 	GameState.say("PARTIDA REANUDADA")
 
 

@@ -39,6 +39,7 @@ func _run() -> void:
 func _cross_rollover(node_name: String, at: Vector2, exit_y: float) -> void:
 	var switch := _layout.get_node(node_name) as Area2D
 	_layout.get_node("RolloverBank").reset()
+	_layout.get_node("Sudo").spin_speed = 0.0  # el spinner del carril BOOT sigue girando tras la bola anterior
 	var before: int = _state.score
 	var passing := _spawn(at, Vector2(0, 490))
 	for step in 144:
@@ -56,6 +57,7 @@ func _cross_rollover(node_name: String, at: Vector2, exit_y: float) -> void:
 func _hit_standup(node_name: String, expected_side: float) -> void:
 	var target := _layout.get_node(node_name) as Node2D
 	_layout.get_node("StandupBank").reset()
+	_layout.get_node("Sudo").spin_speed = 0.0  # el spinner del carril BOOT sigue girando tras la bola anterior
 	var before: int = _state.score
 	var shot := _spawn(target.position + Vector2(0, 62), Vector2(0, -950))
 	for step in 28:

@@ -5,7 +5,8 @@ extends Node
 ## bifurca en `fork_balls` bolas. Durante la multibola, girar el spinner `sudo_laps` vueltas enciende
 ## `sudo`; la próxima bola que entre al saucer cobra el jackpot. La multibola termina (segfault) al
 ## quedar una sola bola. Números y textos: TableRules (resources/rules/kernel_panic.tres).
-## La partida guardada no lleva el estado de la regla: al reanudar con 2 o más bolas se retoma la multibola.
+## La partida guardada lleva los procesos cargados y `sudo` (save_state/restore_state); sin esas claves
+## (guardados viejos), al reanudar con 2 o más bolas igual se retoma la multibola.
 
 ## Un proceso más cargado (`count` de `total`).
 signal process_loaded(count: int, total: int)
@@ -153,7 +154,7 @@ func start_multiball(source: Node = null) -> void:
 	_set_fork_ready(false)
 	_set_sudo_lit(false)
 	var table := _main.get_node("Table")
-	var origin := Vector2(520, 330)
+	var origin := Vector2(540, 280)
 	if _saucer:
 		origin = table.to_local(_saucer.global_position)
 	if source is Node2D:
@@ -203,3 +204,25 @@ func _on_game_resumed() -> void:
 		set_physics_process(true)
 		GameState.say(_rules().text("fork_resumed"))
 		multiball_started.emit()
+
+
+## Lo que la partida guardada recuerda de las reglas: procesos cargados y si `sudo` está encendido.
+func save_state() -> Dictionary:
+	return {"kernel_processes": processes, "kernel_sudo": sudo_lit}
+
+
+## Se llama después de reanudar (con las bolas ya puestas). Los guardados viejos no traen las claves.
+func restore_state(saved: Dictionary) -> void:
+	var total := _rules().fork_processes_needed
+	processes = clampi(int(saved.get("kernel_processes", 0)), 0, total)
+	_last_spinner_laps = _spinner.laps if _spinner else 0
+	if multiball:
+		# En multibola los procesos ya se gastaron; lo único que sigue vivo es `sudo`.
+		processes = 0
+		if saved.get("kernel_sudo", false) == true:
+			_set_sudo_lit(true)
+			_set_saucer_lit(true)
+		return
+	if processes > 0:
+		process_loaded.emit(processes, total)
+	_set_fork_ready(processes >= total)
