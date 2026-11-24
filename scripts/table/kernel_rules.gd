@@ -153,7 +153,7 @@ func start_multiball(source: Node = null) -> void:
 	_set_fork_ready(false)
 	_set_sudo_lit(false)
 	var table := _main.get_node("Table")
-	var origin := Vector2(336, 250)
+	var origin := Vector2(520, 330)
 	if _saucer:
 		origin = table.to_local(_saucer.global_position)
 	if source is Node2D:
