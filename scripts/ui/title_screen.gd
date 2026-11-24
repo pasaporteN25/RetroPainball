@@ -8,6 +8,7 @@ const EXIT_WINDOW := 2.0
 const OptionsMenu := preload("res://scripts/ui/options_menu.gd")
 const SELECT_SCENE := "res://scenes/table_select.tscn"
 const RECORDS_SCENE := "res://scenes/records.tscn"
+const ABOUT_SCENE := "res://scenes/about.tscn"
 const TABLE_IDS := [GameState.KERNEL_PANIC, GameState.NAUTILUS, GameState.DRACULA, GameState.ALICIA]
 const INK := Color("#071119")
 const IVORY := Color("#f3ead8")
@@ -65,6 +66,7 @@ const GLYPHS := {
 var _play: Button
 var _options_button: Button
 var _records_button: Button
+var _about_button: Button
 var _options: CanvasLayer
 var _accents: Array[Color] = []
 var _insert_colors: Array[Color] = []
@@ -109,10 +111,15 @@ func _ready() -> void:
 	_transition.color = INK
 	_play = _make_button("Play", "Tocá para jugar", 34, true)
 	_play.pressed.connect(start)
-	_options_button = _make_button("Options", "Opciones", 27)
+	_options_button = _make_button("Options", "Opciones", 24)
 	_options_button.pressed.connect(open_options)
-	_records_button = _make_button("Records", "Récords", 27)
+	_records_button = _make_button("Records", "Récords", 24)
 	_records_button.pressed.connect(_show_records)
+	_about_button = _make_button("About", "Acerca de", 24)
+	_about_button.pressed.connect(_show_about)
+	_about_button.focus_neighbor_top = _about_button.get_path_to(_play)
+	_about_button.focus_neighbor_left = _about_button.get_path_to(_records_button)
+	_records_button.focus_neighbor_right = _records_button.get_path_to(_about_button)
 	_play.focus_neighbor_bottom = _play.get_path_to(_options_button)
 	_options_button.focus_neighbor_top = _options_button.get_path_to(_play)
 	_records_button.focus_neighbor_top = _records_button.get_path_to(_play)
@@ -174,6 +181,12 @@ func _show_records() -> void:
 		get_tree().change_scene_to_file(RECORDS_SCENE)
 
 
+func _show_about() -> void:
+	if not _leaving and not _options.is_open():
+		BackNav.about_return = BackNav.TITLE_SCENE
+		get_tree().change_scene_to_file(ABOUT_SCENE)
+
+
 func _make_button(id: String, caption: String, font_size: int, primary := false) -> Button:
 	var accent := _accents[0]
 	var button := Button.new()
@@ -215,12 +228,14 @@ func _layout() -> void:
 	var width := minf(560.0, size.x - 80.0)
 	var gap := 20.0
 	_play.size = Vector2(width, 96)
-	_options_button.size = Vector2((width - gap) * 0.5, 68)
+	_options_button.size = Vector2((width - gap * 2.0) / 3.0, 68)
 	_records_button.size = _options_button.size
+	_about_button.size = _options_button.size
 	var row_x := (size.x - width) * 0.5
 	var row_y := bottom - clampf(available * 0.075, 38.0, 128.0) - _options_button.size.y
 	_options_button.position = Vector2(row_x, row_y)
 	_records_button.position = _options_button.position + Vector2(_options_button.size.x + gap, 0)
+	_about_button.position = _records_button.position + Vector2(_options_button.size.x + gap, 0)
 	_play.position = Vector2(row_x, row_y - 24.0 - _play.size.y)
 	var art_height := maxf(1.0, _play.position.y - top - 70.0)
 	_art_scale = minf(size.x / ART_SIZE.x, art_height / ART_SIZE.y)
