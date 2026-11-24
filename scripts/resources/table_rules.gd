@@ -12,7 +12,7 @@ extends Resource
 const DIR := "res://resources/rules/"
 
 ## Textos por defecto de todas las claves conocidas. Un `.tres` puede pisar cualquiera en `messages`.
-## Variables: {bonus} multiplicador, {award}, {depth}, {stage}, {total}.
+## Variables: {bonus} multiplicador, {award}, {depth}, {stage}, {total}, {count}.
 const DEFAULT_MESSAGES := {
 	"skill_shot_armed": "SKILL SHOT: AL CARRIL",
 	"skill_shot_scored": "SKILL SHOT {award}",
@@ -30,6 +30,12 @@ const DEFAULT_MESSAGES := {
 	"size_normal": "TAMAÑO NORMAL",
 	"tea_start": "¡TÉ LOCO!",
 	"tea_end": "FIN DEL TÉ",
+	"process_loaded": "PROCESO {count}/{total}",
+	"fork_ready": "FORK() LISTO: AL SAUCER",
+	"fork_start": "¡FORK()!  MULTIBOLA",
+	"fork_resumed": "MULTIBOLA RETOMADA",
+	"fork_end": "SEGFAULT: FIN DE LA MULTIBOLA",
+	"sudo_lit": "SUDO ENCENDIDO: AL SAUCER",
 }
 
 @export var table_id := "kernel_panic"
@@ -48,6 +54,14 @@ const DEFAULT_MESSAGES := {
 @export var rollover_points := 125
 ## Premio de los carriles superiores completos.
 @export var rollover_award := 1500
+## Procesos que hay que cargar (banco de blancos o rollovers completos) para habilitar fork().
+@export var fork_processes_needed := 2
+## Bolas en juego después de fork() (la que entró al saucer y las que se bifurcan).
+@export var fork_balls := 3
+## Vueltas del spinner, en multibola, para encender sudo.
+@export var sudo_laps := 12
+## Jackpot sudo del saucer durante la multibola ({award} en el mensaje).
+@export var sudo_jackpot: RuleStage
 @export_group("Nautilus")
 ## Sonares que activan al kraken.
 @export var sonar_count := 3
@@ -123,6 +137,7 @@ func _init() -> void:
 	carfax_stages = laps
 	card_bank = make_stage(0, 1000, true, "NAIPES COMPLETOS")
 	tea_jackpot = make_stage(0, 5000, false, "¡JACKPOT!  {award}")
+	sudo_jackpot = make_stage(0, 5000, false, "¡SUDO!  JACKPOT {award}")
 
 
 static func make_stage(threshold: int, award: int, raise: bool, message: String) -> RuleStage:

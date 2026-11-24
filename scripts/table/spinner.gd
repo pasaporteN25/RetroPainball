@@ -19,6 +19,8 @@ signal lap_completed(total: int)
 ## Eje del carril: la bola que avanza en este sentido hace girar en positivo.
 @export var lane_direction := Vector2.UP
 
+## Lo prende la regla de la mesa (p. ej. sudo en Kernel Panic): la paleta se dibuja dorada.
+var lit := false
 var spin_speed := 0.0
 var laps := 0
 var _angle := 0.0
@@ -76,6 +78,6 @@ func _draw() -> void:
 	draw_line(Vector2(0, -half - 4), Vector2(0, half + 4), BRASS.darkened(0.4), 4.0, true)
 	# Vista en perspectiva de la paleta: el ancho visible sigue al coseno del ángulo.
 	var width := absf(cos(_angle)) * 9.0 + 1.5
-	draw_line(Vector2(-width, 0), Vector2(width, 0), GOLD.lerp(BRASS, 0.5), 4.0, true)
+	draw_line(Vector2(-width, 0), Vector2(width, 0), GOLD if lit else GOLD.lerp(BRASS, 0.5), 4.0, true)
 	draw_circle(Vector2(0, -half), 3.0, BRASS, true, -1.0, true)
 	draw_circle(Vector2(0, half), 3.0, BRASS, true, -1.0, true)

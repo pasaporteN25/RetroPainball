@@ -118,7 +118,12 @@ func jump_to_multiball() -> bool:
 		mission.jackpot.emit()
 		GameState.say("MULTIBOLA (PRUEBAS)")
 		return true
-	# Kernel Panic todavía no tiene multibola propia: se sueltan bolas hasta tener tres.
+	var kernel := table.get_node_or_null("KernelRules")
+	if kernel:
+		# fork() sin cargar procesos: bifurca desde el saucer hasta tener tres bolas.
+		kernel.start_multiball()
+		GameState.say("MULTIBOLA (PRUEBAS)")
+		return true
 	_ensure_balls(3)
 	GameState.say("MULTIBOLA (PRUEBAS)")
 	return false

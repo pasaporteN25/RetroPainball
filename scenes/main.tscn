@@ -2,7 +2,11 @@
 
 [ext_resource type="PackedScene" path="res://scenes/table_base.tscn" id="1_base"]
 [ext_resource type="PackedScene" path="res://scenes/kernel_layout.tscn" id="2_layout"]
+[ext_resource type="Script" path="res://scripts/table/kernel_rules.gd" id="3_rules"]
 
 [node name="KernelPanic" instance=ExtResource("1_base")]
 
 [node name="KernelLayout" parent="Table" index="19" instance=ExtResource("2_layout")]
+
+[node name="KernelRules" type="Node" parent="Table" index="20"]
+script = ExtResource("3_rules")

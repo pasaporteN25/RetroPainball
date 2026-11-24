@@ -23,6 +23,9 @@ signal kicked(ball: Ball)
 ## Una bola recién expulsada no se vuelve a capturar hasta que sale de la pieza.
 @export var rearm_distance := 70.0
 
+## Lo prende la regla de la mesa (p. ej. FORK listo en Kernel Panic): el aro se dibuja dorado.
+var lit := false
+
 var _held_ball: Ball
 var _hold_left := 0.0
 var _spent: Array[Ball] = []
@@ -107,7 +110,7 @@ func _draw() -> void:
 	var charge := 0.0
 	if is_holding():
 		charge = 1.0 - clampf(_hold_left / maxf(GameState.active_rules().saucer_hold_seconds, 0.01), 0.0, 1.0)
-	var light := BRASS.lerp(GOLD, maxf(charge, _flash))
+	var light := BRASS.lerp(GOLD, 1.0 if lit else maxf(charge, _flash))
 	draw_circle(Vector2(3, 5), radius + 4.0, Color(0.02, 0.05, 0.06, 0.7), true, -1.0, true)
 	draw_circle(Vector2.ZERO, radius + 3.0, BRASS.darkened(0.35), true, -1.0, true)
 	draw_circle(Vector2.ZERO, radius - 3.0, Color("#040c11"), true, -1.0, true)

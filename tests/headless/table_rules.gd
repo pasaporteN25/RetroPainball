@@ -39,7 +39,7 @@ func _test_resources() -> void:
 		_check(positive, "%s: puntajes, objetivos y tiempos válidos" % id)
 		_check(rules.carfax_stages.size() == 3 and rules.kraken_jackpot != null, "%s: etapas cargadas" % id)
 		for key in TableRules.DEFAULT_MESSAGES:
-			_check(not rules.text(key, {"bonus": 2, "award": 1, "depth": 1}).contains("{"), "%s: mensaje %s sin variables sin resolver" % [id, key])
+			_check(not rules.text(key, {"bonus": 2, "award": 1, "depth": 1, "count": 1, "total": 2}).contains("{"), "%s: mensaje %s sin variables sin resolver" % [id, key])
 	_check(_game.active_rules("no_existe").table_id == "kernel_panic", "id desconocido usa Kernel Panic")
 	var plain := TableRules.new()
 	_check(plain.bumper_points == 100 and plain.slingshot_points == 10 and plain.standup_points == 225
