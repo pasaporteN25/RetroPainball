@@ -9,8 +9,8 @@
 [ext_resource type="Script" path="res://scripts/table/dracula_rules.gd" id="7_rules"]
 [ext_resource type="Script" path="res://scripts/table/wall.gd" id="8_wall"]
 
-[sub_resource type="RectangleShape2D" id="Rectangle_bat"]
-size = Vector2(56, 24)
+[sub_resource type="ConvexPolygonShape2D" id="Roof_bat"]
+points = PackedVector2Array(-28, 12, -28, -2, 0, -12, 28, -2, 28, 12)
 
 [sub_resource type="RectangleShape2D" id="Rectangle_carfax_in"]
 size = Vector2(76, 10)
@@ -96,21 +96,21 @@ position = Vector2(205, 430)
 script = ExtResource("3_bat")
 
 [node name="Shape" type="CollisionShape2D" parent="Table/Bats/BatLeft"]
-shape = SubResource("Rectangle_bat")
+shape = SubResource("Roof_bat")
 
 [node name="BatMid" type="StaticBody2D" parent="Table/Bats"]
 position = Vector2(336, 392)
 script = ExtResource("3_bat")
 
 [node name="Shape" type="CollisionShape2D" parent="Table/Bats/BatMid"]
-shape = SubResource("Rectangle_bat")
+shape = SubResource("Roof_bat")
 
 [node name="BatRight" type="StaticBody2D" parent="Table/Bats"]
 position = Vector2(467, 430)
 script = ExtResource("3_bat")
 
 [node name="Shape" type="CollisionShape2D" parent="Table/Bats/BatRight"]
-shape = SubResource("Rectangle_bat")
+shape = SubResource("Roof_bat")
 
 [node name="Carfax" type="Node2D" parent="Table"]
 z_index = -1
