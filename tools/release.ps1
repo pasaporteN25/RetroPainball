@@ -77,6 +77,9 @@ if (-not (Test-Path (Join-Path $root "android\build\build.gradle"))) {
 	$arguments += '--install-android-build-template'
 }
 $arguments += @('--export-release', $preset, $output)
+# Sin daemon: en Windows el daemon de Gradle queda vivo con la salida de Godot abierta y la
+# exportación no termina nunca aunque el AAB ya esté escrito.
+if (-not $env:GRADLE_OPTS) { $env:GRADLE_OPTS = "-Dorg.gradle.daemon=false" }
 & $godot @arguments | Out-Host
 if (-not (Test-Path $output)) {
 	Write-Host "La exportación no generó $output. Revisá el log de arriba." -ForegroundColor Red
