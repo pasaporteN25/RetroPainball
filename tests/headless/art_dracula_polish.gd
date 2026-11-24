@@ -1,5 +1,5 @@
 extends SceneTree
-## Pulido de Drácula: selector con tarjetas en varias resoluciones, candelabros solo en Drácula
+## Pulido de Drácula: selector con máquinas en varias resoluciones, candelabros solo en Drácula
 ## y piezas que dibujan todos sus estados. Usa directorios descartables.
 
 var _failures := 0
@@ -26,7 +26,7 @@ func _test_selector() -> void:
 	change_scene_to_file("res://scenes/table_select.tscn")
 	await scene_changed
 	var select := current_scene
-	var cards: Array[Control] = [select._kernel, select._nautilus, select._dracula, select._alicia]
+	var machines: Array = select._machines
 	# El proyecto estira con ancho fijo (720): 620x1343 -> 720x1560, 720x1280 -> 720x1280, 540x960 -> 720x960.
 	for resolution in [Vector2i(720, 1560), Vector2i(720, 1280), Vector2i(720, 960)]:
 		select.set_deferred("size", Vector2(resolution))
@@ -34,17 +34,22 @@ func _test_selector() -> void:
 		select.size = Vector2(resolution)
 		select._layout()
 		var view := Rect2(Vector2.ZERO, Vector2(resolution))
-		for i in cards.size():
+		for i in machines.size():
 			select._select(i)
-			select._display_index = float(i)
-			select._layout_cards()
-			var card: Control = cards[i]
+			select._set_display_index(float(i))
+			var visible_count := 0
 			var inside := true
-			for point in [Vector2.ZERO, Vector2(card.size.x, 0), card.size, Vector2(0, card.size.y)]:
-				inside = inside and view.has_point(card.get_transform() * point)
-			_check(inside and card.scale.x > 0.4, "mesa %d visible y legible en %s" % [i, resolution])
+			for machine: Control in machines:
+				if machine.visible:
+					visible_count += 1
+					var bounds := machine.get_transform() * Rect2(Vector2.ZERO, machine.size)
+					inside = inside and view.encloses(bounds) and bounds.end.y < select._plaque.position.y
+			_check(visible_count == 3 and inside and machines[i].scale.x > 0.4,
+				"mesa %d y sus vecinas entran completas sobre el cartel en %s" % [i, resolution])
+		_check(view.encloses(select._plaque), "el cartel entra completo en %s" % [resolution])
 	select._select(2)
-	_check(select._dracula.has_focus(), "Drácula toma el foco")
+	select._set_display_index(2.0)
+	_check(machines[2].has_focus(), "Drácula toma el foco")
 
 
 func _test_pieces(game: Node) -> void:
