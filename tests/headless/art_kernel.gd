@@ -35,9 +35,9 @@ func _run() -> void:
 	state.bonus_awarded.emit(100, 2, 200)
 	state.lose_ball()
 	assert(art._mood == -1)
-	assert(art.get_child_count() == 5)
+	assert(art.get_child_count() == 6)
 	await create_timer(1.3).timeout
-	assert(art.get_child_count() == 4)
+	assert(art.get_child_count() == 5)
 	state.select_table("nautilus")
 	bumper.queue_redraw()
 	await process_frame

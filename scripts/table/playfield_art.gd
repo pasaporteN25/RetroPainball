@@ -34,6 +34,14 @@ var _reaction := 0.0
 var _mood := 0
 var _last_multiplier := 1
 var _last_balls := 3
+## Tablero de multibola fork()/sudo: lamparitas de procesos cargados, FORK y SUDO.
+var _process_insert: Node2D
+var _kernel: Node
+var _processes := 0
+var _process_total := 2
+var _fork_ready := false
+var _sudo_lit := false
+var _multiball := false
 const Segfault := preload("res://scripts/fx/kernel_segfault.gd")
 
 
@@ -84,6 +92,10 @@ func _ready() -> void:
 	for y in range(128, 1444, 8):
 		_scanlines.append(Vector2(16, y))
 		_scanlines.append(Vector2(708, y))
+	_process_insert = Node2D.new()
+	_process_insert.name = "ProcessInsert"
+	_process_insert.draw.connect(_draw_process_insert)
+	add_child(_process_insert)
 	_crt = Node2D.new()
 	_crt.draw.connect(_draw_crt)
 	add_child(_crt)
@@ -96,6 +108,7 @@ func _ready() -> void:
 		GameState.balls_changed.connect(_on_balls_changed)
 		GameState.bonus_awarded.connect(_on_bonus_awarded)
 		GameState.message.connect(_on_message)
+		_bind_kernel.call_deferred()
 	# In the editor the traces stay lit without starting a gameplay animation.
 	set_process(not Engine.is_editor_hint())
 
@@ -113,8 +126,39 @@ func _process(delta: float) -> void:
 	if _redraw_time >= 1.0 / 30.0:
 		_redraw_time = fmod(_redraw_time, 1.0 / 30.0)
 		_circuit_insert.queue_redraw()
+		if _fork_ready or _sudo_lit or _multiball:
+			_process_insert.queue_redraw()
 		_crt.queue_redraw()
 		_mascot.queue_redraw()
+
+
+## Engancha el tablero de procesos con las reglas de Kernel Panic (nacen después del arte).
+func _bind_kernel() -> void:
+	_kernel = get_parent().get_node_or_null("KernelRules")
+	if _kernel == null:
+		return
+	_process_total = GameState.active_rules().fork_processes_needed
+	_kernel.process_loaded.connect(func(count: int, total: int) -> void:
+		_process_total = total
+		_set_process_state(count, _fork_ready, _sudo_lit, _multiball))
+	_kernel.fork_ready_changed.connect(func(ready: bool) -> void:
+		_set_process_state(_kernel.processes, ready, _sudo_lit, _multiball))
+	_kernel.sudo_lit_changed.connect(func(lit: bool) -> void:
+		_set_process_state(_kernel.processes, _fork_ready, lit, _multiball))
+	_kernel.multiball_started.connect(func() -> void:
+		_set_process_state(0, false, _kernel.sudo_lit, true))
+	_kernel.multiball_ended.connect(func() -> void:
+		_set_process_state(_kernel.processes, _kernel.fork_ready, false, false))
+	_set_process_state(_kernel.processes, _kernel.fork_ready, _kernel.sudo_lit, _kernel.multiball)
+
+
+## Estado que muestra el tablero. También lo usan las capturas y las pruebas.
+func _set_process_state(count: int, fork_ready: bool, sudo_lit: bool, multiball: bool) -> void:
+	_processes = count
+	_fork_ready = fork_ready
+	_sudo_lit = sudo_lit
+	_multiball = multiball
+	_process_insert.queue_redraw()
 
 
 func pulse_score() -> void:
@@ -369,6 +413,42 @@ func _draw_save_insert() -> void:
 	_save_insert.draw_rect(Rect2(278, 1360, 116, 3), Color("#243936"))
 	if active:
 		_save_insert.draw_rect(Rect2(278, 1360, 116 * _save_fraction, 3), tint)
+
+
+func _draw_process_insert() -> void:
+	var rect := Rect2(236, 924, 200, 76)
+	var blink := 0.65 + 0.35 * sin(_visual_time * 7.0)
+	var hot := _fork_ready or _sudo_lit
+	_process_insert.draw_style_box(_save_lit if hot else _save_unlit, rect)
+	var font := ThemeDB.fallback_font
+	_process_insert.draw_string(font, Vector2(248, 944), "PROCESOS %d/%d" % [_processes, _process_total],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, 14, MINT if _processes > 0 else Color("#668986"))
+	var spacing := minf(26.0, 120.0 / maxi(_process_total, 1))
+	for i in _process_total:
+		var at := Vector2(256 + i * spacing, 962)
+		var on := i < _processes
+		if on:
+			_process_insert.draw_texture_rect(_light, Rect2(at - Vector2(20, 20), Vector2(40, 40)),
+				false, Color(0.28, 0.88, 0.64, 0.35))
+		_process_insert.draw_circle(at, 7.0, MINT if on else Color("#1a2c33"), true, -1.0, true)
+		_process_insert.draw_circle(at, 7.0, Color("#668986"), false, 1.5, true)
+	_draw_tag("FORK", Rect2(344, 950, 40, 20), AMBER, _fork_ready, blink)
+	_draw_tag("SUDO", Rect2(388, 950, 40, 20), MINT, _sudo_lit, blink)
+	var caption := "MULTIBOLA" if _multiball else ("FORK LISTO" if _fork_ready else "CARGAR PROCESOS")
+	_process_insert.draw_string(font, Vector2(248, 990), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 12,
+		AMBER if (_multiball or _fork_ready) else Color("#668986"))
+
+
+func _draw_tag(label: String, rect: Rect2, tint: Color, lit: bool, blink: float) -> void:
+	var color := Color(tint, blink) if lit else Color("#668986")
+	if lit:
+		_process_insert.draw_texture_rect(_light, rect.grow(14), false, Color(tint, 0.3 * blink))
+	_process_insert.draw_rect(rect, Color(tint, 0.22) if lit else Color("#0d1d23"))
+	_process_insert.draw_rect(rect, color, false, 1.5)
+	var font := ThemeDB.fallback_font
+	var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+	_process_insert.draw_string(font, Vector2(rect.position.x + (rect.size.x - width) * 0.5, rect.end.y - 6),
+		label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, color)
 
 
 func _save_panel(color: Color, tint: Color) -> StyleBoxFlat:

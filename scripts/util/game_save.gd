@@ -12,6 +12,9 @@ const STATE_KEYS := [
 const BONUS_KEYS := ["bonus", "bonus_multiplier"]
 ## G-12: bolas extra y kickback. Solo aparecen junto con las claves del bonus.
 const EXTRA_KEYS := ["extra_balls", "extra_awarded", "kickback_ready"]
+## Kernel Panic: procesos cargados y `sudo`. Solo aparecen junto con las claves de extras.
+const KERNEL_KEYS := ["kernel_processes", "kernel_sudo"]
+const MAX_PROCESSES := 8
 const MAX_BONUS := 10000000
 const BALL_KEYS := ["position", "velocity", "spin", "rotation"]
 
@@ -91,9 +94,18 @@ static func _valid_state(state: Dictionary, table_id: String) -> bool:
 		return false
 	var base_size := STATE_KEYS.size() + BONUS_KEYS.size()
 	var has_bonus: bool = state.size() >= base_size and state.has_all(BONUS_KEYS)
-	var has_extra: bool = has_bonus and state.size() == base_size + EXTRA_KEYS.size() and state.has_all(EXTRA_KEYS)
+	var extra_size := base_size + EXTRA_KEYS.size()
+	var has_kernel: bool = has_bonus and state.size() == extra_size + KERNEL_KEYS.size() \
+			and state.has_all(EXTRA_KEYS) and state.has_all(KERNEL_KEYS)
+	var has_extra: bool = has_kernel or (has_bonus and state.size() == extra_size and state.has_all(EXTRA_KEYS))
 	if state.size() != STATE_KEYS.size() and not (has_bonus and (state.size() == base_size or has_extra)):
 		return false
+	if has_kernel:
+		var processes: Variant = state.kernel_processes
+		if table_id != "kernel_panic" or not processes is int or processes < 0 or processes > MAX_PROCESSES:
+			return false
+		if not state.kernel_sudo is bool:
+			return false
 	if has_extra:
 		var extra: Variant = state.extra_balls
 		var awarded: Variant = state.extra_awarded
