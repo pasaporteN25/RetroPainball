@@ -86,10 +86,6 @@ func _ready() -> void:
 		control.focus_neighbor_bottom = control.focus_next
 		control.focus_neighbor_left = NodePath(".")
 		control.focus_neighbor_right = NodePath(".")
-	_about = ABOUT_SCENE.instantiate()
-	_about.name = "AboutScreen"
-	_about.closed.connect(func() -> void: _about_button.grab_focus())
-	add_child(_about)
 	_apply_theme()
 	_shade.hide()
 
@@ -106,12 +102,6 @@ func is_open() -> bool:
 	return _shade.visible
 
 
-## Abre Acerca de encima de las opciones.
-func open_about() -> void:
-	if _shade.visible:
-		_about.open()
-
-
 func open() -> void:
 	_apply_theme()
 	_refresh()
@@ -123,7 +113,6 @@ func close() -> void:
 	if not _shade.visible:
 		return
 	Settings.save_settings()
-	_about.close()
 	_shade.hide()
 	closed.emit()
 
