@@ -363,10 +363,10 @@ func _draw_floor() -> void:
 
 
 func _draw_title() -> void:
-	_draw_centered("ALICIA", Vector2(336, 204), 34, PAPER)
-	_draw_centered("EN EL PAÍS DE LAS MARAVILLAS", Vector2(336, 224), 11, Color(GOLD, 0.92))
+	_draw_centered("ALICIA", Vector2(336, 190), 30, PAPER)
+	_draw_centered("EN EL PAÍS DE LAS MARAVILLAS", Vector2(336, 207), 10, Color(GOLD, 0.92))
 	for side in [-1.0, 1.0]:
-		var base := Vector2(336 + side * 118, 219.5)
+		var base := Vector2(336 + side * 108, 203.5)
 		draw_line(base, base + Vector2(side * 24, 0), Color(GOLD, 0.5), 1.0, true)
 		draw_colored_polygon(PackedVector2Array([base + Vector2(0, -3), base + Vector2(side * 4, 0), base + Vector2(0, 3),
 			base + Vector2(-side * 4, 0)]), Color(QUEEN, 0.9))

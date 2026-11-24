@@ -109,8 +109,8 @@ func _draw_illustration() -> void:
 
 func _draw_crest() -> void:
 	var heading := "20.000 LEGUAS"
-	var center := Vector2(360, 244)
-	var font_size := 52
+	var center := Vector2(360, 234)
+	var font_size := 46
 	var width := _title_font.get_string_size(heading, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	var baseline := center - Vector2(width * 0.5, 0)
 	draw_string_outline(_title_font, baseline + Vector2(0, 4), heading,
@@ -121,12 +121,12 @@ func _draw_crest() -> void:
 	var tag := "BAJO EL MAR"
 	var font := ThemeDB.fallback_font
 	var tag_width := font.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 19).x
-	var tag_at := Vector2(360 - tag_width * 0.5, 274)
+	var tag_at := Vector2(360 - tag_width * 0.5, 260)
 	draw_string_outline(font, tag_at, tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 19, 5, INK)
 	draw_string(font, tag_at, tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#deece0"))
 	for side in [-1.0, 1.0]:
 		var v := Vector2(side, 0)
-		draw_line(Vector2(360, 267) + v * 81, Vector2(360, 267) + v * 116, GOLD, 1.3, true)
+		draw_line(Vector2(360, 253) + v * 70, Vector2(360, 253) + v * 96, GOLD, 1.3, true)
 
 
 func _draw_hardware() -> void:
