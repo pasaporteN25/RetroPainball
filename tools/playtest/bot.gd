@@ -1,42 +1,65 @@
 extends RefCounted
-## Bot jugador del playtesting (F1a). Juega con las mismas acciones de input que una persona
-## (`flipper_left`, `flipper_right`, `launch`) y, el experto, con el nudge del juego.
+## Bot jugador del playtesting (F1a, puntería en F1). Juega con las mismas acciones de input que una
+## persona (`flipper_left`, `flipper_right`, `launch`) y, el experto, con el nudge del juego.
 ##
 ## Los "niveles" son de habilidad del BOT, no de dificultad del juego (el juego no tiene
 ## dificultades). Lo que cambia entre niveles:
-##  - reacción: el bot ve la bola con ese atraso (en segundos de juego) y, según el nivel,
-##    corrige parte del atraso extrapolando con la velocidad;
-##  - puntería del golpe: error aleatorio del momento en que aprieta el flipper;
-##  - retención: si la bola viene lenta, deja el flipper arriba para atraparla y la suelta
-##    cuando está en el punto de la paleta que eligió.
-## Limitación conocida: el bot no lee las reglas de cada mesa, así que NO apunta a los objetivos
-## encendidos (el plan lo pide para medio y experto). Hoy "apuntar" es elegir en qué punto de la
-## paleta se golpea la bola. Leer el estado de cada mesa queda para una iteración posterior.
+##  - reacción: el bot ve la bola con ese atraso (en segundos de juego) y corrige parte del atraso
+##    extrapolando con la velocidad y la gravedad (`lead`);
+##  - timing: error aleatorio (s) del momento en que aprieta el flipper;
+##  - puntería: con probabilidad `aim_p` elige DÓNDE de la paleta pegarle a una bola lenta para
+##    mandarla a lo que esté encendido (lee las reglas con `aim.gd`), con un error de `aim_error` px;
+##  - atrape: con probabilidad `catch_p` levanta el flipper antes de que llegue la bola, la deja
+##    asentarse en la paleta alzada y recién ahí la suelta para tirar con puntería.
+##
+## Cómo decide cada flipper: por cada bola predice (balística con gravedad) cuándo y en qué punto de
+## la paleta en reposo va a hacer contacto. Si es rápida, aprieta justo antes del contacto (o antes, si
+## decidió atraparla); si es lenta y rueda por la paleta, espera a que llegue al punto elegido.
+
+const Aim := preload("res://tools/playtest/aim.gd")
 
 const SKILLS := ["novato", "medio", "experto", "azar"]
 
 ## Parámetros por nivel. `reaction`: atraso de visión (s). `lead`: fracción del atraso que corrige
-## extrapolando. `aim_error`: desvío (px) del momento del golpe. `catch_p`: probabilidad de retener
-## una bola lenta. `hold`: cuánto queda apretado el flipper en un golpe normal (s).
-## `nudge`: si usa el empujón. `launch_error`: desvío del tiempo de carga del lanzador (s).
+## extrapolando. `timing`: desvío (s) del momento del golpe. `aim_p`: probabilidad de apuntar a un
+## blanco encendido (si no, golpea en un punto cualquiera). `aim_error`: desvío (px) del punto de la
+## paleta elegido. `catch_p`: probabilidad de atrapar una bola rápida. `hold`: cuánto queda apretado el
+## flipper en un golpe normal (s). `nudge`: si usa el empujón. `launch_error`: desvío del tiempo de
+## carga del lanzador (s).
 const PROFILES := {
-	"novato": {"reaction": 0.18, "lead": 0.0, "aim_error": 34.0, "catch_p": 0.0, "hold": 0.22,
-			"nudge": false, "launch_error": 0.35},
-	"medio": {"reaction": 0.11, "lead": 0.6, "aim_error": 16.0, "catch_p": 0.4, "hold": 0.15,
-			"nudge": false, "launch_error": 0.09},
-	"experto": {"reaction": 0.07, "lead": 0.95, "aim_error": 6.0, "catch_p": 0.7, "hold": 0.12,
-			"nudge": true, "launch_error": 0.03},
+	"novato": {"reaction": 0.18, "lead": 0.0, "timing": 0.045, "aim_p": 0.0, "aim_error": 30.0,
+			"catch_p": 0.0, "catch_max": 0.0, "hold": 0.22, "nudge": false, "launch_error": 0.35},
+	"medio": {"reaction": 0.08, "lead": 0.9, "timing": 0.012, "aim_p": 0.7, "aim_error": 12.0,
+			"catch_p": 0.5, "catch_max": 450.0, "hold": 0.15, "nudge": false, "launch_error": 0.09},
+	"experto": {"reaction": 0.05, "lead": 1.0, "timing": 0.006, "aim_p": 0.95, "aim_error": 6.0,
+			"catch_p": 0.6, "catch_max": 450.0, "hold": 0.12, "nudge": true, "nudge_up": 350.0,
+			"nudge_cd": 1.4, "launch_error": 0.03},
 }
 
 const SAMPLE_STEP := 1.0 / 60.0
 const LANE_X := 664.0
 const LANE_Y := 430.0
-## Alto (px) sobre la paleta en que se dispara el flipper, antes del error de puntería.
-const TRIGGER_HEIGHT := 40.0
-const ZONE_HEIGHT := 90.0
+const GRAVITY := 1600.0
+## Altura (px, en vertical) del centro de la bola sobre la línea de la paleta cuando la toca.
+const CONTACT_HEIGHT := 27.0
+## Cuánto antes del contacto (s) se aprieta para pegarle a una bola rápida, antes del error de timing.
+const PRESS_LEAD := 0.035
+## Cuánto antes del contacto (s) se levanta el flipper para atrapar una bola.
+const CATCH_LEAD := 0.14
+const PREDICT_STEP := 1.0 / 120.0
+const PREDICT_HORIZON := 0.7
+## Por debajo de esta velocidad (px/s) la bola "rueda" por la paleta y se espera al punto elegido.
 const SLOW_SPEED := 350.0
-const MAX_CATCH := 0.55
+## Una bola con menos velocidad que esta, sobre la paleta alzada, ya se asentó.
+const SETTLED_SPEED := 230.0
+const SETTLED_TIME := 0.12
+const MAX_CATCH := 1.6
 const NUDGE_COOLDOWN := 3.0
+const AIM_REFRESH := 0.3
+## Calibración medida (bola quieta sobre la paleta izquierda en reposo): distancia al pivote -> ángulo
+## (grados desde la vertical, hacia el centro de la mesa) con que sale la bola al apretar.
+const AIM_ALONG := [10.0, 25.0, 40.0, 55.0, 70.0, 85.0, 100.0]
+const AIM_ANGLE := [0.3, 4.4, 6.9, 11.1, 21.8, 30.5, 47.9]
 
 var skill := "medio"
 
@@ -47,12 +70,14 @@ var _balls: Node
 var _plunger: Node
 ## El autoload GameState (se busca en el árbol: con `-s` no existe como identificador al compilar).
 var _game: Node
-## Cada flipper: {node, action, dir, pivot, length, rest, pressed, release_at, cooldown, jitter, aim}.
+var _aim: Aim
+## Cada flipper: {node, action, dir, pivot, length, rest, pressed, release_at, cooldown, mode, ...}.
 var _flippers: Array[Dictionary] = []
 var _clock := 0.0
 var _sample_clock := 0.0
 ## Fotos de las bolas en juego: {t, balls: [{pos, vel}]}.
 var _history: Array[Dictionary] = []
+var _plan_clock := 0.0
 var _launch_wait := 0.0
 var _launch_time := 0.7
 var _launching := false
@@ -63,11 +88,16 @@ var _nudge_ready_at := 0.0
 
 func _init(new_skill: String, table: Node2D, seed_value: int) -> void:
 	skill = new_skill
-	_profile = PROFILES.get(skill, {})
+	_profile = PROFILES.get(skill, {}).duplicate()
+	# Para afinar niveles sin tocar el código: PLAYTEST_TUNE='{"lead": 0.9}' pisa parámetros del perfil.
+	var tune := OS.get_environment("PLAYTEST_TUNE")
+	if not tune.is_empty() and JSON.parse_string(tune) is Dictionary:
+		_profile.merge(JSON.parse_string(tune), true)
 	_table = table
 	_balls = table.get_node("Balls")
 	_plunger = table.get_node("Plunger")
 	_game = table.get_tree().root.get_node("GameState")
+	_aim = Aim.new(table)
 	_rng.seed = seed_value
 	for node_name in ["LeftFlipper", "RightFlipper"]:
 		var flipper := table.get_node(node_name)
@@ -82,9 +112,17 @@ func _init(new_skill: String, table: Node2D, seed_value: int) -> void:
 			"pressed": false,
 			"release_at": 0.0,
 			"cooldown": 0.0,
+			"mode": "hit",
+			"settle": 0.0,
+			"press_at": 0.0,
 			"jitter": 0.0,
-			"aim": 0.8,
+			"catch_roll": 1.0,
+			"aim_a": 0.0,
+			"aim_at": -1.0,
+			"plan": {},
 		})
+		if skill != "azar":
+			_roll_shot(_flippers[_flippers.size() - 1])
 	_new_launch()
 
 
@@ -112,9 +150,11 @@ func tick(delta: float) -> void:
 	if skill == "azar":
 		_tick_random(delta)
 		return
-	_sample(delta)
+	var fresh := _sample(delta)
 	_tick_launch(delta)
 	var observed := _observed()
+	if fresh:
+		_plan(observed)
 	for f in _flippers:
 		_tick_flipper(f, observed, delta)
 	if _profile.nudge:
@@ -175,10 +215,11 @@ func _tick_launch(delta: float) -> void:
 
 # --- Observación con atraso -----------------------------------------------------------------
 
-func _sample(delta: float) -> void:
+## Toma una foto cada SAMPLE_STEP. Devuelve true si tomó una nueva.
+func _sample(delta: float) -> bool:
 	_sample_clock += delta
 	if _sample_clock < SAMPLE_STEP:
-		return
+		return false
 	_sample_clock -= SAMPLE_STEP
 	var snapshot: Array = []
 	for ball: RigidBody2D in _balls.get_children():
@@ -191,18 +232,56 @@ func _sample(delta: float) -> void:
 	_history.append({"t": _clock, "balls": snapshot})
 	while _history.size() > 1 and _history[1].t < _clock - float(_profile.reaction):
 		_history.pop_front()
+	return true
 
 
-## Lo que el bot "ve" ahora: la foto de hace `reaction` segundos, con la posición extrapolada.
+## Lo que el bot "ve" ahora: la foto de hace `reaction` segundos, con la posición extrapolada (con
+## gravedad) la fracción `lead` del atraso.
 func _observed() -> Array:
 	if _history.is_empty():
 		return []
 	var snap: Dictionary = _history[0]
-	var age := _clock - float(snap.t)
+	var age := (_clock - float(snap.t)) * float(_profile.lead)
 	var result: Array = []
 	for b in snap.balls:
-		result.append({"pos": b.pos + b.vel * age * float(_profile.lead), "vel": b.vel})
+		var vel: Vector2 = b.vel + Vector2(0.0, GRAVITY * age)
+		result.append({"pos": b.pos + b.vel * age + Vector2(0.0, 0.5 * GRAVITY * age * age), "vel": vel})
 	return result
+
+
+# --- Predicción -----------------------------------------------------------------------------------
+
+## Por flipper, la bola que antes va a hacer contacto con la paleta en reposo (`plan`: {t, along, speed}).
+func _plan(observed: Array) -> void:
+	_plan_clock = _clock
+	for f in _flippers:
+		var best := {}
+		for b in observed:
+			var hit := _predict(f, b)
+			if not hit.is_empty() and (best.is_empty() or hit.t < best.t):
+				best = hit
+		f.plan = best
+
+
+## Balística con gravedad hasta tocar la línea de la paleta en reposo dentro de su largo.
+func _predict(f: Dictionary, b: Dictionary) -> Dictionary:
+	var pos: Vector2 = b.pos
+	var vel: Vector2 = b.vel
+	var slope := tan(deg_to_rad(f.rest))
+	var t := 0.0
+	while t <= PREDICT_HORIZON:
+		var rel: Vector2 = pos - f.pivot
+		var along: float = rel.x * f.dir
+		var height: float = along * slope - rel.y
+		if along > -8.0 and along < f.length + 22.0:
+			if height <= CONTACT_HEIGHT and height > -22.0:
+				return {"t": t, "along": along, "speed": vel.length()}
+		elif pos.y > f.pivot.y + 70.0:
+			return {}
+		vel.y += GRAVITY * PREDICT_STEP
+		pos += vel * PREDICT_STEP
+		t += PREDICT_STEP
+	return {}
 
 
 # --- Flippers -------------------------------------------------------------------------------
@@ -217,22 +296,66 @@ func _set_pressed(f: Dictionary, pressed: bool) -> void:
 		Input.action_release(f.action)
 
 
-## Mejor bola para este flipper: la más baja dentro de su zona de golpe.
-## `along` es la distancia sobre la paleta (0 = pivote) y `height`, lo que está sobre su superficie en reposo.
-func _target(f: Dictionary, observed: Array) -> Dictionary:
-	var best := {}
+## Sortea lo que el bot piensa hacer con la próxima bola de este flipper: a qué punto de la paleta
+## pegarle, si la atrapa y cuánto se equivoca en el timing.
+func _roll_shot(f: Dictionary) -> void:
+	f.jitter = _rng.randfn(0.0, float(_profile.timing))
+	f.catch_roll = _rng.randf()
+	f.aim_a = _pick_aim(f)
+	f.aim_at = _clock + AIM_REFRESH
+
+
+## Ángulo (grados) de salida para una bola que se golpea a `along` px del pivote (interpolado).
+func _angle_at(along: float) -> float:
+	if along <= AIM_ALONG[0]:
+		return AIM_ANGLE[0]
+	for i in range(1, AIM_ALONG.size()):
+		if along <= AIM_ALONG[i]:
+			var k: float = (along - AIM_ALONG[i - 1]) / (AIM_ALONG[i] - AIM_ALONG[i - 1])
+			return lerpf(AIM_ANGLE[i - 1], AIM_ANGLE[i], k)
+	return AIM_ANGLE[AIM_ANGLE.size() - 1]
+
+
+## Punto de la paleta (px desde el pivote) donde conviene pegarle a una bola lenta: el que mejor
+## manda la bola a los blancos encendidos. Los niveles bajos a veces no apuntan a nada.
+func _pick_aim(f: Dictionary) -> float:
+	var length: float = f.length
+	var max_a := length - 8.0
+	if _rng.randf() >= float(_profile.aim_p):
+		return _rng.randf_range(0.45, 0.95) * length
+	var targets := _aim.wanted()
+	var best_a := 0.6 * length
+	var best_score := -1.0
+	var a := 12.0
+	while a <= max_a:
+		var angle := deg_to_rad(_angle_at(a))
+		var x0: float = f.pivot.x + f.dir * a * cos(deg_to_rad(f.rest))
+		var y0: float = f.pivot.y + a * sin(deg_to_rad(f.rest))
+		var score := 0.0
+		for t in targets:
+			var dy: float = y0 - t.pos.y
+			if dy < 60.0:
+				continue
+			var x_at: float = x0 + f.dir * tan(angle) * dy
+			var miss: float = (x_at - t.pos.x) / 42.0
+			score += float(t.w) * exp(-miss * miss)
+		if score > best_score:
+			best_score = score
+			best_a = a
+		a += 3.0
+	return clampf(best_a + _rng.randfn(0.0, float(_profile.aim_error)), 14.0, max_a)
+
+
+## ¿Hay una bola casi quieta apoyada en la paleta alzada?
+func _settled(f: Dictionary, observed: Array) -> bool:
+	var slope := tan(f.node.rotation * f.dir)
 	for b in observed:
 		var rel: Vector2 = b.pos - f.pivot
 		var along: float = rel.x * f.dir
-		var surface := along * tan(deg_to_rad(f.rest))
-		var height := surface - rel.y
-		if along < -12.0 or along > f.length + 25.0 or height < -10.0 or height > ZONE_HEIGHT:
-			continue
-		if b.vel.y < -250.0:
-			continue  # sube rápido: todavía no baja a los flippers
-		if best.is_empty() or height < best.height:
-			best = {"along": along, "height": height, "speed": b.vel.length()}
-	return best
+		var height: float = along * slope - rel.y
+		if along > -5.0 and along < f.length and height > -6.0 and height < 48.0 and b.vel.length() < SETTLED_SPEED:
+			return true
+	return false
 
 
 func _tick_flipper(f: Dictionary, observed: Array, delta: float) -> void:
@@ -240,29 +363,50 @@ func _tick_flipper(f: Dictionary, observed: Array, delta: float) -> void:
 	if _game.tilted:
 		_set_pressed(f, false)
 		return
+	if _clock >= f.aim_at:
+		f.aim_a = _pick_aim(f)
+		f.aim_at = _clock + AIM_REFRESH
 	if f.pressed:
-		if _clock >= f.release_at:
-			_set_pressed(f, false)
-			f.cooldown = 0.05
-			f.jitter = _rng.randfn(0.0, float(_profile.aim_error))
-			f.aim = _rng.randf_range(0.55, 0.95)
+		if f.mode == "catch":
+			f.settle = f.settle + delta if _settled(f, observed) else 0.0
+			if f.settle < SETTLED_TIME and _clock < f.press_at + MAX_CATCH:
+				return
+		elif _clock < f.release_at:
+			return
+		_set_pressed(f, false)
+		f.cooldown = 0.05
+		f.mode = "hit"
+		f.settle = 0.0
+		_roll_shot(f)
 		return
-	if f.cooldown > 0.0:
+	if f.cooldown > 0.0 or f.plan.is_empty():
 		return
-	var target := _target(f, observed)
-	if target.is_empty():
+	var plan: Dictionary = f.plan
+	var ttc: float = float(plan.t) - (_clock - _plan_clock)
+	var slow: bool = plan.speed < SLOW_SPEED
+	if slow and skill != "novato":
+		# Bola que rueda por la paleta: se espera al punto elegido (o al final, que se va).
+		var lead_along: float = float(plan.speed) * PRESS_LEAD
+		if plan.along + lead_along < minf(f.aim_a, f.length - 10.0):
+			return
+		if ttc > PRESS_LEAD:
+			return
+		_press(f, "hit", float(_profile.hold))
 		return
-	var slow: bool = target.speed < SLOW_SPEED
-	# Una bola lenta que rueda por la paleta se espera hasta el punto elegido; una rápida, se golpea ya.
-	if slow and skill != "novato" and target.along < f.length * f.aim and target.along < f.length - 12.0:
+	if f.catch_roll < float(_profile.catch_p) and not slow and plan.speed < float(_profile.get("catch_max", 600.0)):
+		if ttc <= CATCH_LEAD:
+			_press(f, "catch", MAX_CATCH)
 		return
-	if target.height > TRIGGER_HEIGHT + f.jitter:
-		return
-	var hold: float = _profile.hold
-	if slow and _rng.randf() < float(_profile.catch_p):
-		hold = _rng.randf_range(0.3, MAX_CATCH)
+	if ttc <= PRESS_LEAD + f.jitter:
+		_press(f, "hit", float(_profile.hold))
+
+
+func _press(f: Dictionary, mode: String, hold: float) -> void:
 	_set_pressed(f, true)
+	f.mode = mode
+	f.press_at = _clock
 	f.release_at = _clock + hold
+	f.settle = 0.0
 
 
 # --- Nudge (solo experto) -------------------------------------------------------------------
@@ -276,8 +420,8 @@ func _tick_nudge(observed: Array) -> void:
 	var right_x: float = _flippers[1].pivot.x
 	for b in observed:
 		var outside: bool = b.pos.x < left_x - 20.0 or b.pos.x > right_x + 20.0
-		if b.pos.y > pivot_y - 10.0 and outside and b.vel.y > 0.0:
-			_nudge_ready_at = _clock + NUDGE_COOLDOWN
+		if b.pos.y > pivot_y - float(_profile.get("nudge_up", 10.0)) and outside and b.vel.y > 0.0:
+			_nudge_ready_at = _clock + float(_profile.get("nudge_cd", NUDGE_COOLDOWN))
 			var side := 1.0 if b.pos.x < left_x else -1.0
 			_game.nudge(Vector2(side * 0.5, -1.0))
 			return
