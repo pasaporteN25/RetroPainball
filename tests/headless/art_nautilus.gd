@@ -21,7 +21,7 @@ func _run() -> void:
 	var art = table.get_node("PlayfieldArt")
 	var layout: Dictionary = art.get_script().get_script_constant_map()
 	var wall: Node2D = table.get_node("OuterWall")
-	var heading := TitleLayout.text_bounds(art._title_font, layout.TITLE, layout.TITLE_AT, layout.TITLE_SIZE, 11.0, 4.0)
+	var heading := TitleLayout.text_bounds(art._title_font, layout.TITLE, layout.TITLE_AT, art.title_size(), 11.0, 4.0)
 	var subtitle := TitleLayout.text_bounds(ThemeDB.fallback_font, layout.SUBTITLE, layout.SUBTITLE_AT, layout.SUBTITLE_SIZE, 5.0)
 	_check(TitleLayout.title_fits(art, wall, heading) and TitleLayout.title_fits(art, wall, subtitle),
 		"el título y el subtítulo entran en pantalla vertical por dentro del arco")

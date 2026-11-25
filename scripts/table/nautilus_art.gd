@@ -16,6 +16,7 @@ const SAVE := Rect2(264, 1335, 144, 47)
 const TITLE := "20.000 LEGUAS"
 const TITLE_AT := Vector2(360, 289)
 const TITLE_SIZE := 49
+const TITLE_MAX_WIDTH := 410.0
 const SUBTITLE := "BAJO EL MAR"
 const SUBTITLE_AT := TITLE_AT + Vector2(0, 31)
 const SUBTITLE_SIZE := 20
@@ -113,14 +114,23 @@ func _draw_illustration() -> void:
 		draw_polygon(field, PackedColorArray([shade]), uv, illustration)
 
 
+## Tamaño del título: se achica si la fuente del sistema es más ancha que TITLE_MAX_WIDTH (DejaVu Serif en Windows).
+func title_size() -> int:
+	var natural := _title_font.get_string_size(TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE).x
+	if natural <= TITLE_MAX_WIDTH:
+		return TITLE_SIZE
+	return int(floor(TITLE_SIZE * TITLE_MAX_WIDTH / natural))
+
+
 func _draw_crest() -> void:
-	var width := _title_font.get_string_size(TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE).x
+	var size := title_size()
+	var width := _title_font.get_string_size(TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var baseline := TITLE_AT - Vector2(width * 0.5, 0)
 	draw_string_outline(_title_font, baseline + Vector2(0, 4), TITLE,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, 11, Color("#092128"))
+		HORIZONTAL_ALIGNMENT_LEFT, -1, size, 11, Color("#092128"))
 	draw_string_outline(_title_font, baseline, TITLE,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, 4, Color("#2b271e"))
-	draw_string(_title_font, baseline, TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, GOLD)
+		HORIZONTAL_ALIGNMENT_LEFT, -1, size, 4, Color("#2b271e"))
+	draw_string(_title_font, baseline, TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, size, GOLD)
 	var font := ThemeDB.fallback_font
 	var tag_width := font.get_string_size(SUBTITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, SUBTITLE_SIZE).x
 	var tag_at := SUBTITLE_AT - Vector2(tag_width * 0.5, 0)
