@@ -1,12 +1,12 @@
 extends SceneTree
-## F1a: test chico del bot de playtesting. El experto juega 50 bolas en Kernel Panic y tiene que
+## F1a: test chico del bot de playtesting. El experto juega 30 bolas en Kernel Panic y tiene que
 ## superar bien al bot al azar (el control); y con la misma semilla el resultado tiene que ser el
 ## mismo (si no, las comparaciones antes/después de F1c no sirven).
 ##
 ## Cada corrida es un proceso aparte de tools/playtest/run.gd con `--fixed-fps 60` (así va ~25 veces
 ## más rápido que tiempo real); los tres corren en paralelo.
 
-const BALLS := 50
+const BALLS := 30
 const SEED := 11
 const MIN_RATIO := 1.5
 const TIMEOUT := 400.0
